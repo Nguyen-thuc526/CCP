@@ -1,0 +1,19 @@
+import type React from "react"
+import { AdminSidebar } from "@/components/admin/admin-sidebar"
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <AdminSidebar />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <DashboardHeader role="admin" />
+        <main className="flex-1 overflow-auto p-6">{children}</main>
+      </div>
+    </div>
+  )
+}
