@@ -30,6 +30,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Role } from "@/utils/enum";
 
 import { storage } from "@/utils/storage";
+import { RootState } from "@/store/store";
 import { logout } from "@/store/slices/authReducer";
 
 interface SidebarLink {
@@ -45,28 +46,85 @@ export function Sidebar() {
   const role = useSelector((state: RootState) => state.auth.role);
 
   const adminLinks: SidebarLink[] = [
-    { href: "/admin/dashboard", icon: <LayoutDashboard className="h-5 w-5" />, title: "Tổng quan" },
-    { href: "/admin/surveys", icon: <ClipboardList className="h-5 w-5" />, title: "Khảo sát" },
-    { href: "/admin/plans", icon: <Package className="h-5 w-5" />, title: "Gói đăng ký" },
-    { href: "/admin/users", icon: <Shield className="h-5 w-5" />, title: "Quản lý người dùng" },
-    { href: "/admin/user-reports", icon: <Flag className="h-5 w-5" />, title: "Báo cáo người dùng" },
-    { href: "/admin/managecourse", icon: <BookOpen className="h-5 w-5" />, title: "Quản lý khóa học" },
-    { href: "/admin/blog", icon: <FileText className="h-5 w-5" />, title: "Blog & Tin tức" },
-    { href: "/admin/reports", icon: <BarChart3 className="h-5 w-5" />, title: "Báo cáo" },
+    {
+      href: "/admin/dashboard",
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      title: "Tổng quan",
+    },
+    {
+      href: "/admin/surveys",
+      icon: <ClipboardList className="h-5 w-5" />,
+      title: "Khảo sát",
+    },
+    {
+      href: "/admin/plans",
+      icon: <Package className="h-5 w-5" />,
+      title: "Gói đăng ký",
+    },
+    {
+      href: "/admin/users",
+      icon: <Shield className="h-5 w-5" />,
+      title: "Quản lý người dùng",
+    },
+    {
+      href: "/admin/user-reports",
+      icon: <Flag className="h-5 w-5" />,
+      title: "Báo cáo người dùng",
+    },
+    {
+      href: "/admin/managecourse",
+      icon: <BookOpen className="h-5 w-5" />,
+      title: "Quản lý khóa học",
+    },
+    {
+      href: "/admin/blog",
+      icon: <FileText className="h-5 w-5" />,
+      title: "Blog & Tin tức",
+    },
+    {
+      href: "/admin/reports",
+      icon: <BarChart3 className="h-5 w-5" />,
+      title: "Báo cáo",
+    },
   ];
 
   const counselorLinks: SidebarLink[] = [
-    { href: "/counselor/dashboard", icon: <LayoutDashboard className="h-5 w-5" />, title: "Tổng quan" },
-    { href: "/counselor/profile", icon: <UserCircle className="h-5 w-5" />, title: "Hồ sơ của tôi" },
-    { href: "/counselor/appointments", icon: <Calendar className="h-5 w-5" />, title: "Lịch hẹn tư vấn" },
-    { href: "/counselor/consultations", icon: <MessageSquare className="h-5 w-5" />, title: "Hồ sơ tư vấn" },
-    { href: "/counselor/wallet", icon: <Wallet className="h-5 w-5" />, title: "Quản lý ví" },
-    { href: "/counselor/payments", icon: <CreditCard className="h-5 w-5" />, title: "Chính sách thanh toán" },
+    {
+      href: "/counselor/dashboard",
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      title: "Tổng quan",
+    },
+    {
+      href: "/counselor/profile",
+      icon: <UserCircle className="h-5 w-5" />,
+      title: "Hồ sơ của tôi",
+    },
+    {
+      href: "/counselor/appointments",
+      icon: <Calendar className="h-5 w-5" />,
+      title: "Lịch hẹn tư vấn",
+    },
+    {
+      href: "/counselor/consultations",
+      icon: <MessageSquare className="h-5 w-5" />,
+      title: "Hồ sơ tư vấn",
+    },
+    {
+      href: "/counselor/wallet",
+      icon: <Wallet className="h-5 w-5" />,
+      title: "Quản lý ví",
+    },
+    {
+      href: "/counselor/payments",
+      icon: <CreditCard className="h-5 w-5" />,
+      title: "Chính sách thanh toán",
+    },
   ];
 
   const links = role === Role.Admin ? adminLinks : counselorLinks;
   const title = role === Role.Admin ? "CCP Admin" : "CCP Tư vấn viên";
-  const dashboardLink = role === Role.Admin ? "/admin/dashboard" : "/counselor/dashboard";
+  const dashboardLink =
+    role === Role.Admin ? "/admin/dashboard" : "/counselor/dashboard";
 
   const handleLogout = () => {
     storage.removeToken(); // Xóa token khỏi localStorage
@@ -77,7 +135,7 @@ export function Sidebar() {
     <div
       className={cn(
         "h-screen sticky top-0 flex flex-col border-r bg-white dark:bg-gray-950 transition-all duration-300",
-        collapsed ? "w-20" : "w-64",
+        collapsed ? "w-20" : "w-64"
       )}
     >
       <Button
@@ -86,12 +144,24 @@ export function Sidebar() {
         className="absolute -right-3 top-20 z-10 h-6 w-6 rounded-full border bg-background"
         onClick={() => setCollapsed(!collapsed)}
       >
-        {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+        {collapsed ? (
+          <ChevronRight className="h-3 w-3" />
+        ) : (
+          <ChevronLeft className="h-3 w-3" />
+        )}
       </Button>
-      <div className={cn("flex h-14 items-center border-b px-4", collapsed ? "justify-center" : "")}>
+      <div
+        className={cn(
+          "flex h-14 items-center border-b px-4",
+          collapsed ? "justify-center" : ""
+        )}
+      >
         <Link
           href={dashboardLink}
-          className={cn("flex items-center gap-2 font-semibold", collapsed ? "justify-center" : "")}
+          className={cn(
+            "flex items-center gap-2 font-semibold",
+            collapsed ? "justify-center" : ""
+          )}
         >
           <Heart className="h-6 w-6 text-rose-500" />
           {!collapsed && <span className="text-lg">{title}</span>}
@@ -108,7 +178,7 @@ export function Sidebar() {
                 collapsed ? "justify-center" : "",
                 pathname === link.href
                   ? "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50"
-                  : "text-gray-500 dark:text-gray-400",
+                  : "text-gray-500 dark:text-gray-400"
               )}
               title={collapsed ? link.title : undefined}
             >
@@ -121,11 +191,16 @@ export function Sidebar() {
       <div className="border-t p-4">
         <Button
           variant="outline"
-          className={cn("w-full", collapsed ? "justify-center" : "justify-start")}
+          className={cn(
+            "w-full",
+            collapsed ? "justify-center" : "justify-start"
+          )}
           onClick={handleLogout}
         >
-          <LogOut className={cn("h-4 w-4", collapsed ? "" : "mr-2")} />
-          {!collapsed && <span>Đăng xuất</span>}
+          <Link href="/login">
+            <LogOut className={cn("h-4 w-4", collapsed ? "" : "mr-2")} />
+            {!collapsed && <span>Đăng xuất</span>}
+          </Link>
         </Button>
       </div>
     </div>

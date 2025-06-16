@@ -49,6 +49,7 @@
     "embla-carousel-react": "8.5.1",
     "formik": "^2.4.6",
     "input-otp": "1.4.1",
+    "jwt-decode": "^4.0.0",
     "livekit-client": "latest",
     "livekit-server-sdk": "latest",
     "lucide-react": "^0.454.0",

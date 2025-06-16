@@ -1,8 +1,4 @@
-// types/auth.ts
-export enum Role {
-  Admin = "admin",
-  Counselor = "counselor",
-}
+import { Role } from "./user";
 
 export enum FormType {
   AdminLogin = "admin",
@@ -22,8 +18,8 @@ export interface RegisterFormData {
   confirmPassword: string;
 }
 
-export interface User {
-  id: number;
+export interface AuthUser {
+  id: string;
   email: string;
   role: Role;
   fullName?: string;
