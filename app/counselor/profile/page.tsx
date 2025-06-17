@@ -1,4 +1,4 @@
-import { CounselorProfileForm } from "@/components/counselor/counselor-profile-form"
+import { CounselorProfileForm } from "@/components/counselor/profile/CounselorProfileForm"
 
 export default function CounselorProfilePage() {
   return (

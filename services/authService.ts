@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import { LoginFormData } from '@/lib/validationSchemas';
+import { LoginFormData, RegisterFormData } from '@/lib/validationSchemas';
 import { getRoleFromToken } from '../utils/tokenUtils';
 import { Role } from '@/utils/enum';
 
@@ -29,7 +29,7 @@ export const authService = {
     }
     return { token, role };
   },
-  async register(data: any) {
+  async register(data: RegisterFormData) {
     const response = await axiosInstance.post('api/Account/register-counselor', data);
     return response.data;
   },

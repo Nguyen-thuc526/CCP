@@ -1,10 +1,3 @@
-import { Role } from "./user";
-
-export enum FormType {
-  AdminLogin = "admin",
-  CounselorLogin = "counselor",
-  Register = "register",
-}
 
 export interface LoginFormData {
   email: string;
@@ -18,9 +11,3 @@ export interface RegisterFormData {
   confirmPassword: string;
 }
 
-export interface AuthUser {
-  id: string;
-  email: string;
-  role: Role;
-  fullName?: string;
-}

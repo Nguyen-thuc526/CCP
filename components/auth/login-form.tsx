@@ -60,7 +60,6 @@ export function LoginForm() {
 
       setSubmitting(false);
     } catch (error: any) {
-      console.error("Login error:", error.message, error);
       let errorMessage = "Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.";
       if (error.message === "Invalid role in token") {
         errorMessage = "Vai trò không hợp lệ.";

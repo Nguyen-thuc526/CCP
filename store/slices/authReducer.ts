@@ -3,21 +3,31 @@ import { Role } from '@/utils/enum';
 import { storage } from '@/utils/storage';
 import { getRoleFromToken } from '@/utils/tokenUtils';
 
+// Hàm lấy token an toàn (chỉ chạy ở client-side)
+const getInitialState = () => {
+  if (typeof window !== 'undefined') {
+    const token = storage.getToken();
+    const role = token ? getRoleFromToken(token) : null;
+    return {
+      token: token || null,
+      role: role || null,
+      isAuthenticated: !!token && !!role,
+    };
+  }
+  return {
+    token: null,
+    role: null,
+    isAuthenticated: false,
+  };
+};
 
-const token = storage.getToken();
-const role = token ? getRoleFromToken(token) : null;
+const initialState = getInitialState();
 
 interface AuthState {
   token: string | null;
   role: Role | null;
   isAuthenticated: boolean;
 }
-
-const initialState: AuthState = {
-  token: token || null,
-  role: role || null,
-  isAuthenticated: !!token && !!role,
-};
 
 const authSlice = createSlice({
   name: 'auth',
