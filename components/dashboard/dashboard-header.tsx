@@ -1,54 +1,61 @@
-"use client"
-import { useRouter } from "next/navigation"
-import { Bell, Home, Menu, Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
-import { CounselorSidebar } from "@/components/counselor/counselor-sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import Link from "next/link"
+"use client";
+import { useRouter, usePathname } from "next/navigation";
+import { Bell, Home, Menu, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+} from "@/components/ui/breadcrumb";
+import { useSelector } from "react-redux";
 
-interface DashboardHeaderProps {
-  role: "admin" | "counselor"
-}
+import { Role } from "@/utils/enum";
 
-export function DashboardHeader({ role }: DashboardHeaderProps) {
-  const { setTheme, theme } = useTheme()
-  const router = useRouter()
+import { RootState } from "@/store/store";
+import { Sidebar } from "../sidebar/Sidebar";
 
-  // Thông tin người dùng giả định dựa trên vai trò
+export function DashboardHeader() {
+  const { setTheme, theme } = useTheme();
+  const router = useRouter();
+  const pathname = usePathname();
+  const role = useSelector((state: RootState) => state.auth.role);
+
+  // Thông tin người dùng giả định (có thể thay bằng dữ liệu từ Redux)
   const userInfo = {
-    admin: {
+    [Role.Admin]: {
       name: "Admin",
       avatar: "/placeholder.svg?height=32&width=32",
       initials: "AD",
       role: "Quản trị viên",
     },
-    counselor: {
+    [Role.Counselor]: {
       name: "TS. Trần Văn C",
       avatar: "/placeholder.svg?height=32&width=32",
       initials: "TC",
       role: "Chuyên viên tư vấn",
     },
-  }
+  };
 
-  const currentUser = userInfo[role]
+  const currentUser = role ? userInfo[role] : userInfo[Role.Counselor]; // Fallback to Counselor if role is null
 
   const handleNotificationClick = () => {
-    router.push(`/${role}/notifications`)
-  }
+    router.push(`/${role === Role.Admin ? "admin" : "counselor"}/notifications`);
+  };
 
   const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light")
-  }
+    setTheme(theme === "light" ? "dark" : "light");
+  };
+
+  // Lấy tên trang hiện tại cho Breadcrumb
+  const currentPage = pathname.split("/").pop() || "dashboard";
+  const formattedPage = currentPage.charAt(0).toUpperCase() + currentPage.slice(1);
 
   return (
     <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-4 border-b bg-white px-4 dark:bg-gray-950 lg:h-[60px] lg:px-6">
@@ -61,7 +68,7 @@ export function DashboardHeader({ role }: DashboardHeaderProps) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="lg:hidden">
-            {role === "admin" ? <AdminSidebar /> : <CounselorSidebar />}
+            <Sidebar />
           </SheetContent>
         </Sheet>
 
@@ -69,7 +76,10 @@ export function DashboardHeader({ role }: DashboardHeaderProps) {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href={`/${role}/dashboard`} className="flex items-center">
+                <Link
+                  href={`/${role === Role.Admin ? "admin" : "counselor"}/dashboard`}
+                  className="flex items-center"
+                >
                   <Home className="h-4 w-4 mr-1" />
                   <span className="font-medium">Trang chủ</span>
                 </Link>
@@ -78,7 +88,7 @@ export function DashboardHeader({ role }: DashboardHeaderProps) {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink className="font-medium capitalize">
-                {router.pathname?.split("/").pop() || "Thông báo"}
+                {formattedPage}
               </BreadcrumbLink>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -110,5 +120,5 @@ export function DashboardHeader({ role }: DashboardHeaderProps) {
         </div>
       </div>
     </header>
-  )
+  );
 }
