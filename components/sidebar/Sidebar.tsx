@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ClipboardList,
   CreditCard,
+  FilePlus,
   FileText,
   Flag,
   Heart,
@@ -118,6 +119,11 @@ export function Sidebar() {
       href: "/counselor/payments",
       icon: <CreditCard className="h-5 w-5" />,
       title: "Chính sách thanh toán",
+    },
+      {
+      href: "/counselor/certificates",
+      icon: <FilePlus  className="h-5 w-5" />,
+      title: "Nộp chứng chỉ",
     },
   ];
 
