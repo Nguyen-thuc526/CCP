@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BadgeCheck,
   BarChart3,
   BookOpen,
   Calendar,
@@ -14,6 +15,7 @@ import {
   FilePlus,
   FileText,
   Flag,
+  Folder,
   Heart,
   LayoutDashboard,
   LogOut,
@@ -87,6 +89,16 @@ export function Sidebar() {
       icon: <BarChart3 className="h-5 w-5" />,
       title: "Báo cáo",
     },
+    {
+      href: "/admin/categories",
+      icon: <Folder className="h-5 w-5" />,
+      title: "Quản lý Category",
+    },
+    {
+      href: "/admin/certificate-management",
+      icon: <BadgeCheck className="h-5 w-5" />,
+      title: "Quản lý chứng chỉ",
+    },
   ];
 
   const counselorLinks: SidebarLink[] = [
@@ -120,11 +132,12 @@ export function Sidebar() {
       icon: <CreditCard className="h-5 w-5" />,
       title: "Chính sách thanh toán",
     },
-      {
+    {
       href: "/counselor/certificates",
-      icon: <FilePlus  className="h-5 w-5" />,
+      icon: <FilePlus className="h-5 w-5" />,
       title: "Nộp chứng chỉ",
     },
+
   ];
 
   const links = role === Role.Admin ? adminLinks : counselorLinks;
