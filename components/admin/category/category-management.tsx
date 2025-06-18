@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { getCategoryData } from '@/services/categoryService'
-import { Category as CategoryEnum } from '@/utils/enum' // assuming enum is here
 import { Category } from '@/types/category'
+
 import CategoryStats from './category-stats'
 import CategoryFilters from './category-filters'
 import CategoryList from './category-list'
@@ -16,39 +16,49 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import CreateCategoryForm from '@/components/admin/category/create-category-form'
+import { useErrorLoadingWithUI } from '@/hooks/useErrorLoading'
+
 export default function CategoryManagement() {
   const [categories, setCategories] = useState<Category[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<number>(-1) // -1 = all
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<number>(-1)
   const [dialogOpen, setDialogOpen] = useState(false)
+
+  const {
+    loading,
+    error,
+    startLoading,
+    stopLoading,
+    setErrorMessage,
+    renderStatus,
+  } = useErrorLoadingWithUI()
+
+  const fetchCategories = () => {
+    startLoading()
+    getCategoryData()
+      .then(setCategories)
+      .catch((err) => {
+        console.error(err)
+        setErrorMessage('Không thể tải danh mục')
+      })
+      .finally(stopLoading)
+  }
+
+  useEffect(() => {
+    fetchCategories()
+  }, [])
 
   useEffect(() => {
     if (dialogOpen) {
-      getCategoryData().then(setCategories)
+      fetchCategories()
     }
   }, [dialogOpen])
+
   const filteredCategories = categories.filter((category) => {
     const matchesSearch = category.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === -1 || category.status === statusFilter
     return matchesSearch && matchesStatus
   })
-
-  useEffect(() => {
-    getCategoryData()
-      .then((data) => {
-        setCategories(data)
-        setError(null)
-      })
-      .catch((err) => {
-        setError('Không thể tải danh mục')
-        console.error(err)
-      })
-      .finally(() => {
-        setIsLoading(false)
-      })
-  }, [])
 
   return (
     <div className="space-y-6">
@@ -64,21 +74,16 @@ export default function CategoryManagement() {
             </DialogHeader>
             <CreateCategoryForm
               categories={categories}
-              onCreated={() => {
-                getCategoryData().then(setCategories)
-              }}
+              onCreated={fetchCategories}
               onClose={() => setDialogOpen(false)}
             />
           </DialogContent>
         </Dialog>
-
       </div>
 
-      {error && <div className="text-red-500">{error}</div>}
+      {renderStatus({ onRetry: fetchCategories })}
 
-      {isLoading ? (
-        <div className="text-center">Đang tải...</div>
-      ) : (
+      {!loading && !error && (
         <>
           <CategoryStats categories={filteredCategories} />
 
@@ -89,9 +94,7 @@ export default function CategoryManagement() {
             setStatusFilter={setStatusFilter}
           />
 
-          <CategoryList
-            categories={filteredCategories}
-          />
+          <CategoryList categories={filteredCategories} />
         </>
       )}
     </div>
