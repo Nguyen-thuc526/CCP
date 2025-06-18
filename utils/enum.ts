@@ -3,9 +3,8 @@ export enum Role {
   Counselor = 2,
 }
 
-export enum Status {
-  Active = 0,
-  Inactive = 1,
-  Suspended = 2,
-  Pending = 3,
+export enum CertificateStatus {
+  Pending = 0,
+  Active = 1,
+  NeedEdit = 2,
 }

@@ -2,15 +2,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-
-import { workScheduleService } from "@/services/workScheduleService"
-import type { WorkSchedule } from "@/types/workSchedule"
-import { useToast, ToastType } from "@/hooks/useToast"
 import { CalendarGrid } from "./calendar-grid"
 import { SlotList } from "./slot-list"
 import { SlotDialog } from "./slot-dialog"
-import { SettingsDialog } from "./setting-dialog"
+
 import { SlotDetailDialog } from "./slot-detail-dialog"
+import { workScheduleService } from "@/services/workScheduleService"
+import type { WorkSchedule } from "@/types/workSchedule"
+import { useToast, ToastType } from "@/hooks/useToast"
+import { SettingsDialog } from "./setting-dialog"
 
 interface ScheduleSettings {
   defaultDuration: number
@@ -54,9 +54,9 @@ export function ScheduleCalendar() {
     }
   }
 
-  const removeTimeSlot = (slotId: string) => {
-    setTimeSlots(timeSlots.filter((slot) => slot.id !== slotId))
-  }
+  const deleteWorkSchedule = async (scheduleId: string) => {
+    await workScheduleService.deleteWorkSchedule(scheduleId);
+  };
 
   return (
     <div className="space-y-6">
@@ -73,7 +73,8 @@ export function ScheduleCalendar() {
       <SlotList
         selectedDate={selectedDate}
         timeSlots={timeSlots}
-        removeTimeSlot={removeTimeSlot}
+        deleteWorkSchedule={deleteWorkSchedule}
+        setTimeSlots={setTimeSlots}
         setShowSlotDialog={setShowSlotDialog}
       />
       <SlotDialog
@@ -93,6 +94,7 @@ export function ScheduleCalendar() {
         onOpenChange={setShowSlotDetailDialog}
         selectedSlotDetail={selectedSlotDetail}
         setTimeSlots={setTimeSlots}
+        deleteWorkSchedule={deleteWorkSchedule}
       />
     </div>
   )

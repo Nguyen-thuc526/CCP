@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -20,6 +19,7 @@ interface SlotDetailDialogProps {
   onOpenChange: (open: boolean) => void
   selectedSlotDetail: WorkSchedule | null
   setTimeSlots: (slots: WorkSchedule[]) => void
+  deleteWorkSchedule: (scheduleId: string) => Promise<void>
 }
 
 const HOUR_OPTIONS = Array.from({ length: 18 }, (_, i) => {
@@ -32,6 +32,7 @@ export function SlotDetailDialog({
   onOpenChange,
   selectedSlotDetail,
   setTimeSlots,
+  deleteWorkSchedule,
 }: SlotDetailDialogProps) {
   const [isEditing, setIsEditing] = useState(false)
   const { showToast } = useToast()
@@ -102,11 +103,17 @@ export function SlotDetailDialog({
     }
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!selectedSlotDetail) return
-    setTimeSlots((prev) => prev.filter((slot) => slot.id !== selectedSlotDetail.id))
-    showToast("Xóa lịch thành công!", ToastType.Success)
-    onOpenChange(false)
+    try {
+      await deleteWorkSchedule(selectedSlotDetail.id)
+      setTimeSlots((prev) => prev.filter((slot) => slot.id !== selectedSlotDetail.id))
+      showToast("Xóa lịch thành công!", ToastType.Success)
+      onOpenChange(false)
+    } catch (error: any) {
+      console.error("Error deleting schedule:", error.message)
+      showToast("Xóa lịch thất bại.", ToastType.Error)
+    }
   }
 
   return (
@@ -117,7 +124,7 @@ export function SlotDetailDialog({
         if (!open) setIsEditing(false)
       }}
     >
-      <DialogContent className="max-w-2xl">
+      <DialogContent aria-describedby="slot-detail-description" className="max-w-2xl">
         <DialogHeader className="pb-4">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl font-semibold flex items-center gap-2">
@@ -132,6 +139,9 @@ export function SlotDetailDialog({
             )}
           </div>
         </DialogHeader>
+        <p id="slot-detail-description" className="sr-only">
+          {isEditing ? "Form để chỉnh sửa chi tiết lịch rảnh" : "Chi tiết thông tin lịch rảnh"}
+        </p>
 
         {selectedSlotDetail && (
           <div className="space-y-6">

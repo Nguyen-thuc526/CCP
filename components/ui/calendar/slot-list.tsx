@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -7,15 +6,19 @@ import { Badge } from "@/components/ui/badge"
 import { Clock, Plus, X } from "lucide-react"
 import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import type { WorkSchedule } from "@/types/workSchedule"
+import { useToast, ToastType } from "@/hooks/useToast"
 
 interface SlotListProps {
   selectedDate: Date
   timeSlots: WorkSchedule[]
-  removeTimeSlot: (slotId: string) => void
+  deleteWorkSchedule: (scheduleId: string) => Promise<void>
+  setTimeSlots: (slots: WorkSchedule[]) => void
   setShowSlotDialog: (show: boolean) => void
 }
 
-export function SlotList({ selectedDate, timeSlots, removeTimeSlot, setShowSlotDialog }: SlotListProps) {
+export function SlotList({ selectedDate, timeSlots, deleteWorkSchedule, setTimeSlots, setShowSlotDialog }: SlotListProps) {
+  const { showToast } = useToast()
+
   const getSlotsForDate = (date: Date) => {
     const yyyyMMdd = date.toISOString().split("T")[0]
     const dayOfWeek = date.getDay()
@@ -32,6 +35,17 @@ export function SlotList({ selectedDate, timeSlots, removeTimeSlot, setShowSlotD
     const date = new Date(timeString)
     const hours = date.getHours()
     return `${hours}h`
+  }
+
+  const handleDelete = async (scheduleId: string) => {
+    try {
+      await deleteWorkSchedule(scheduleId)
+      setTimeSlots(timeSlots.filter((slot) => slot.id !== scheduleId))
+      showToast("Xóa lịch thành công!", ToastType.Success)
+    } catch (error: any) {
+      console.error("Error deleting schedule:", error.message)
+      showToast("Xóa lịch thất bại.", ToastType.Error)
+    }
   }
 
   return (
@@ -69,7 +83,7 @@ export function SlotList({ selectedDate, timeSlots, removeTimeSlot, setShowSlotD
                     Trống
                   </Badge>
                 </div>
-                <Button size="sm" variant="destructive" onClick={() => removeTimeSlot(slot.id)}>
+                <Button size="sm" variant="destructive" onClick={() => handleDelete(slot.id)}>
                   <X className="mr-2 h-4 w-4" />
                   Xóa
                 </Button>
