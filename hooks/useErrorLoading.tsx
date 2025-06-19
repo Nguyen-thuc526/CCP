@@ -1,40 +1,42 @@
-import { useState, ReactNode } from "react";
-import { AlertCircle, Loader2, RefreshCcw } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+'use client'
+
+import { useCallback, useState, ReactNode } from "react"
+import { AlertCircle, Loader2, RefreshCcw } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 
 interface StatusUIOptions {
-  onRetry?: () => void;
-  retryText?: string;
-  noPadding?: boolean;
-  customError?: ReactNode;
-  customLoading?: ReactNode;
+  onRetry?: () => void
+  retryText?: string
+  noPadding?: boolean
+  customError?: ReactNode
+  customLoading?: ReactNode
 }
 
 export function useErrorLoadingWithUI() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>('null');
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const startLoading = () => {
-    setError(null);
-    setLoading(true);
-  };
+  const startLoading = useCallback(() => {
+    setError(null)
+    setLoading(true)
+  }, [])
 
-  const stopLoading = () => {
-    setLoading(false);
-  };
+  const stopLoading = useCallback(() => {
+    setLoading(false)
+  }, [])
 
-  const setErrorMessage = (message: string) => {
-    setError(message);
-    setLoading(false);
-  };
+  const setErrorMessage = useCallback((message: string) => {
+    setError(message)
+    setLoading(false)
+  }, [])
 
-  const reset = () => {
-    setError(null);
-    setLoading(false);
-  };
+  const reset = useCallback(() => {
+    setError(null)
+    setLoading(false)
+  }, [])
 
-  const renderStatus = ({
+  const renderStatus = useCallback(({
     onRetry,
     retryText = "Thử lại",
     noPadding = false,
@@ -49,8 +51,7 @@ export function useErrorLoadingWithUI() {
             Đang tải dữ liệu...
           </div>
         </div>
-
-      );
+      )
     }
 
     if (error) {
@@ -74,11 +75,11 @@ export function useErrorLoadingWithUI() {
             </div>
           </Alert>
         </div>
-      );
+      )
     }
 
-    return null;
-  };
+    return null
+  }, [loading, error])
 
   return {
     loading,
@@ -88,5 +89,5 @@ export function useErrorLoadingWithUI() {
     setErrorMessage,
     reset,
     renderStatus,
-  };
+  }
 }

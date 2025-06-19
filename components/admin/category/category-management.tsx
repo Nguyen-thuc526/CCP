@@ -1,37 +1,24 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
-import { getCategoryData } from '@/services/categoryService'
-import { Category } from '@/types/category'
+import { useEffect, useState } from "react"
+import { getCategoryData } from "@/services/categoryService"
+import type { Category } from "@/types/category"
 
-import CategoryStats from './category-stats'
-import CategoryFilters from './category-filters'
-import CategoryList from './category-list'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import CreateCategoryForm from '@/components/admin/category/create-category-form'
-import { useErrorLoadingWithUI } from '@/hooks/useErrorLoading'
+import CategoryStats from "./category-stats"
+import CategoryFilters from "./category-filters"
+import CategoryList from "./category-list"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { useErrorLoadingWithUI } from "@/hooks/useErrorLoading"
+import CreateCategoryForm from "./create-category-form"
 
 export default function CategoryManagement() {
   const [categories, setCategories] = useState<Category[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<number>(-1)
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const {
-    loading,
-    error,
-    startLoading,
-    stopLoading,
-    setErrorMessage,
-    renderStatus,
-  } = useErrorLoadingWithUI()
+  const { loading, error, startLoading, stopLoading, setErrorMessage, renderStatus } = useErrorLoadingWithUI()
 
   const fetchCategories = () => {
     startLoading()
@@ -39,7 +26,7 @@ export default function CategoryManagement() {
       .then(setCategories)
       .catch((err) => {
         console.error(err)
-        setErrorMessage('Không thể tải danh mục')
+        setErrorMessage("Không thể tải danh mục")
       })
       .finally(stopLoading)
   }
@@ -48,11 +35,32 @@ export default function CategoryManagement() {
     fetchCategories()
   }, [])
 
-  useEffect(() => {
-    if (dialogOpen) {
-      fetchCategories()
-    }
-  }, [dialogOpen])
+  const handleCategoryCreated = () => {
+    fetchCategories()
+    setDialogOpen(false)
+  }
+
+  const handleCategoryUpdated = (updatedCategory: Category) => {
+    setCategories((prev) => prev.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat)))
+  }
+
+  const handleCategoryHidden = (categoryId: string) => {
+    setCategories((prev) =>
+      prev.map((cat) =>
+        cat.id === categoryId
+          ? { ...cat, status: 0 } 
+          : cat,
+      ),
+    )
+  }
+
+  const handleSubCategoryAdded = (categoryId: string, newSubCategory: any) => {
+    setCategories((prev) =>
+      prev.map((cat) =>
+        cat.id === categoryId ? { ...cat, subCategories: [...cat.subCategories, newSubCategory] } : cat,
+      ),
+    )
+  }
 
   const filteredCategories = categories.filter((category) => {
     const matchesSearch = category.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -74,7 +82,7 @@ export default function CategoryManagement() {
             </DialogHeader>
             <CreateCategoryForm
               categories={categories}
-              onCreated={fetchCategories}
+              onCreated={handleCategoryCreated}
               onClose={() => setDialogOpen(false)}
             />
           </DialogContent>
@@ -94,7 +102,12 @@ export default function CategoryManagement() {
             setStatusFilter={setStatusFilter}
           />
 
-          <CategoryList categories={filteredCategories} />
+          <CategoryList
+            categories={filteredCategories}
+            onCategoryUpdated={handleCategoryUpdated}
+            onCategoryHidden={handleCategoryHidden}
+            onSubCategoryAdded={handleSubCategoryAdded}
+          />
         </>
       )}
     </div>

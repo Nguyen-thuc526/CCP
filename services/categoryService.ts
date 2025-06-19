@@ -1,4 +1,4 @@
-import { Category, CategoryResponse } from "@/types/category";
+import { Category, CategoryResponse, SubCategory } from "@/types/category";
 import axiosInstance from "./axiosInstance";
 
 export const getCategoryData = async (): Promise<Category[]> => {
@@ -12,7 +12,29 @@ export const getCategoryData = async (): Promise<Category[]> => {
     }
 };
 export const createCategory = async (name: string): Promise<Category> => {
-  const response = await axiosInstance.post<Category>('/api/Category', { name });
+    const response = await axiosInstance.post<Category>('/api/Category', { name });
+    return response.data;
+};
 
-  return response.data;
+export const updateCategory = async (category: Category): Promise<Category> => {
+    const response = await axiosInstance.put(`/api/Category`, category)
+    const { success, data, error } = response.data
+
+    if (success) return data as Category
+    throw new Error(error || 'Cập nhật danh mục thất bại')
+}
+
+
+interface CreateSubCategoryRequest {
+  categoryId: string;
+  name: string;
+}
+export const createSubCategory = async (
+    payload: CreateSubCategoryRequest
+): Promise<SubCategory> => {
+    const response = await axiosInstance.post('/api/SubCategory', payload);
+    const { success, data, error } = response.data;
+
+    if (success) return data as SubCategory;
+    throw new Error(error || 'Tạo sub category thất bại');
 };

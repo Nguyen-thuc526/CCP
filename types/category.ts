@@ -17,3 +17,4 @@ export interface CategoryResponse {
   data: Category[];
   error: string | null;
 }
+
