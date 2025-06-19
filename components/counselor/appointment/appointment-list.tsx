@@ -1,7 +1,8 @@
-
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+
+import { useState, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,35 +13,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
+import type { Appointment } from "@/types/appointment"
+import { format, parse } from "date-fns"
+import { useErrorLoadingWithUI } from "@/hooks/useErrorLoading"
 
-interface Appointment {
-  id: number
-  member: string
-  avatar: string
-  avatar2?: string
-  date: string
-  time: string
-  duration: string
-  type: string
-  status: "Đã lên lịch" | "Đã hủy" | "Đã hoàn thành"
-  issue: string
-  notes?: string
-  canCancel: boolean
-  cancellationReason?: string
-  requestedAt?: string
-  appointmentType: "couple" | "individual"
-  additionalInfo?: string
-}
 
 interface AppointmentsListProps {
   appointments: Appointment[]
-  isLoading: boolean
-  error: string | null
   setAppointments: React.Dispatch<React.SetStateAction<Appointment[]>>
+  isLoading?: boolean
+  error?: string | null
+  onRetry?: () => void
 }
 
-export default function AppointmentsList({ appointments, isLoading, error, setAppointments }: AppointmentsListProps) {
-  const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>([])
+export default function AppointmentsList({
+  appointments,
+  setAppointments,
+  isLoading = false,
+  error = null,
+  onRetry,
+}: AppointmentsListProps) {
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [cancellationReason, setCancellationReason] = useState("")
@@ -54,21 +46,22 @@ export default function AppointmentsList({ appointments, isLoading, error, setAp
     appointmentType: "all",
   })
 
-  useEffect(() => {
+  // Sử dụng hook loading
+  const { renderStatus, renderTableSkeleton } = useErrorLoadingWithUI()
+
+  // Tối ưu hóa việc lọc danh sách với useMemo
+  const filteredAppointments = useMemo(() => {
     let result = [...appointments]
 
-    // Filter by appointment type
     if (filters.appointmentType !== "all") {
       result = result.filter((appointment) => appointment.appointmentType === filters.appointmentType)
     }
 
-    // Filter by date
     if (filters.date) {
       const filterDate = format(filters.date, "dd/MM/yyyy")
       result = result.filter((appointment) => appointment.date === filterDate)
     }
 
-    // Filter by status
     if (filters.status !== "all") {
       const statusMap: Record<string, string> = {
         scheduled: "Đã lên lịch",
@@ -78,7 +71,6 @@ export default function AppointmentsList({ appointments, isLoading, error, setAp
       result = result.filter((appointment) => appointment.status === statusMap[filters.status])
     }
 
-    // Filter by issue type
     if (filters.issueType !== "all") {
       const issueMap: Record<string, string> = {
         communication: "Kỹ năng giao tiếp",
@@ -94,20 +86,19 @@ export default function AppointmentsList({ appointments, isLoading, error, setAp
       result = result.filter((appointment) => appointment.issue.includes(issueMap[filters.issueType]))
     }
 
-    // Filter by search term
     if (filters.searchTerm) {
       const searchTerm = filters.searchTerm.toLowerCase()
       result = result.filter((appointment) => appointment.member.toLowerCase().includes(searchTerm))
     }
 
-    setFilteredAppointments(result)
+    return result
   }, [filters, appointments])
 
   const handleFilterChange = (newFilters: any) => {
     setFilters(newFilters)
   }
 
-  const cancelAppointment = (appointmentId: number) => {
+  const cancelAppointment = (appointmentId: string) => {
     const appointment = appointments.find((a) => a.id === appointmentId)
     if (appointment) {
       setSelectedAppointment(appointment)
@@ -122,12 +113,12 @@ export default function AppointmentsList({ appointments, isLoading, error, setAp
           appointment.id === selectedAppointment.id
             ? {
                 ...appointment,
-                status: "Đã hủy",
+                status: "Đã hủy" as const,
                 canCancel: false,
-                cancellationReason: cancellationReason,
+                cancellationReason,
               }
-            : appointment
-        )
+            : appointment,
+        ),
       )
       setShowCancelDialog(false)
       setCancellationReason("")
@@ -146,9 +137,9 @@ export default function AppointmentsList({ appointments, isLoading, error, setAp
       setAppointments((prev) =>
         prev.map((appointment) =>
           appointment.id === selectedAppointment.id
-            ? { ...appointment, notes: appointmentNote, status: "Đã hoàn thành" }
-            : appointment
-        )
+            ? { ...appointment, notes: appointmentNote, status: "Đã hoàn thành" as const }
+            : appointment,
+        ),
       )
       setShowNoteDialog(false)
       setAppointmentNote("")
@@ -156,20 +147,19 @@ export default function AppointmentsList({ appointments, isLoading, error, setAp
     }
   }
 
-  // Format date function
-  function format(date: Date, formatStr: string): string {
-    const day = date.getDate().toString().padStart(2, "0")
-    const month = (date.getMonth() + 1).toString().padStart(2, "0")
-    const year = date.getFullYear()
-    return `${day}/${month}/${year}`
-  }
-
-  // Check if appointment can be canceled (at least 24 hours before)
   const canCancel = (appointment: Appointment) => {
-    const appointmentDateTime = new Date(`${appointment.date} ${appointment.time} +07:00`)
-    const now = new Date("2025-06-18T02:13:00+07:00")
+    const appointmentDateTime = parse(`${appointment.date} ${appointment.time}`, "dd/MM/yyyy HH:mm", new Date())
+    const now = new Date("2025-06-18T18:25:00+07:00")
     const diffHours = (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
     return diffHours > 24 && appointment.canCancel
+  }
+
+  // Nếu có error từ parent component, hiển thị error state
+  if (error) {
+    return renderStatus({
+      onRetry,
+      retryText: "Tải lại danh sách",
+    })
   }
 
   return (
@@ -178,62 +168,52 @@ export default function AppointmentsList({ appointments, isLoading, error, setAp
         <h3 className="text-lg font-semibold">Danh sách lịch hẹn</h3>
         <Badge variant="outline" className="flex items-center gap-1">
           <Clock className="w-3 h-3" />
-          {filteredAppointments.length} lịch hẹn
+          {isLoading ? "..." : `${filteredAppointments.length} lịch hẹn`}
         </Badge>
       </div>
 
       <AppointmentFilters onFilterChange={handleFilterChange} />
 
-      {isLoading ? (
-        <div className="text-center">Đang tải lịch hẹn...</div>
-      ) : error ? (
-        <div className="text-center text-destructive">{error}</div>
-      ) : (
-        <Card>
-          <CardContent className="p-0">
-            <div className="relative w-full overflow-auto">
-              <table className="w-full caption-bottom text-sm">
-                <thead className="border-b">
-                  <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                    <th className="h-12 px-4 text-left align-middle font-medium">Thành viên</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Ngày & Giờ</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Thời lượng</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Loại</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Vấn đề</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Trạng thái</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredAppointments.length > 0 ? (
-                    filteredAppointments.map((appointment) => (
-                      <tr
-                        key={appointment.id}
-                        className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-                      >
+      <Card>
+        <CardContent className="p-0">
+          <div className="relative w-full overflow-auto">
+            <table className="w-full caption-bottom text-sm">
+              <thead className="border-b">
+                <tr>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Thành viên</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Ngày & Giờ</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Thời lượng</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Loại</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Vấn đề</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Trạng thái</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Loading skeleton */}
+                {isLoading && renderTableSkeleton(5, 7)}
+
+                {/* Data rows */}
+                {!isLoading && filteredAppointments.length > 0
+                  ? filteredAppointments.map((appointment) => (
+                      <tr key={appointment.id} className="border-b">
                         <td className="p-4 align-middle">
                           <div className="flex items-center gap-3">
                             {appointment.appointmentType === "couple" ? (
                               <div className="flex -space-x-2">
                                 <Avatar className="h-8 w-8 border-2 border-background">
                                   <AvatarImage src={appointment.avatar || "/placeholder.svg"} />
-                                  <AvatarFallback>
-                                    {appointment.member.split(" ")[0][0]}
-                                  </AvatarFallback>
+                                  <AvatarFallback>{appointment.member.split(" ")[0][0]}</AvatarFallback>
                                 </Avatar>
                                 <Avatar className="h-8 w-8 border-2 border-background">
                                   <AvatarImage src={appointment.avatar2 || "/placeholder.svg"} />
-                                  <AvatarFallback>
-                                    {appointment.member.split(" ")[3]?.[0] || "?"}
-                                  </AvatarFallback>
+                                  <AvatarFallback>{appointment.member.split(" ")[3]?.[0] || "?"}</AvatarFallback>
                                 </Avatar>
                               </div>
                             ) : (
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={appointment.avatar || "/placeholder.svg"} />
-                                <AvatarFallback>
-                                  {appointment.member.split(" ")[0][0]}
-                                </AvatarFallback>
+                                <AvatarFallback>{appointment.member.split(" ")[0][0]}</AvatarFallback>
                               </Avatar>
                             )}
                             <div className="flex items-center gap-2">
@@ -273,8 +253,8 @@ export default function AppointmentsList({ appointments, isLoading, error, setAp
                               appointment.status === "Đã lên lịch"
                                 ? "default"
                                 : appointment.status === "Đã hoàn thành"
-                                ? "secondary"
-                                : "destructive"
+                                  ? "secondary"
+                                  : "destructive"
                             }
                           >
                             {appointment.status}
@@ -325,19 +305,18 @@ export default function AppointmentsList({ appointments, isLoading, error, setAp
                         </td>
                       </tr>
                     ))
-                  ) : (
-                    <tr>
-                      <td colSpan={7} className="p-4 text-center text-muted-foreground">
-                        Không tìm thấy lịch hẹn nào phù hợp với bộ lọc
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                  : !isLoading && (
+                      <tr>
+                        <td colSpan={7} className="p-4 text-center text-muted-foreground">
+                          Không tìm thấy lịch hẹn nào phù hợp với bộ lọc
+                        </td>
+                      </tr>
+                    )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Cancel Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
@@ -352,23 +331,17 @@ export default function AppointmentsList({ appointments, isLoading, error, setAp
                   <div className="flex -space-x-2">
                     <Avatar className="h-8 w-8 border-2 border-background">
                       <AvatarImage src={selectedAppointment?.avatar || "/placeholder.svg"} />
-                      <AvatarFallback>
-                        {selectedAppointment?.member.split(" ")[0][0]}
-                      </AvatarFallback>
+                      <AvatarFallback>{selectedAppointment?.member.split(" ")[0][0]}</AvatarFallback>
                     </Avatar>
                     <Avatar className="h-8 w-8 border-2 border-background">
                       <AvatarImage src={selectedAppointment?.avatar2 || "/placeholder.svg"} />
-                      <AvatarFallback>
-                        {selectedAppointment?.member.split(" ")[3]?.[0] || "?"}
-                      </AvatarFallback>
+                      <AvatarFallback>{selectedAppointment?.member.split(" ")[3]?.[0] || "?"}</AvatarFallback>
                     </Avatar>
                   </div>
                 ) : (
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={selectedAppointment?.avatar || "/placeholder.svg"} />
-                    <AvatarFallback>
-                      {selectedAppointment?.member.split(" ")[0][0]}
-                    </AvatarFallback>
+                    <AvatarFallback>{selectedAppointment?.member.split(" ")[0][0]}</AvatarFallback>
                   </Avatar>
                 )}
                 <div className="font-medium">{selectedAppointment?.member}</div>

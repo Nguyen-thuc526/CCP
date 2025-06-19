@@ -11,6 +11,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
     "@livekit/components-react": "latest",
+    "@livekit/components-styles": "^1.1.6",
     "@livekit/krisp-noise-filter": "latest",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",

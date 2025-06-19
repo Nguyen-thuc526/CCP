@@ -12,7 +12,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "CCP - Nền tảng dịch vụ tư vấn hôn nhân",
   description: "Nền tảng dịch vụ tư vấn hôn nhân chuyên nghiệp",
-  generator: "v0.dev",
 };
 
 export default function RootLayout({

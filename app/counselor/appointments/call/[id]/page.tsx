@@ -1,94 +1,69 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { VideoRoom } from "@/components/video-call/video-room"
-import { PreJoin } from "@/components/video-call/pre-join"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { bookingService } from "@/services/bookingService";
 
-interface CallPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function CallPage({ params }: CallPageProps) {
-  const router = useRouter()
-  const appointmentId = params.id
-  const [joined, setJoined] = useState(false)
-  const [videoEnabled, setVideoEnabled] = useState(true)
-  const [audioEnabled, setAudioEnabled] = useState(true)
-  const [isLoading, setIsLoading] = useState(true)
-  const [appointmentData, setAppointmentData] = useState<any>(null)
+export default function CallPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const router = useRouter();
+  const [joinUrl, setJoinUrl] = useState<string | null>(null);
+  const [roomName, setRoomName] = useState<string>("");
+  const [userName, setUserName] = useState<string>("");
 
   useEffect(() => {
-    // Trong ứng dụng thực tế, bạn sẽ lấy thông tin cuộc hẹn từ API
-    // Đây là mô phỏng việc lấy dữ liệu
-    const fetchAppointmentData = async () => {
+    const fetchRoomUrl = async () => {
+      const { id: appointmentId } = await params;
       try {
-        // Mô phỏng gọi API
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        const response = await bookingService.getRoomUrl(appointmentId);
+        if (response.success) {
+          let { joinUrl, roomName, userName } = response.data;
 
-        // Dữ liệu mẫu
-        setAppointmentData({
-          id: appointmentId,
-          member: "Nguyễn Văn A & Nguyễn Thị B",
-          roomName: `appointment-${appointmentId}`,
-          counselorName: "TS. Trần Văn C",
-        })
+          // Encode userName để tránh lỗi URL
+          const encodedUserName = encodeURIComponent(userName);
+
+          // Giả sử nền tảng gọi hỗ trợ `userName` trong query
+          const updatedJoinUrl = `${joinUrl}?userName=${encodedUserName}`;
+
+          setJoinUrl(updatedJoinUrl);
+          setRoomName(roomName);
+          setUserName(userName);
+        } else {
+          router.back();
+        }
       } catch (error) {
-        console.error("Error fetching appointment data:", error)
-      } finally {
-        setIsLoading(false)
+        console.error("Failed to fetch room URL:", error);
+        router.back();
       }
-    }
-
-    fetchAppointmentData()
-  }, [appointmentId])
-
-  const handleJoin = (video: boolean, audio: boolean) => {
-    setVideoEnabled(video)
-    setAudioEnabled(audio)
-    setJoined(true)
-  }
+    };
+    fetchRoomUrl();
+  }, [params, router]);
 
   const handleCancel = () => {
-    router.back()
-  }
+    console.log("Canceling call, navigating back");
+    router.back();
+  };
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center h-[80vh]">Đang tải thông tin cuộc hẹn...</div>
-  }
-
-  if (!appointmentData) {
-    return <div className="flex items-center justify-center h-[80vh]">Không tìm thấy thông tin cuộc hẹn</div>
-  }
-
-  if (!joined) {
-    return (
-      <PreJoin
-        appointmentId={appointmentId}
-        memberName={appointmentData.member}
-        onJoin={handleJoin}
-        onCancel={handleCancel}
-      />
-    )
+  if (!joinUrl) {
+    return <div>Loading room URL...</div>;
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Buổi tư vấn trực tuyến</h1>
-        <div className="text-right">
-          <h2 className="font-medium">{appointmentData.member}</h2>
-          <p className="text-sm text-muted-foreground">ID: {appointmentData.id}</p>
-        </div>
-      </div>
-
-      <VideoRoom
-        roomName={appointmentData.roomName}
-        participantName={appointmentData.counselorName}
-        // Trong ứng dụng thực tế, bạn sẽ truyền token từ API
+    <div>
+      <h1>Call Room: {roomName}</h1>
+      <p>Welcome, {userName}!</p>
+      <iframe
+        src={joinUrl}
+        title="Call Room"
+        width="100%"
+        height="600px"
+        frameBorder="0"
+        allow="microphone; camera"
       />
+      <button onClick={handleCancel}>Cancel</button>
     </div>
-  )
+  );
 }
