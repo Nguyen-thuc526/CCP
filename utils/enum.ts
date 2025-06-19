@@ -1,11 +1,25 @@
 export enum Role {
-  Admin = 1, // 1 là Admin
-  Counselor = 2,
+   Admin = 1,
+   Counselor = 2,
 }
 
-export enum Status {
-  Active = 0,
-  Inactive = 1,
-  Suspended = 2,
-  Pending = 3,
+export enum Category {
+   InActive = 0,
+   Active = 1,
+}
+
+export enum SubCategory {
+   InActive = 0,
+   Active = 1,
+}
+
+export enum CertificateStatus {
+   Pending = 0,
+   Active = 1,
+   NeedEdit = 2,
+}
+
+export enum MembershipStatus {
+   Inactive = 0,
+   Active = 1,
 }

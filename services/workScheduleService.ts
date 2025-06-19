@@ -2,17 +2,22 @@ import { WorkSchedule, WorkScheduleResponse } from '@/types/workSchedule';
 import axiosInstance from './axiosInstance';
 
 export const workScheduleService = {
-  // API đặt lịch rảnh cho Counselor
-  async setWorkSchedule(data: WorkSchedule): Promise<WorkSchedule> {
-    const response = await axiosInstance.post('/api/WorkSchedule', data);
-    console.log('WorkSchedule response:', response.data);
-    return response.data;
-  },
+   // API đặt lịch rảnh cho Counselor
+   async setWorkSchedule(data: WorkSchedule): Promise<WorkSchedule> {
+      const response = await axiosInstance.post('/api/WorkSchedule', data);
+      return response.data;
+   },
 
-  // API lấy danh sách lịch rảnh của Counselor
-  async getMySchedules(): Promise<WorkScheduleResponse> {
-    const response = await axiosInstance.get('/api/WorkSchedule/my-schedules');
-    console.log('My schedules response:', response.data);
-    return response.data;
-  }
+   async getMySchedules(): Promise<WorkScheduleResponse> {
+      const response = await axiosInstance.get(
+         '/api/WorkSchedule/my-schedules'
+      );
+      return response.data;
+   },
+   async deleteWorkSchedule(scheduleId: string): Promise<void> {
+      const response = await axiosInstance.delete(
+         `/api/WorkSchedule/${scheduleId}`
+      );
+      return response.data; // Assuming the API returns no data on success (204 or 200 with empty body)
+   },
 };
