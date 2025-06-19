@@ -1,6 +1,7 @@
 "use client";
 
-import { ScheduleCalendar } from "@/components/ui/schedule-calendar";
+import { ScheduleCalendar } from "@/components/ui/calendar/schedule-calendar";
+
 
 
 

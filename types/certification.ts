@@ -23,11 +23,9 @@ export interface MyCertificationsResponse {
   data: Certification[];
   error?: string;
 }
-
+    
 export interface CertificationResponse {
   success: boolean;
   data?: any; 
   error?: string;
 }
-
-

@@ -134,8 +134,8 @@ export function Sidebar() {
     },
     {
       href: "/counselor/certificates",
-      icon: <FilePlus className="h-5 w-5" />,
-      title: "Nộp chứng chỉ",
+      icon: <FilePlus  className="h-5 w-5" />,
+      title: "Chứng chỉ của tôi",
     },
 
   ];

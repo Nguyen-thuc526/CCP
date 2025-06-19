@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowLeft, Calendar, Clock, CheckCircle, XCircle, Video, MessageSquare } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, Video, MessageSquare, X, Users, User } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -16,10 +16,8 @@ interface AppointmentDetailProps {
 }
 
 export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
-  const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [showNoteDialog, setShowNoteDialog] = useState(false)
-  const [rejectionReason, setRejectionReason] = useState("")
   const [cancellationReason, setCancellationReason] = useState("")
   const [appointmentNote, setAppointmentNote] = useState("")
 
@@ -38,33 +36,13 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
     issue: "Kỹ năng giao tiếp",
     description:
       "Chúng tôi đang gặp khó khăn trong việc giao tiếp với nhau và muốn được tư vấn để cải thiện mối quan hệ. Đặc biệt là trong việc lắng nghe và thể hiện cảm xúc một cách tích cực.",
-    status: "pending", // pending, approved, rejected, cancelled, completed
+    status: "scheduled", // scheduled, cancelled, completed
     createdAt: "2024-01-15T09:00:00",
-    rejectionReason: "",
     cancellationReason: "",
     notes: "",
-    meetingLink: "",
+    meetingLink: "https://meet.google.com/abc-defg-hij",
+    appointmentType: "couple" as "couple" | "individual",
   })
-
-  const handleApprove = () => {
-    setAppointment((prev) => ({
-      ...prev,
-      status: "approved",
-      meetingLink: "https://meet.google.com/abc-defg-hij",
-    }))
-  }
-
-  const handleReject = () => {
-    if (rejectionReason.trim()) {
-      setAppointment((prev) => ({
-        ...prev,
-        status: "rejected",
-        rejectionReason,
-      }))
-      setShowRejectDialog(false)
-      setRejectionReason("")
-    }
-  }
 
   const handleCancel = () => {
     if (cancellationReason.trim()) {
@@ -102,16 +80,8 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "pending":
-        return <Badge variant="secondary">Chờ duyệt</Badge>
-      case "approved":
-        return (
-          <Badge variant="default" className="bg-green-500">
-            Đã duyệt
-          </Badge>
-        )
-      case "rejected":
-        return <Badge variant="destructive">Từ chối</Badge>
+      case "scheduled":
+        return <Badge variant="default">Đã lên lịch</Badge>
       case "cancelled":
         return <Badge variant="destructive">Đã hủy</Badge>
       case "completed":
@@ -135,7 +105,16 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
             Quay lại
           </Link>
         </Button>
-        <h1 className="text-3xl font-bold">Chi tiết lịch hẹn</h1>
+        <div className="flex items-center gap-2">
+          {appointment.appointmentType === "couple" ? (
+            <Users className="h-6 w-6 text-primary" />
+          ) : (
+            <User className="h-6 w-6 text-primary" />
+          )}
+          <h1 className="text-3xl font-bold">
+            Chi tiết lịch hẹn {appointment.appointmentType === "couple" ? "cặp đôi" : "cá nhân"}
+          </h1>
+        </div>
         {getStatusBadge(appointment.status)}
       </div>
 
@@ -168,6 +147,20 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
               </div>
 
               <div>
+                <Label className="text-sm font-medium text-muted-foreground">Loại tư vấn</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  {appointment.appointmentType === "couple" ? (
+                    <Users className="h-4 w-4" />
+                  ) : (
+                    <User className="h-4 w-4" />
+                  )}
+                  <span className="font-medium">
+                    {appointment.appointmentType === "couple" ? "Tư vấn cặp đôi" : "Tư vấn cá nhân"}
+                  </span>
+                </div>
+              </div>
+
+              <div>
                 <Label className="text-sm font-medium text-muted-foreground">Vấn đề cần tư vấn</Label>
                 <p className="mt-1 font-medium">{appointment.issue}</p>
               </div>
@@ -177,7 +170,7 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
                 <p className="mt-1 text-sm">{appointment.description}</p>
               </div>
 
-              {appointment.meetingLink && (
+              {appointment.meetingLink && appointment.status === "scheduled" && (
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Link cuộc họp</Label>
                   <div className="mt-1">
@@ -188,13 +181,6 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
                       </a>
                     </Button>
                   </div>
-                </div>
-              )}
-
-              {appointment.rejectionReason && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <Label className="text-sm font-medium text-red-800">Lý do từ chối</Label>
-                  <p className="mt-1 text-sm text-red-700">{appointment.rejectionReason}</p>
                 </div>
               )}
 
@@ -220,7 +206,7 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
           {/* Member Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Thông tin thành viên</CardTitle>
+              <CardTitle>Thông tin {appointment.appointmentType === "couple" ? "cặp đôi" : "thành viên"}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
@@ -228,11 +214,18 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
                   <AvatarImage src={appointment.member.avatar || "/placeholder.svg"} />
                   <AvatarFallback>
                     {appointment.member.name.split(" ")[0][0]}
-                    {appointment.member.name.split(" ")[3]?.[0] || ""}
+                    {appointment.appointmentType === "couple" && appointment.member.name.split(" ")[3]?.[0]}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium">{appointment.member.name}</p>
+                  <div className="flex items-center gap-2">
+                    {appointment.appointmentType === "couple" ? (
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <User className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <p className="font-medium">{appointment.member.name}</p>
+                  </div>
                   <p className="text-sm text-muted-foreground">{appointment.member.email}</p>
                   <p className="text-sm text-muted-foreground">{appointment.member.phone}</p>
                 </div>
@@ -246,20 +239,7 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
               <CardTitle>Hành động</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {appointment.status === "pending" && (
-                <>
-                  <Button onClick={handleApprove} className="w-full">
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Duyệt lịch hẹn
-                  </Button>
-                  <Button variant="destructive" onClick={() => setShowRejectDialog(true)} className="w-full">
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Từ chối
-                  </Button>
-                </>
-              )}
-
-              {appointment.status === "approved" && (
+              {appointment.status === "scheduled" && (
                 <>
                   <Button variant="outline" className="w-full" asChild>
                     <a href={appointment.meetingLink} target="_blank" rel="noopener noreferrer">
@@ -268,13 +248,13 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
                     </a>
                   </Button>
                   <Button variant="destructive" onClick={() => setShowCancelDialog(true)} className="w-full">
-                    <XCircle className="mr-2 h-4 w-4" />
+                    <X className="mr-2 h-4 w-4" />
                     Hủy lịch hẹn
                   </Button>
                 </>
               )}
 
-              {(appointment.status === "approved" || appointment.status === "completed") && (
+              {(appointment.status === "scheduled" || appointment.status === "completed") && (
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -301,22 +281,14 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   <span>Yêu cầu được tạo: {formatDateTime(appointment.createdAt)}</span>
                 </div>
-                {appointment.status !== "pending" && (
+                {appointment.status !== "scheduled" && (
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-2 h-2 rounded-full ${
-                        appointment.status === "approved" ? "bg-green-500" : "bg-red-500"
+                        appointment.status === "completed" ? "bg-green-500" : "bg-red-500"
                       }`}
                     ></div>
-                    <span>
-                      {appointment.status === "approved"
-                        ? "Đã duyệt"
-                        : appointment.status === "rejected"
-                          ? "Đã từ chối"
-                          : appointment.status === "cancelled"
-                            ? "Đã hủy"
-                            : "Hoàn thành"}
-                    </span>
+                    <span>{appointment.status === "cancelled" ? "Đã hủy" : "Hoàn thành"}</span>
                   </div>
                 )}
               </div>
@@ -324,45 +296,6 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
           </Card>
         </div>
       </div>
-
-      {/* Reject Dialog */}
-      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Từ chối lịch hẹn</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="p-4 bg-muted/50 rounded-lg">
-              <p className="text-sm">
-                <strong>Thành viên:</strong> {appointment.member.name}
-              </p>
-              <p className="text-sm">
-                <strong>Thời gian:</strong> {formatDate(appointment.date)} - {appointment.time}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="rejection-reason">Lý do từ chối *</Label>
-              <Textarea
-                id="rejection-reason"
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Vui lòng nhập lý do từ chối lịch hẹn..."
-                rows={4}
-              />
-            </div>
-
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
-                Hủy
-              </Button>
-              <Button variant="destructive" onClick={handleReject} disabled={!rejectionReason.trim()}>
-                Từ chối
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Cancel Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
@@ -373,7 +306,8 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
           <div className="space-y-4">
             <div className="p-4 bg-muted/50 rounded-lg">
               <p className="text-sm">
-                <strong>Thành viên:</strong> {appointment.member.name}
+                <strong>{appointment.appointmentType === "couple" ? "Cặp đôi" : "Thành viên"}:</strong>{" "}
+                {appointment.member.name}
               </p>
               <p className="text-sm">
                 <strong>Thời gian:</strong> {formatDate(appointment.date)} - {appointment.time}

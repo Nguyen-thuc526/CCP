@@ -1,6 +1,13 @@
 import { Category, CategoryResponse, SubCategory } from "@/types/category";
 import axiosInstance from "./axiosInstance";
 
+export const categoryService = {
+    // API lấy danh sách danh mục hoạt động với subcates
+    async getActiveCategoriesWithSub(): Promise<CategoryResponse> {
+        const response = await axiosInstance.get('/api/Category/active-with-sub');
+        return response.data;
+    },
+};
 export const getCategoryData = async (): Promise<Category[]> => {
     const response = await axiosInstance.get<CategoryResponse>('/api/Category');
     const { success, data, error } = response.data;
@@ -26,8 +33,8 @@ export const updateCategory = async (category: Category): Promise<Category> => {
 
 
 interface CreateSubCategoryRequest {
-  categoryId: string;
-  name: string;
+    categoryId: string;
+    name: string;
 }
 export const createSubCategory = async (
     payload: CreateSubCategoryRequest
