@@ -1,20 +1,18 @@
-
 export interface SubCategory {
-  id: string;
-  name: string;
-  status: number;
+   id: string;
+   name: string;
+   status: number;
 }
 
 export interface Category {
-  id: string;
-  name: string;
-  status: number;
-  subCategories: SubCategory[];
+   id: string;
+   name: string;
+   status: number;
+   subCategories: SubCategory[];
 }
 
 export interface CategoryResponse {
-  success: boolean;
-  data: Category[];
-  error: string | null;
+   success: boolean;
+   data: Category[];
+   error: string | null;
 }
-
