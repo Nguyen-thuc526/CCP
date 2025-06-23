@@ -1,26 +1,15 @@
-'use client';
-
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { updateCategory } from '@/services/categoryService';
-import { Category as CategoryType } from '@/types/category';
-import { useToast, ToastType } from '@/hooks/useToast';
-import { Label } from '@/components/ui/label';
-import {
-   Select,
-   SelectContent,
-   SelectItem,
-   SelectTrigger,
-   SelectValue,
-} from '@/components/ui/select';
-
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Category } from "@/types/category";
+import { Label } from "@radix-ui/react-label";
+import { Select } from "@radix-ui/react-select";
+import { useState } from "react";
 interface UpdateCategoryFormProps {
-   category: CategoryType;
-   onUpdated: (updated: CategoryType) => void;
+   category: Category;
+   onUpdated: (updates: { name: string; status: number }) => void;
    onClose: () => void;
 }
-
 export default function UpdateCategoryForm({
    category,
    onUpdated,
@@ -29,21 +18,10 @@ export default function UpdateCategoryForm({
    const [name, setName] = useState(category.name);
    const [status, setStatus] = useState(category.status);
    const [loading, setLoading] = useState(false);
-   const { showToast } = useToast();
 
-   const handleSubmit = async () => {
+   const handleSubmit = () => {
       setLoading(true);
-      try {
-         const updated = { ...category, name, status };
-         await updateCategory(updated);
-         showToast('Cập nhật danh mục thành công', ToastType.Success);
-         onUpdated(updated);
-         onClose();
-      } catch (error: any) {
-         showToast(error.message || 'Có lỗi xảy ra', ToastType.Error);
-      } finally {
-         setLoading(false);
-      }
+      onUpdated({ name, status });
    };
 
    return (

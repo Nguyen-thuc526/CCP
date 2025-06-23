@@ -1,4 +1,5 @@
 import {
+   Certification,
    CertificationResponse,
    MyCertificationsResponse,
 } from '@/types/certification';
@@ -55,6 +56,23 @@ export const getAllCertifications = async (): Promise<Certification[]> => {
    }
 };
 
+export const getCertificationById = async (
+   certificationId: string
+): Promise<Certification> => {
+   const response = await axiosInstance.get(`/api/Certification/Get-detail`, {
+      params: { certificationId },
+   });
+
+   const { success, data, error } = response.data;
+
+   if (success) {
+      return data as Certification;
+   } else {
+      throw new Error(error || 'Không thể lấy chứng chỉ');
+   }
+};
+
+
 export const approveCertificationById = async (
    certificationId: string
 ): Promise<void> => {
@@ -71,3 +89,20 @@ export const approveCertificationById = async (
       throw new Error((err as Error).message);
    }
 };
+
+export const rejectCertificationById = async (
+   certificationId: string,
+   rejectReason: string
+): Promise<void> => {
+   const response = await axiosInstance.put('/api/Certification/reject', {
+      certificationId,
+      rejectReason,
+   });
+
+   const { success, error } = response.data;
+
+   if (!success) {
+      throw new Error(error || 'Không thể từ chối chứng chỉ');
+   }
+};
+

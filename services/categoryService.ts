@@ -25,13 +25,20 @@ export const createCategory = async (name: string): Promise<Category> => {
    return response.data;
 };
 
-export const updateCategory = async (category: Category): Promise<Category> => {
-   const response = await axiosInstance.put(`/api/Category`, category);
+interface UpdateCategoryDto {
+   id: string;
+   name: string;
+   status: number;
+}
+
+export const updateCategory = async (dto: UpdateCategoryDto): Promise<Category> => {
+   const response = await axiosInstance.put(`/api/Category`, dto);
    const { success, data, error } = response.data;
 
    if (success) return data as Category;
    throw new Error(error || 'Cập nhật danh mục thất bại');
 };
+
 
 interface CreateSubCategoryRequest {
    categoryId: string;
@@ -45,4 +52,17 @@ export const createSubCategory = async (
 
    if (success) return data as SubCategory;
    throw new Error(error || 'Tạo sub category thất bại');
+};
+
+export const updateSubCategory = async (sub: {
+   id: string;
+   name: string;
+   status: number;
+   categoryId: string;
+}): Promise<SubCategory> => {
+   const response = await axiosInstance.put('/api/SubCategory', sub);
+   const { success, data, error } = response.data;
+
+   if (success) return data as SubCategory;
+   throw new Error(error || 'Cập nhật chủ đề con thất bại');
 };
