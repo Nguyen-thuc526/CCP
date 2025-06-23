@@ -1,112 +1,83 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import type React from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
    Calendar,
    Clock,
    Video,
-   X,
    Eye,
-   MessageSquare,
    Users,
+   Filter,
+   Search,
 } from 'lucide-react';
 import { AppointmentFilters } from './appointment-filters';
-import {
-   Dialog,
-   DialogContent,
-   DialogHeader,
-   DialogTitle,
-   DialogFooter,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
-
-interface Appointment {
-   id: number;
-   member: string;
-   avatar: string;
-   avatar2?: string;
-   date: string;
-   time: string;
-   duration: string;
-   type: string;
-   status: 'Đã lên lịch' | 'Đã hủy' | 'Đã hoàn thành';
-   issue: string;
-   notes?: string;
-   canCancel: boolean;
-   cancellationReason?: string;
-   requestedAt?: string;
-   appointmentType: 'couple' | 'individual';
-   additionalInfo?: string;
-}
+import type { Appointment } from '@/types/appointment';
+import { format } from 'date-fns';
+import { BookingStatus } from '@/utils/enum';
+import { bookingService } from '@/services/bookingService';
+import { toast } from '@/components/ui/use-toast';
 
 interface AppointmentsListProps {
    appointments: Appointment[];
-   isLoading: boolean;
-   error: string | null;
    setAppointments: React.Dispatch<React.SetStateAction<Appointment[]>>;
+   isLoading?: boolean;
+   error?: string | null;
+   onRetry?: () => void;
+   statusFilter?: BookingStatus;
 }
 
 export default function AppointmentsList({
    appointments,
-   isLoading,
-   error,
-   setAppointments,
+   isLoading = false,
+   error = null,
+   onRetry,
+   statusFilter,
 }: AppointmentsListProps) {
-   const [filteredAppointments, setFilteredAppointments] = useState<
-      Appointment[]
-   >([]);
-   const [showCancelDialog, setShowCancelDialog] = useState(false);
-   const [selectedAppointment, setSelectedAppointment] =
-      useState<Appointment | null>(null);
-   const [cancellationReason, setCancellationReason] = useState('');
-   const [appointmentNote, setAppointmentNote] = useState('');
+   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+   const [noteForm, setNoteForm] = useState({
+      problemSummary: '',
+      problemAnalysis: '',
+      guides: '',
+   });
+   const [formErrors, setFormErrors] = useState({
+      problemSummary: '',
+      guides: '',
+   });
    const [showNoteDialog, setShowNoteDialog] = useState(false);
+   const [showFilters, setShowFilters] = useState(false);
    const [filters, setFilters] = useState({
       date: undefined as Date | undefined,
-      status: 'all',
       issueType: 'all',
       searchTerm: '',
       appointmentType: 'all',
    });
 
-   useEffect(() => {
-      let result = [...appointments];
+   const filteredAppointments = useMemo(() => {
+      let result = appointments.filter((appointment) =>
+         statusFilter ? appointment.status === statusFilter : true
+      );
 
-      // Filter by appointment type
       if (filters.appointmentType !== 'all') {
          result = result.filter(
-            (appointment) =>
-               appointment.appointmentType === filters.appointmentType
+            (appointment) => appointment.appointmentType === filters.appointmentType
          );
       }
 
-      // Filter by date
       if (filters.date) {
          const filterDate = format(filters.date, 'dd/MM/yyyy');
-         result = result.filter(
-            (appointment) => appointment.date === filterDate
-         );
+         result = result.filter((appointment) => appointment.date === filterDate);
       }
 
-      // Filter by status
-      if (filters.status !== 'all') {
-         const statusMap: Record<string, string> = {
-            scheduled: 'Đã lên lịch',
-            cancelled: 'Đã hủy',
-            completed: 'Đã hoàn thành',
-         };
-         result = result.filter(
-            (appointment) => appointment.status === statusMap[filters.status]
-         );
-      }
-
-      // Filter by issue type
       if (filters.issueType !== 'all') {
          const issueMap: Record<string, string> = {
             communication: 'Kỹ năng giao tiếp',
@@ -124,7 +95,6 @@ export default function AppointmentsList({
          );
       }
 
-      // Filter by search term
       if (filters.searchTerm) {
          const searchTerm = filters.searchTerm.toLowerCase();
          result = result.filter((appointment) =>
@@ -132,497 +102,377 @@ export default function AppointmentsList({
          );
       }
 
-      setFilteredAppointments(result);
-   }, [filters, appointments]);
+      return result;
+   }, [filters, appointments, statusFilter]);
 
    const handleFilterChange = (newFilters: any) => {
       setFilters(newFilters);
    };
 
-   const cancelAppointment = (appointmentId: number) => {
-      const appointment = appointments.find((a) => a.id === appointmentId);
-      if (appointment) {
-         setSelectedAppointment(appointment);
-         setShowCancelDialog(true);
-      }
-   };
-
-   const performCancel = () => {
-      if (selectedAppointment && cancellationReason) {
-         setAppointments((prev) =>
-            prev.map((appointment) =>
-               appointment.id === selectedAppointment.id
-                  ? {
-                       ...appointment,
-                       status: 'Đã hủy',
-                       canCancel: false,
-                       cancellationReason: cancellationReason,
-                    }
-                  : appointment
-            )
-         );
-         setShowCancelDialog(false);
-         setCancellationReason('');
-         setSelectedAppointment(null);
-      }
-   };
-
-   const openNoteDialog = (appointment: Appointment) => {
-      setSelectedAppointment(appointment);
-      setAppointmentNote(appointment.notes || '');
-      setShowNoteDialog(true);
-   };
-
-   const saveNote = () => {
-      if (selectedAppointment) {
-         setAppointments((prev) =>
-            prev.map((appointment) =>
-               appointment.id === selectedAppointment.id
-                  ? {
-                       ...appointment,
-                       notes: appointmentNote,
-                       status: 'Đã hoàn thành',
-                    }
-                  : appointment
-            )
-         );
-         setShowNoteDialog(false);
-         setAppointmentNote('');
-         setSelectedAppointment(null);
-      }
-   };
-
-   // Format date function
-   function format(date: Date, formatStr: string): string {
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
+   // Render error state
+   if (error) {
+      return (
+         <Card>
+            <CardContent className="p-8 text-center">
+               <div className="flex flex-col items-center gap-3">
+                  <p className="text-red-600 font-medium">{error}</p>
+                  {onRetry && (
+                     <Button onClick={onRetry} variant="outline">
+                        Tải lại danh sách
+                     </Button>
+                  )}
+               </div>
+            </CardContent>
+         </Card>
+      );
    }
 
-   // Check if appointment can be canceled (at least 24 hours before)
-   const canCancel = (appointment: Appointment) => {
-      const appointmentDateTime = new Date(
-         `${appointment.date} ${appointment.time} +07:00`
-      );
-      const now = new Date('2025-06-18T02:13:00+07:00');
-      const diffHours =
-         (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-      return diffHours > 24 && appointment.canCancel;
+   // Render skeleton for desktop table
+   const renderTableSkeleton = (rows: number, cols: number) => {
+      return Array.from({ length: rows }).map((_, rowIndex) => (
+         <tr key={rowIndex} className="border-b">
+            {Array.from({ length: cols }).map((_, colIndex) => (
+               <td key={colIndex} className="p-6 align-middle">
+                  <Skeleton className="h-4 w-3/4" />
+               </td>
+            ))}
+         </tr>
+      ));
    };
 
    return (
-      <div className="space-y-4">
-         <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Danh sách lịch hẹn</h3>
-            <Badge variant="outline" className="flex items-center gap-1">
-               <Clock className="w-3 h-3" />
-               {filteredAppointments.length} lịch hẹn
-            </Badge>
+      <div className="space-y-6">
+         {/* Header */}
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+               <h1 className="text-2xl font-bold text-gray-900">Danh sách lịch hẹn</h1>
+               <p className="text-sm text-gray-600 mt-1">Quản lý và theo dõi các buổi tư vấn của bạn</p>
+            </div>
+            <div className="flex items-center gap-3">
+               <Badge variant="outline" className="flex items-center gap-2 px-3 py-1.5">
+                  <Clock className="w-4 h-4" />
+                  <span className="font-medium">
+                     {isLoading ? '...' : `${filteredAppointments.length} lịch hẹn`}
+                  </span>
+               </Badge>
+               <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="lg:hidden"
+               >
+                  <Filter className="w-4 h-4 mr-2" />
+                  Bộ lọc
+               </Button>
+            </div>
          </div>
 
-         <AppointmentFilters onFilterChange={handleFilterChange} />
+         {/* Filters */}
+         <div className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
+            <AppointmentFilters onFilterChange={handleFilterChange} />
+         </div>
 
-         {isLoading ? (
-            <div className="text-center">Đang tải lịch hẹn...</div>
-         ) : error ? (
-            <div className="text-center text-destructive">{error}</div>
-         ) : (
-            <Card>
+         {/* Desktop Table View */}
+         <div className="hidden lg:block">
+            <Card className="shadow-sm">
                <CardContent className="p-0">
-                  <div className="relative w-full overflow-auto">
-                     <table className="w-full caption-bottom text-sm">
-                        <thead className="border-b">
-                           <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                              <th className="h-12 px-4 text-left align-middle font-medium">
+                  <div className="overflow-x-auto">
+                     <table className="w-full">
+                        <thead className="bg-gray-50/50 border-b">
+                           <tr>
+                              <th className="h-12 px-6 text-left align-middle font-semibold text-gray-900">
                                  Thành viên
                               </th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">
+                              <th className="h-12 px-6 text-left align-middle font-semibold text-gray-900">
                                  Ngày & Giờ
                               </th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">
+                              <th className="h-12 px-6 text-left align-middle font-semibold text-gray-900">
                                  Thời lượng
                               </th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">
+                              <th className="h-12 px-6 text-left align-middle font-semibold text-gray-900">
                                  Loại
                               </th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">
+                              <th className="h-12 px-6 text-left align-middle font-semibold text-gray-900">
                                  Vấn đề
                               </th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">
+                              <th className="h-12 px-6 text-left align-middle font-semibold text-gray-900">
                                  Trạng thái
                               </th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">
+                              <th className="h-12 px-6 text-left align-middle font-semibold text-gray-900">
                                  Thao tác
                               </th>
                            </tr>
                         </thead>
                         <tbody>
-                           {filteredAppointments.length > 0 ? (
-                              filteredAppointments.map((appointment) => (
+                           {isLoading && renderTableSkeleton(5, 7)}
+                           {!isLoading && filteredAppointments.length > 0 ? (
+                              filteredAppointments.map((appointment, index) => (
                                  <tr
                                     key={appointment.id}
-                                    className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                                    className={`border-b hover:bg-gray-50/50 transition-colors ${
+                                       index % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'
+                                    }`}
                                  >
-                                    <td className="p-4 align-middle">
+                                    <td className="p-6 align-middle">
                                        <div className="flex items-center gap-3">
-                                          {appointment.appointmentType ===
-                                          'couple' ? (
+                                          {appointment.appointmentType === 'couple' ? (
                                              <div className="flex -space-x-2">
-                                                <Avatar className="h-8 w-8 border-2 border-background">
+                                                <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                                                    <AvatarImage
-                                                      src={
-                                                         appointment.avatar ||
-                                                         '/placeholder.svg'
-                                                      }
+                                                      src={appointment.avatar || '/placeholder.svg'}
                                                    />
-                                                   <AvatarFallback>
-                                                      {
-                                                         appointment.member.split(
-                                                            ' '
-                                                         )[0][0]
-                                                      }
+                                                   <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
+                                                      {appointment.member.split(' ')[0][0]}
                                                    </AvatarFallback>
                                                 </Avatar>
-                                                <Avatar className="h-8 w-8 border-2 border-background">
+                                                <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                                                    <AvatarImage
-                                                      src={
-                                                         appointment.avatar2 ||
-                                                         '/placeholder.svg'
-                                                      }
+                                                      src={appointment.avatar2 || '/placeholder.svg'}
                                                    />
-                                                   <AvatarFallback>
-                                                      {appointment.member.split(
-                                                         ' '
-                                                      )[3]?.[0] || '?'}
+                                                   <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
+                                                      {appointment.member.split(' ')[3]?.[0] || '?'}
                                                    </AvatarFallback>
                                                 </Avatar>
                                              </div>
                                           ) : (
-                                             <Avatar className="h-8 w-8">
-                                                <AvatarImage
-                                                   src={
-                                                      appointment.avatar ||
-                                                      '/placeholder.svg'
-                                                   }
-                                                />
-                                                <AvatarFallback>
-                                                   {
-                                                      appointment.member.split(
-                                                         ' '
-                                                      )[0][0]
-                                                   }
+                                             <Avatar className="h-10 w-10 shadow-sm">
+                                                <AvatarImage src={appointment.avatar || '/placeholder.svg'} />
+                                                <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
+                                                   {appointment.member.split(' ')[0][0]}
                                                 </AvatarFallback>
                                              </Avatar>
                                           )}
-                                          <div className="flex items-center gap-2">
-                                             {appointment.appointmentType ===
-                                                'couple' && (
-                                                <Badge
-                                                   variant="outline"
-                                                   className="text-xs font-normal px-1 py-0 h-5"
-                                                >
-                                                   <Users className="h-3 w-3 mr-1" />
-                                                   Cặp đôi
-                                                </Badge>
-                                             )}
-                                             <span>{appointment.member}</span>
+                                          <div className="flex flex-col gap-1">
+                                             <div className="flex items-center gap-2">
+                                                <span className="font-medium text-gray-900">
+                                                   {appointment.member}
+                                                </span>
+                                                {appointment.appointmentType === 'couple' && (
+                                                   <Badge
+                                                      variant="outline"
+                                                      className="text-xs font-medium px-2 py-0.5 h-5 bg-purple-50 text-purple-700 border-purple-200"
+                                                   >
+                                                      <Users className="h-3 w-3 mr-1" />
+                                                      Cặp đôi
+                                                   </Badge>
+                                                )}
+                                             </div>
                                           </div>
                                        </div>
                                     </td>
-                                    <td className="p-4 align-middle">
-                                       <div className="flex flex-col">
-                                          <div className="flex items-center gap-1">
-                                             <Calendar className="h-4 w-4 text-muted-foreground" />
-                                             <span>{appointment.date}</span>
+                                    <td className="p-6 align-middle">
+                                       <div className="flex flex-col gap-1">
+                                          <div className="flex items-center gap-2 text-gray-900">
+                                             <Calendar className="h-4 w-4 text-gray-500" />
+                                             <span className="font-medium">{appointment.date}</span>
                                           </div>
-                                          <div className="flex items-center gap-1">
-                                             <Clock className="h-4 w-4 text-muted-foreground" />
+                                          <div className="flex items-center gap-2 text-gray-600">
+                                             <Clock className="h-4 w-4 text-gray-500" />
                                              <span>{appointment.time}</span>
                                           </div>
                                        </div>
                                     </td>
-                                    <td className="p-4 align-middle">
-                                       {appointment.duration}
+                                    <td className="p-6 align-middle">
+                                       <span className="font-medium text-gray-900">{appointment.duration}</span>
                                     </td>
-                                    <td className="p-4 align-middle">
-                                       <div className="flex items-center gap-1">
-                                          <Video className="h-4 w-4 text-muted-foreground" />
-                                          <span>{appointment.type}</span>
+                                    <td className="p-6 align-middle">
+                                       <div className="flex items-center gap-2">
+                                          <div className="p-1.5 bg-blue-100 rounded-md">
+                                             <Video className="h-4 w-4 text-blue-600" />
+                                          </div>
+                                          <span className="text-gray-900">{appointment.type}</span>
                                        </div>
                                     </td>
-                                    <td className="p-4 align-middle">
-                                       {appointment.issue}
+                                    <td className="p-6 align-middle">
+                                       <span className="text-gray-700 text-sm leading-relaxed">
+                                          {appointment.issue}
+                                       </span>
                                     </td>
                                     <td className="p-4 align-middle">
-                                       <Badge
-                                          variant={
-                                             appointment.status ===
-                                             'Đã lên lịch'
-                                                ? 'default'
-                                                : appointment.status ===
-                                                    'Đã hoàn thành'
-                                                  ? 'secondary'
-                                                  : 'destructive'
-                                          }
-                                       >
-                                          {appointment.status}
-                                       </Badge>
+                                       <div className="flex items-center gap-2">
+                                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                                          <span className="text-sm font-medium text-green-700">
+                                             Đã xác nhận
+                                          </span>
+                                       </div>
                                     </td>
-                                    <td className="p-4 align-middle">
+                                    <td className="p-6 align-middle">
                                        <div className="flex gap-2">
-                                          {appointment.status ===
-                                             'Đã lên lịch' && (
-                                             <>
-                                                <Button
-                                                   size="sm"
-                                                   variant="default"
-                                                   asChild
-                                                >
-                                                   <Link
-                                                      href={`/counselor/appointments/call/${appointment.id}`}
-                                                   >
-                                                      <Video className="mr-2 h-4 w-4" />
-                                                      Tham gia
-                                                   </Link>
-                                                </Button>
-                                                {canCancel(appointment) && (
-                                                   <Button
-                                                      size="sm"
-                                                      variant="destructive"
-                                                      onClick={() =>
-                                                         cancelAppointment(
-                                                            appointment.id
-                                                         )
-                                                      }
-                                                   >
-                                                      <X className="mr-2 h-4 w-4" />
-                                                      Hủy
-                                                   </Button>
-                                                )}
-                                             </>
-                                          )}
                                           <Button
                                              size="sm"
-                                             variant="outline"
+                                             className="bg-rose-600 hover:bg-rose-700"
                                              asChild
                                           >
-                                             <Link
-                                                href={`/counselor/appointments/${appointment.id}`}
-                                             >
-                                                <Eye className="mr-2 h-4 w-4" />
-                                                Xem chi tiết
+                                             <Link href={`/counselor/appointments/call/${appointment.id}`}>
+                                                <Video className="mr-2 h-4 w-4" />
+                                                Tham gia
                                              </Link>
                                           </Button>
-                                          <Button
-                                             size="sm"
-                                             variant="outline"
-                                             onClick={() =>
-                                                openNoteDialog(appointment)
-                                             }
-                                          >
-                                             {appointment.notes ? (
-                                                <>
-                                                   <Eye className="mr-2 h-4 w-4" />
-                                                   Xem ghi chú
-                                                </>
-                                             ) : (
-                                                <>
-                                                   <MessageSquare className="mr-2 h-4 w-4" />
-                                                   Thêm ghi chú
-                                                </>
-                                             )}
+                                          <Button size="sm" variant="outline" asChild>
+                                             <Link href={`/counselor/appointments/${appointment.id}`}>
+                                                <Eye className="mr-2 h-4 w-4" />
+                                                Chi tiết
+                                             </Link>
                                           </Button>
                                        </div>
                                     </td>
                                  </tr>
                               ))
                            ) : (
-                              <tr>
-                                 <td
-                                    colSpan={7}
-                                    className="p-4 text-center text-muted-foreground"
-                                 >
-                                    Không tìm thấy lịch hẹn nào phù hợp với bộ
-                                    lọc
-                                 </td>
-                              </tr>
+                              !isLoading && (
+                                 <tr>
+                                    <td colSpan={7} className="p-12 text-center">
+                                       <div className="flex flex-col items-center gap-3">
+                                          <div className="p-3 bg-gray-100 rounded-full">
+                                             <Search className="h-6 w-6 text-gray-400" />
+                                          </div>
+                                          <div>
+                                             <p className="text-gray-900 font-medium">
+                                                Không tìm thấy lịch hẹn
+                                             </p>
+                                             <p className="text-gray-500 text-sm">
+                                                Thử điều chỉnh bộ lọc để xem thêm kết quả
+                                             </p>
+                                          </div>
+                                       </div>
+                                    </td>
+                                 </tr>
+                              )
                            )}
                         </tbody>
                      </table>
                   </div>
                </CardContent>
             </Card>
-         )}
+         </div>
 
-         {/* Cancel Dialog */}
-         <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-            <DialogContent className="max-w-md">
-               <DialogHeader>
-                  <DialogTitle>
-                     Hủy lịch hẹn - {selectedAppointment?.member}
-                  </DialogTitle>
-               </DialogHeader>
-               <div className="space-y-4">
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                     <div className="flex items-center gap-3 mb-2">
-                        {selectedAppointment?.appointmentType === 'couple' ? (
-                           <div className="flex -space-x-2">
-                              <Avatar className="h-8 w-8 border-2 border-background">
-                                 <AvatarImage
-                                    src={
-                                       selectedAppointment?.avatar ||
-                                       '/placeholder.svg'
-                                    }
-                                 />
-                                 <AvatarFallback>
-                                    {
-                                       selectedAppointment?.member.split(
-                                          ' '
-                                       )[0][0]
-                                    }
-                                 </AvatarFallback>
-                              </Avatar>
-                              <Avatar className="h-8 w-8 border-2 border-background">
-                                 <AvatarImage
-                                    src={
-                                       selectedAppointment?.avatar2 ||
-                                       '/placeholder.svg'
-                                    }
-                                 />
-                                 <AvatarFallback>
-                                    {selectedAppointment?.member.split(
-                                       ' '
-                                    )[3]?.[0] || '?'}
-                                 </AvatarFallback>
-                              </Avatar>
+         {/* Mobile Card View */}
+         <div className="lg:hidden space-y-4">
+            {isLoading ? (
+               Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                     <CardContent className="p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                           <Skeleton className="h-10 w-10 rounded-full" />
+                           <div className="flex-1">
+                              <Skeleton className="h-4 w-3/4 mb-2" />
+                              <Skeleton className="h-3 w-1/2" />
                            </div>
-                        ) : (
-                           <Avatar className="h-8 w-8">
-                              <AvatarImage
-                                 src={
-                                    selectedAppointment?.avatar ||
-                                    '/placeholder.svg'
-                                 }
-                              />
-                              <AvatarFallback>
-                                 {selectedAppointment?.member.split(' ')[0][0]}
-                              </AvatarFallback>
-                           </Avatar>
-                        )}
-                        <div className="font-medium">
-                           {selectedAppointment?.member}
                         </div>
-                     </div>
-                     <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="space-y-2">
+                           <Skeleton className="h-3 w-full" />
+                           <Skeleton className="h-3 w-2/3" />
+                        </div>
+                     </CardContent>
+                  </Card>
+               ))
+            ) : filteredAppointments.length > 0 ? (
+               filteredAppointments.map((appointment) => (
+                  <Card
+                     key={appointment.id}
+                     className="shadow-sm hover:shadow-md transition-shadow"
+                  >
+                     <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-4">
+                           <div className="flex items-center gap-3">
+                              {appointment.appointmentType === 'couple' ? (
+                                 <div className="flex -space-x-2">
+                                    <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                                       <AvatarImage src={appointment.avatar || '/placeholder.svg'} />
+                                       <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
+                                          {appointment.member.split(' ')[0][0]}
+                                       </AvatarFallback>
+                                    </Avatar>
+                                    <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                                       <AvatarImage src={appointment.avatar2 || '/placeholder.svg'} />
+                                       <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
+                                          {appointment.member.split(' ')[3]?.[0] || '?'}
+                                       </AvatarFallback>
+                                    </Avatar>
+                                 </div>
+                              ) : (
+                                 <Avatar className="h-10 w-10 shadow-sm">
+                                    <AvatarImage src={appointment.avatar || '/placeholder.svg'} />
+                                    <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
+                                       {appointment.member.split(' ')[0][0]}
+                                    </AvatarFallback>
+                                 </Avatar>
+                              )}
+                              <div>
+                                 <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="font-semibold text-gray-900">{appointment.member}</h3>
+                                    {appointment.appointmentType === 'couple' && (
+                                       <Badge
+                                          variant="outline"
+                                          className="text-xs font-medium px-2 py-0.5 h-5 bg-purple-50 text-purple-700 border-purple-200"
+                                       >
+                                          <Users className="h-3 w-3 mr-1" />
+                                          Cặp đôi
+                                       </Badge>
+                                    )}
+                                 </div>
+                                 <Badge
+                                    className="bg-blue-50 text-blue-700 border-blue-200 border font-medium px-2 py-1 text-xs"
+                                 >
+                                    Đã xác nhận
+                                 </Badge>
+                              </div>
+                           </div>
+                        </div>
+                        <div className="space-y-3 mb-4">
+                           <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="h-4 w-4 text-gray-500" />
+                              <span className="font-medium text-gray-900">{appointment.date}</span>
+                              <Clock className="h-4 w-4 text-gray-500 ml-2" />
+                              <span className="text-gray-600">{appointment.time}</span>
+                           </div>
+                           <div className="flex items-center gap-2 text-sm">
+                              <div className="p-1 bg-blue-100 rounded">
+                                 <Video className="h-3 w-3 text-blue-600" />
+                              </div>
+                              <span className="text-gray-900">{appointment.type}</span>
+                              <span className="text-gray-500">•</span>
+                              <span className="text-gray-600">{appointment.duration}</span>
+                           </div>
+                           <div className="text-sm">
+                              <p className="text-gray-700 leading-relaxed">{appointment.issue}</p>
+                           </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                           <Button size="sm" className="bg-rose-600 hover:bg-rose-700 flex-1" asChild>
+                              <Link href={`/counselor/appointments/call/${appointment.id}`}>
+                                 <Video className="mr-2 h-4 w-4" />
+                                 Tham gia
+                              </Link>
+                           </Button>
+                           <Button size="sm" variant="outline" className="flex-1" asChild>
+                              <Link href={`/counselor/appointments/${appointment.id}`}>
+                                 <Eye className="mr-2 h-4 w-4" />
+                                 Chi tiết
+                              </Link>
+                           </Button>
+                        </div>
+                     </CardContent>
+                  </Card>
+               ))
+            ) : (
+               <Card>
+                  <CardContent className="p-8 text-center">
+                     <div className="flex flex-col items-center gap-3">
+                        <div className="p-3 bg-gray-100 rounded-full">
+                           <Search className="h-6 w-6 text-gray-400" />
+                        </div>
                         <div>
-                           <span className="text-muted-foreground">
-                              Ngày & Giờ:
-                           </span>{' '}
-                           <span>
-                              {selectedAppointment?.date} -{' '}
-                              {selectedAppointment?.time}
-                           </span>
-                        </div>
-                        <div>
-                           <span className="text-muted-foreground">
-                              Vấn đề:
-                           </span>{' '}
-                           <span>{selectedAppointment?.issue}</span>
+                           <p className="text-gray-900 font-medium">Không tìm thấy lịch hẹn</p>
+                           <p className="text-gray-500 text-sm">
+                              Thử điều chỉnh bộ lọc để xem thêm kết quả
+                           </p>
                         </div>
                      </div>
-                  </div>
-
-                  <div className="space-y-2">
-                     <Label htmlFor="cancellation-reason">
-                        Lý do hủy <span className="text-destructive">*</span>
-                     </Label>
-                     <Textarea
-                        id="cancellation-reason"
-                        value={cancellationReason}
-                        onChange={(e) => setCancellationReason(e.target.value)}
-                        placeholder="Vui lòng nhập lý do hủy lịch hẹn này..."
-                        rows={4}
-                     />
-                     <p className="text-xs text-muted-foreground">
-                        Lý do sẽ được gửi đến{' '}
-                        {selectedAppointment?.appointmentType === 'couple'
-                           ? 'cặp đôi'
-                           : 'thành viên'}{' '}
-                        để họ hiểu rõ và có thể đặt lịch lại nếu cần.
-                     </p>
-                  </div>
-
-                  <DialogFooter>
-                     <Button
-                        variant="outline"
-                        onClick={() => setShowCancelDialog(false)}
-                     >
-                        Hủy
-                     </Button>
-                     <Button
-                        variant="destructive"
-                        onClick={performCancel}
-                        disabled={!cancellationReason.trim()}
-                     >
-                        Xác nhận hủy
-                     </Button>
-                  </DialogFooter>
-               </div>
-            </DialogContent>
-         </Dialog>
-
-         {/* Note Dialog */}
-         <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
-            <DialogContent className="max-w-2xl">
-               <DialogHeader>
-                  <DialogTitle>
-                     {selectedAppointment?.notes
-                        ? 'Xem/Sửa ghi chú'
-                        : 'Thêm ghi chú'}{' '}
-                     - {selectedAppointment?.member}
-                  </DialogTitle>
-               </DialogHeader>
-               <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                     <div>
-                        <Label className="text-sm font-medium">
-                           Ngày & Giờ
-                        </Label>
-                        <p>
-                           {selectedAppointment?.date} -{' '}
-                           {selectedAppointment?.time}
-                        </p>
-                     </div>
-                     <div>
-                        <Label className="text-sm font-medium">Vấn đề</Label>
-                        <p>{selectedAppointment?.issue}</p>
-                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                     <Label htmlFor="note">Ghi chú buổi tư vấn</Label>
-                     <Textarea
-                        id="note"
-                        value={appointmentNote}
-                        onChange={(e) => setAppointmentNote(e.target.value)}
-                        placeholder="Nhập ghi chú về buổi tư vấn, kết quả, và các bước tiếp theo..."
-                        rows={6}
-                     />
-                  </div>
-
-                  <div className="flex gap-2 justify-end">
-                     <Button
-                        variant="outline"
-                        onClick={() => setShowNoteDialog(false)}
-                     >
-                        Hủy
-                     </Button>
-                     <Button onClick={saveNote}>Lưu ghi chú</Button>
-                  </div>
-               </div>
-            </DialogContent>
-         </Dialog>
+                  </CardContent>
+               </Card>
+            )}
+         </div>
       </div>
    );
 }
