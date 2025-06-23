@@ -1,11 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
 import {
-   ArrowLeft,
    CheckCircle,
    XCircle,
    Clock,
@@ -14,6 +12,7 @@ import {
    Tag,
    FileText,
    AlertCircle,
+   Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,10 +28,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CertificateStatus } from '@/utils/enum';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/store/store';
-import { approveCertificationById } from '@/services/certificationService';
 import { useToast, ToastType } from '@/hooks/useToast';
+import { getCertificationById, approveCertificationById, rejectCertificationById } from '@/services/certificationService';
+import { Certification } from '@/types/certification';
+
 const getStatusIcon = (status: number) => {
    switch (status) {
       case CertificateStatus.Active:
@@ -70,6 +69,7 @@ const getStatusColor = (status: number) => {
          return 'bg-gray-100 text-gray-800';
    }
 };
+
 const formatDate = (dateString: string) => {
    return new Date(dateString).toLocaleString('vi-VN', {
       year: 'numeric',
@@ -81,14 +81,23 @@ const formatDate = (dateString: string) => {
 };
 
 export default function CertificateDetailPage() {
-   const certificate = useSelector(
-      (state: RootState) => state.certificate.selectedCertificate
-   );
-   const [rejectReason, setRejectReason] = useState('');
-   const [isProcessing, setIsProcessing] = useState(false);
+   const { id } = useParams();
    const { showToast } = useToast();
-   const router = useRouter();
-   console.log(certificate);
+   const [certificate, setCertificate] = useState<Certification | null>(null);
+   const [isLoading, setIsLoading] = useState(true);
+   const [isProcessing, setIsProcessing] = useState(false);
+   const [rejectReason, setRejectReason] = useState('');
+
+   useEffect(() => {
+      if (typeof id === 'string') {
+         getCertificationById(id)
+            .then(setCertificate)
+            .catch((error) =>
+               showToast(error.message || 'Không thể tải chứng chỉ', ToastType.Error)
+            )
+            .finally(() => setIsLoading(false));
+      }
+   }, [id]);
 
    const handleApprove = async () => {
       if (!certificate) return;
@@ -96,62 +105,68 @@ export default function CertificateDetailPage() {
       try {
          await approveCertificationById(certificate.id);
          showToast('Chứng chỉ đã được duyệt thành công!', ToastType.Success);
-         router.refresh();
+
+         const updated = await getCertificationById(certificate.id);
+         setCertificate(updated);
+
       } catch (error) {
-         showToast(
-            `Đã xảy ra lỗi khi duyệt chứng chỉ: ${(error as Error).message}`,
-            ToastType.Error
-         );
+         showToast(`Lỗi duyệt chứng chỉ: ${(error as Error).message}`, ToastType.Error);
       } finally {
          setIsProcessing(false);
       }
    };
+
+
    const handleReject = async () => {
+      if (!certificate) return;
+
       if (!rejectReason.trim()) {
          showToast('Vui lòng nhập lý do từ chối', ToastType.Warning);
-
          return;
       }
-      setIsProcessing(true);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      showToast('Chứng chỉ đã bị từ chối!', ToastType.Info);
 
-      setIsProcessing(false);
+      setIsProcessing(true);
+      try {
+         await rejectCertificationById(certificate.id, rejectReason);
+         showToast('Chứng chỉ đã bị từ chối!', ToastType.Info);
+
+         // Refresh data
+         const updated = await getCertificationById(certificate.id);
+         setCertificate(updated);
+      } catch (error) {
+         showToast(`Lỗi từ chối chứng chỉ: ${(error as Error).message}`, ToastType.Error);
+      } finally {
+         setIsProcessing(false);
+      }
    };
+
+   if (isLoading) {
+      return <div className="p-8 text-center text-muted-foreground">Đang tải...</div>;
+   }
+
    if (!certificate) {
       return (
-         <div className="container mx-auto px-4 py-8">
-            <p className="text-center text-muted-foreground">
-               Không tìm thấy dữ liệu chứng chỉ.
-            </p>
+         <div className="p-8 text-center text-muted-foreground">
+            Không tìm thấy dữ liệu chứng chỉ.
          </div>
       );
    }
-   return (
-      <>
-         {/* Header */}
-         <div className="mb-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-               <div>
-                  <h1 className="text-3xl font-bold mb-2">
-                     {certificate.name}
-                  </h1>
-                  <p className="text-muted-foreground">ID: {certificate.id}</p>
-               </div>
 
-               <Badge
-                  className={`${getStatusColor(certificate.status)} flex items-center gap-2 w-fit`}
-               >
-                  {getStatusIcon(certificate.status)}
-                  {getStatusText(certificate.status)}
-               </Badge>
+   return (
+      <div className="space-y-6">
+         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+               <h1 className="text-3xl font-bold mb-2">{certificate.name}</h1>
+               <p className="text-muted-foreground">ID: {certificate.id}</p>
             </div>
+            <Badge className={`${getStatusColor(certificate.status)} flex items-center gap-2`}>
+               {getStatusIcon(certificate.status)}
+               {getStatusText(certificate.status)}
+            </Badge>
          </div>
 
          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
-               {/* Certificate Image */}
                <Card>
                   <CardHeader>
                      <CardTitle className="flex items-center gap-2">
@@ -172,19 +187,17 @@ export default function CertificateDetailPage() {
                   </CardContent>
                </Card>
 
-               {/* Description */}
                <Card>
                   <CardHeader>
                      <CardTitle>Mô tả chi tiết</CardTitle>
                   </CardHeader>
                   <CardContent>
-                     <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                     <p className="text-sm whitespace-pre-wrap">
                         {certificate.description}
                      </p>
                   </CardContent>
                </Card>
 
-               {/* Categories */}
                <Card>
                   <CardHeader>
                      <CardTitle className="flex items-center gap-2">
@@ -195,27 +208,18 @@ export default function CertificateDetailPage() {
                   <CardContent className="space-y-4">
                      {certificate.categories.map((category) => (
                         <div key={category.categoryId} className="space-y-2">
-                           <div className="flex items-center gap-2">
-                              <Badge variant="default">
-                                 {category.categoryName}
-                              </Badge>
-                           </div>
-
+                           <Badge variant="default">{category.categoryName}</Badge>
                            {category.subCategories.length > 0 && (
-                              <div className="ml-4 space-y-1">
-                                 <div className="flex flex-wrap gap-1">
-                                    {category.subCategories.map(
-                                       (subCategory) => (
-                                          <Badge
-                                             key={subCategory.id}
-                                             variant="secondary"
-                                             className="text-xs"
-                                          >
-                                             {subCategory.name}
-                                          </Badge>
-                                       )
-                                    )}
-                                 </div>
+                              <div className="ml-4 flex flex-wrap gap-1">
+                                 {category.subCategories.map((sub) => (
+                                    <Badge
+                                       key={sub.id}
+                                       variant="secondary"
+                                       className="text-xs"
+                                    >
+                                       {sub.name}
+                                    </Badge>
+                                 ))}
                               </div>
                            )}
                         </div>
@@ -226,7 +230,7 @@ export default function CertificateDetailPage() {
 
             {/* Sidebar */}
             <div className="space-y-6">
-               {/* Certificate Info */}
+               {/* Tổng quan tư vấn viên và trạng thái */}
                <Card>
                   <CardHeader>
                      <CardTitle className="flex items-center gap-2">
@@ -235,52 +239,41 @@ export default function CertificateDetailPage() {
                      </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                     <div>
-                        <Label className="text-sm font-medium text-muted-foreground">
-                           Người nộp
-                        </Label>
-                        <p className="font-medium">{certificate.submittedBy}</p>
+                     {/* Người nộp và ngày nộp */}
+                     <div className="space-y-1">
+                        <Label className="text-sm text-muted-foreground">Người nộp</Label>
+                        <p className="font-semibold text-base">{certificate.counselor.fullname}</p>
                      </div>
+
+                     {certificate.time && (
+                        <div className="space-y-1">
+                           <Label className="text-sm text-muted-foreground">Ngày nộp</Label>
+                           <div className="flex items-center gap-2 text-sm font-medium">
+                              <Calendar className="h-4 w-4" />
+                              {formatDate(certificate.time)}
+                           </div>
+                        </div>
+                     )}
 
                      <Separator />
 
-                     <div>
-                        <Label className="text-sm font-medium text-muted-foreground">
-                           Ngày nộp
-                        </Label>
-                        <p className="font-medium flex items-center gap-2">
-                           <Calendar className="h-4 w-4" />
-                           {formatDate(certificate.submittedDate)}
-                        </p>
-                     </div>
-
-                     <Separator />
-
-                     <div>
-                        <Label className="text-sm font-medium text-muted-foreground">
-                           Trạng thái
-                        </Label>
-                        <div className="flex items-center gap-2 mt-1">
+                     {/* Trạng thái chứng chỉ */}
+                     <div className="space-y-1">
+                        <Label className="text-sm text-muted-foreground">Trạng thái</Label>
+                        <div className="flex items-center gap-2">
                            {getStatusIcon(certificate.status)}
-                           <span className="font-medium">
-                              {getStatusText(certificate.status)}
-                           </span>
+                           <span className="text-sm font-medium">{getStatusText(certificate.status)}</span>
                         </div>
                      </div>
                   </CardContent>
                </Card>
 
-               {/* Actions */}
-               {[
-                  CertificateStatus.NeedEdit,
-                  CertificateStatus.Pending,
-               ].includes(certificate.status) && (
+               {/* Các hành động duyệt/từ chối */}
+               {[CertificateStatus.Pending, CertificateStatus.NeedEdit].includes(certificate.status) && (
                   <Card>
                      <CardHeader>
                         <CardTitle>Hành động</CardTitle>
-                        <CardDescription>
-                           Duyệt hoặc từ chối chứng chỉ này
-                        </CardDescription>
+                        <CardDescription>Phê duyệt hoặc từ chối chứng chỉ này</CardDescription>
                      </CardHeader>
                      <CardContent className="space-y-4">
                         <Button
@@ -294,35 +287,33 @@ export default function CertificateDetailPage() {
 
                         <Separator />
 
-                        <div className="space-y-3">
-                           <Label htmlFor="reject-reason">Lý do từ chối</Label>
+                        <div className="space-y-2">
+                           <Label>Lý do từ chối</Label>
                            <Textarea
-                              id="reject-reason"
-                              placeholder="Nhập lý do từ chối chứng chỉ..."
                               value={rejectReason}
                               onChange={(e) => setRejectReason(e.target.value)}
+                              placeholder="Nhập lý do từ chối..."
                               rows={3}
                            />
                            <Button
                               variant="destructive"
-                              onClick={handleReject}
                               disabled={isProcessing || !rejectReason.trim()}
+                              onClick={handleReject}
                               className="w-full"
                            >
                               <XCircle className="h-4 w-4 mr-2" />
-                              {isProcessing
-                                 ? 'Đang xử lý...'
-                                 : 'Từ chối chứng chỉ'}
+                              {isProcessing ? 'Đang xử lý...' : 'Từ chối chứng chỉ'}
                            </Button>
                         </div>
                      </CardContent>
                   </Card>
                )}
-               {/* Reject Reason (if rejected) */}
-               {certificate.status === 3 && certificate.rejectReason && (
-                  <Alert>
-                     <AlertCircle className="h-4 w-4" />
-                     <AlertDescription>
+
+               {/* Lý do bị từ chối */}
+               {certificate.status === CertificateStatus.NeedEdit && certificate.rejectReason && (
+                  <Alert className="border-destructive/50 bg-destructive/10">
+                     <AlertCircle className="h-5 w-5 text-destructive" />
+                     <AlertDescription className="text-sm">
                         <strong>Lý do từ chối:</strong>
                         <br />
                         {certificate.rejectReason}
@@ -330,7 +321,9 @@ export default function CertificateDetailPage() {
                   </Alert>
                )}
             </div>
+
+
          </div>
-      </>
+      </div>
    );
 }
