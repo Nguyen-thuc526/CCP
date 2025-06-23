@@ -5,11 +5,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Award, Calendar, Download, Eye, ChevronRight } from "lucide-react"
 import CertificateDetailModal from "./certificate-detail-modal"
-import type { Certification } from "@/types/certification"
+import type { CertificateListProps, Certification } from "@/types/certification"
 
-interface CertificateListProps {
-  certifications: Certification[]
-}
+
 
 export default function CertificateList({ certifications }: CertificateListProps) {
   const [selectedCertificate, setSelectedCertificate] = useState<Certification | null>(null)

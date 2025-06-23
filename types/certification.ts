@@ -29,3 +29,6 @@ export interface CertificationResponse {
   data?: any; 
   error?: string;
 }
+export interface CertificateListProps {
+  certifications: Certification[]
+}

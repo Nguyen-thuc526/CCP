@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Clock, History } from "lucide-react"
+import { Clock, History, CheckCircle } from "lucide-react"
 import { AppointmentHistory } from "@/components/counselor/appointment/appointment-history"
 import AppointmentsList from "./appointment-list"
 import { bookingService } from "@/services/bookingService"
 import { parseISO, format, differenceInMinutes } from "date-fns"
 import { useErrorLoadingWithUI } from "@/hooks/useErrorLoading"
-
+import { BookingStatus } from "@/utils/enum"
+import AppointmentsFinishedList from "./appointments-finished-list"
 
 interface Appointment {
   id: string
@@ -19,7 +20,7 @@ interface Appointment {
   time: string
   duration: string
   type: string
-  status: "Đã lên lịch" | "Đã hủy" | "Đã hoàn thành"
+  status: BookingStatus
   issue: string
   notes?: string
   canCancel: boolean
@@ -58,8 +59,6 @@ interface BookingResponse {
 
 export default function AppointmentsManage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
-
-  // Sử dụng hook loading
   const { loading, error, startLoading, stopLoading, setErrorMessage } = useErrorLoadingWithUI()
 
   const fetchBookings = async () => {
@@ -83,10 +82,10 @@ export default function AppointmentsManage() {
             time: format(startDate, "HH:mm"),
             duration: `${duration} phút`,
             type: "Cuộc gọi video",
-            status: booking.status === 1 ? "Đã lên lịch" : "Đã hoàn thành",
+            status: booking.status as BookingStatus,
             issue: booking.subCategories.map((sub) => sub.name).join(", ") || "Không xác định",
             notes: booking.note || undefined,
-            canCancel: booking.status === 1,
+            canCancel: booking.status === BookingStatus.Confirm,
             requestedAt: format(new Date(), "dd/MM/yyyy"),
             appointmentType: booking.member2 ? "couple" : "individual",
             additionalInfo: booking.note || undefined,
@@ -114,6 +113,10 @@ export default function AppointmentsManage() {
           <Clock className="h-4 w-4" />
           Lịch hẹn sắp tới
         </TabsTrigger>
+        <TabsTrigger value="completed" className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4" />
+          Đã hoàn thành
+        </TabsTrigger>
         <TabsTrigger value="history" className="flex items-center gap-2">
           <History className="h-4 w-4" />
           Lịch sử
@@ -127,6 +130,18 @@ export default function AppointmentsManage() {
           isLoading={loading}
           error={error}
           onRetry={fetchBookings}
+          statusFilter={BookingStatus.Confirm}
+        />
+      </TabsContent>
+
+      <TabsContent value="completed">
+        <AppointmentsFinishedList
+          appointments={appointments}
+          setAppointments={setAppointments}
+          isLoading={loading}
+          error={error}
+          onRetry={fetchBookings}
+          statusFilter={BookingStatus.Finish}
         />
       </TabsContent>
 

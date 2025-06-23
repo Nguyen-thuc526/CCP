@@ -16,3 +16,11 @@ type UserResponse = {
   error: string | null;
 };
 
+interface UpdateCounselorProfileRequest {
+  fullName?: string;
+  description?: string;
+  price?: number;
+  phone?: string;
+  yearOfJob?: number;
+  avatar?: string;
+}
