@@ -17,7 +17,7 @@ import type { BookingStatus } from "@/utils/enum"
 import { bookingService } from "@/services/bookingService"
 import { toast } from "@/components/ui/use-toast"
 
-interface AppointmentsFinishedListProps {
+interface AppointmentsCompletedListProps {
   appointments: Appointment[]
   setAppointments: React.Dispatch<React.SetStateAction<Appointment[]>>
   isLoading?: boolean
@@ -26,14 +26,14 @@ interface AppointmentsFinishedListProps {
   statusFilter?: BookingStatus
 }
 
-export default function AppointmentsFinishedList({
+export default function AppointmentsCompletedList({
   appointments,
   setAppointments,
   isLoading = false,
   error = null,
   onRetry,
   statusFilter,
-}: AppointmentsFinishedListProps) {
+}: AppointmentsCompletedListProps) {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [noteForm, setNoteForm] = useState({
     problemSummary: "",
