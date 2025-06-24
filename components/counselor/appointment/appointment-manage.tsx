@@ -10,6 +10,8 @@ import { parseISO, format, differenceInMinutes } from "date-fns"
 import { useErrorLoadingWithUI } from "@/hooks/useErrorLoading"
 import { BookingStatus } from "@/utils/enum"
 import AppointmentsFinishedList from "./appointments-finished-list"
+import AppointmentsCompletedList from "./appointments-completed-list"
+import AppointmentsCanceledList from "./appointments-canceled-list"
 
 interface Appointment {
   id: string
@@ -113,9 +115,17 @@ export default function AppointmentsManage() {
           <Clock className="h-4 w-4" />
           Lịch hẹn sắp tới
         </TabsTrigger>
-        <TabsTrigger value="completed" className="flex items-center gap-2">
+        <TabsTrigger value="finished" className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4" />
+          Đã kết thúc
+        </TabsTrigger>
+         <TabsTrigger value="completed" className="flex items-center gap-2">
           <CheckCircle className="h-4 w-4" />
           Đã hoàn thành
+        </TabsTrigger>
+        <TabsTrigger value="canceled" className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4" />
+          Đã bị hủy
         </TabsTrigger>
         <TabsTrigger value="history" className="flex items-center gap-2">
           <History className="h-4 w-4" />
@@ -134,7 +144,7 @@ export default function AppointmentsManage() {
         />
       </TabsContent>
 
-      <TabsContent value="completed">
+      <TabsContent value="finished">
         <AppointmentsFinishedList
           appointments={appointments}
           setAppointments={setAppointments}
@@ -142,6 +152,26 @@ export default function AppointmentsManage() {
           error={error}
           onRetry={fetchBookings}
           statusFilter={BookingStatus.Finish}
+        />
+      </TabsContent>
+       <TabsContent value="completed">
+        <AppointmentsCompletedList
+          appointments={appointments}
+          setAppointments={setAppointments}
+          isLoading={loading}
+          error={error}
+          onRetry={fetchBookings}
+          statusFilter={BookingStatus.Complete}
+        />
+      </TabsContent>
+        <TabsContent value="canceled">
+        <AppointmentsCanceledList
+          appointments={appointments}
+          setAppointments={setAppointments}
+          isLoading={loading}
+          error={error}
+          onRetry={fetchBookings}
+          statusFilter={BookingStatus.Refund}
         />
       </TabsContent>
 
