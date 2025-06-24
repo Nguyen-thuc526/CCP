@@ -1,7 +1,8 @@
 
 
-import { CategoryResponse } from '@/types/category';
+import { Category, CategoryResponse } from '@/types/category';
 import axiosInstance from './axiosInstance';
+import { SubCategory } from '@/types/certification';
 
 export const categoryService = {
   // API lấy danh sách danh mục hoạt động với subcates

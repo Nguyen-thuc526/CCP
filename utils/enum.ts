@@ -10,12 +10,13 @@ export enum AccountStatus {
   Block = 2,
 }
 
-// Trạng thái chứng chỉ
-export enum CertificateStatus {
-  Pending = 0,
+export enum CounselorStatus {
+  NoFunc = 0,
   Active = 1,
-  NeedEdit = 2,
+  Block = 2,
 }
+
+// Trạng thái chứng chỉ
 
 // Trạng thái danh mục
 export enum CategoryStatus {
@@ -47,6 +48,23 @@ export enum TransactionType {
 }
 
 // Trạng thái thành viên
+
+export enum Category {
+  InActive = 0,
+  Active = 1,
+}
+
+export enum SubCategory {
+  InActive = 0,
+  Active = 1,
+}
+
+export enum CertificateStatus {
+  Pending = 0,
+  Active = 1,
+  NeedEdit = 2,
+}
+
 export enum MembershipStatus {
   Inactive = 0,
   Active = 1,
