@@ -69,3 +69,8 @@ export enum MembershipStatus {
   Inactive = 0,
   Active = 1,
 }
+
+export enum SurveyStatus {
+  Inactive = 0,
+  Active = 1,
+}
