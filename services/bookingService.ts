@@ -28,11 +28,11 @@ export const bookingService = {
     const response = await axiosInstance.put('/api/Booking/counselor-cancel', payload);
     return response.data;
   },
-    async finishBooking(bookingId: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  async finishBooking(bookingId: string): Promise<{ success: boolean; message?: string; error?: string }> {
     const response = await axiosInstance.put(`/api/Booking/${bookingId}/finish`);
     return response.data;
   },
-    async updateNote(payload: UpdateNoteRequest): Promise<UpdateNoteResponse> {
+  async updateNote(payload: UpdateNoteRequest): Promise<UpdateNoteResponse> {
     const response = await axiosInstance.put('/api/Booking/update-note', payload);
     return response.data;
   },
