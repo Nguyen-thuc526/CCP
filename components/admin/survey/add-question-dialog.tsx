@@ -19,10 +19,45 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createSurveyQuestion } from "@/services/surveyService"
 
+// Question tag constants
+export const mbtiQuestionTags = [
+  "I",
+  "E", // Introvert vs Extrovert
+  "N",
+  "S", // Intuition vs Sensing
+  "T",
+  "F", // Thinking vs Feeling
+  "J",
+  "P", // Judging vs Perceiving
+]
+
+export const loveLanguageQuestionTags = [
+  "Words of Affirmation", // Lời nói yêu thương
+  "Acts of Service", // Hành động quan tâm
+  "Receiving Gifts", // Nhận quà
+  "Quality Time", // Thời gian bên nhau
+  "Physical Touch", // Chạm vào
+]
+
+export const big5QuestionTags = [
+  "Openness", // Cởi mở
+  "Conscientiousness", // Tận tâm
+  "Extraversion", // Hướng ngoại
+  "Agreeableness", // Hòa đồng
+  "Neuroticism", // Bất ổn cảm xúc
+]
+
+export const discQuestionTags = [
+  "Dominance", // Dominance
+  "Influence", // Influence
+  "Steadiness", // Steadiness
+  "Conscientiousness", // Conscientiousness
+]
+
 interface AddQuestionDialogProps {
   isOpen: boolean
   onClose: () => void
-  onQuestionAdded: () => void
+  onQuestionAdded: (newQuestion: SurveyQuestion) => void
   surveyId: string
   surveyName: string
 }
@@ -36,6 +71,26 @@ export function AddQuestionDialog({ isOpen, onClose, onQuestionAdded, surveyId, 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [newAnswerForm, setNewAnswerForm] = useState<SurveyAnswer>({ text: "", score: 1, tag: "" })
+
+  // Get available tags based on survey name
+  const getAvailableTags = () => {
+    const surveyNameLower = surveyName.toLowerCase()
+
+    if (surveyNameLower.includes("mbti")) {
+      return mbtiQuestionTags
+    } else if (surveyNameLower.includes("love") || surveyNameLower.includes("language")) {
+      return loveLanguageQuestionTags
+    } else if (surveyNameLower.includes("big") || surveyNameLower.includes("5")) {
+      return big5QuestionTags
+    } else if (surveyNameLower.includes("disc")) {
+      return discQuestionTags
+    }
+
+    // Return empty array if survey type is not recognized
+    return []
+  }
+
+  const availableTags = getAvailableTags()
 
   const handleAddAnswer = (answer: SurveyAnswer) => {
     setNewQuestion((prev) => ({
@@ -61,8 +116,12 @@ export function AddQuestionDialog({ isOpen, onClose, onQuestionAdded, surveyId, 
       setLoading(true)
       setError(null)
       await createSurveyQuestion(newQuestion)
+
+      // Pass the new question to parent for local state update
+      onQuestionAdded(newQuestion)
+
+      // Reset form
       setNewQuestion({ surveyId, description: "", answers: [] })
-      onQuestionAdded()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi tạo câu hỏi")
     } finally {
@@ -72,6 +131,7 @@ export function AddQuestionDialog({ isOpen, onClose, onQuestionAdded, surveyId, 
 
   const handleClose = () => {
     setNewQuestion({ surveyId, description: "", answers: [] })
+    setNewAnswerForm({ text: "", score: 1, tag: "" })
     setError(null)
     onClose()
   }
@@ -118,32 +178,35 @@ export function AddQuestionDialog({ isOpen, onClose, onQuestionAdded, surveyId, 
                 <Label htmlFor="answer-score" className="text-sm">
                   Điểm số
                 </Label>
-                <Select
+                <Input
+                  id="answer-score"
+                  type="number"
+                  placeholder="Nhập điểm số..."
                   value={newAnswerForm.score.toString()}
-                  onValueChange={(value) => setNewAnswerForm({ ...newAnswerForm, score: Number.parseInt(value) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5].map((score) => (
-                      <SelectItem key={score} value={score.toString()}>
-                        {score}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(e) => setNewAnswerForm({ ...newAnswerForm, score: Number(e.target.value) || 0 })}
+                  min="0"
+                  step="1"
+                />
               </div>
               <div>
                 <Label htmlFor="answer-tag" className="text-sm">
                   Nhãn phân loại
                 </Label>
-                <Input
-                  id="answer-tag"
-                  placeholder="Nhập nhãn..."
+                <Select
                   value={newAnswerForm.tag}
-                  onChange={(e) => setNewAnswerForm({ ...newAnswerForm, tag: e.target.value })}
-                />
+                  onValueChange={(value) => setNewAnswerForm({ ...newAnswerForm, tag: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn nhãn..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTags.map((tag, index) => (
+                      <SelectItem key={`${tag}-${index}`} value={tag}>
+                        {tag}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <Button

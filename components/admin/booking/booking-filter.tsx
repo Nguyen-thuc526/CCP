@@ -35,7 +35,15 @@ export function BookingFilters({ onSearch, onStatusFilter, onTypeFilter, onClear
             </div>
 
             <div className="flex gap-2 items-center">
-                <Select onValueChange={(value) => onStatusFilter(Number(value) as BookingStatus | "all")}>
+                <Select
+                    onValueChange={(value) => {
+                        if (value === "all") {
+                            onStatusFilter("all");
+                        } else {
+                            onStatusFilter(Number(value) as BookingStatus);
+                        }
+                    }}
+                >
                     <SelectTrigger className="w-[150px]">
                         <SelectValue placeholder="Trạng thái" />
                     </SelectTrigger>
@@ -50,7 +58,6 @@ export function BookingFilters({ onSearch, onStatusFilter, onTypeFilter, onClear
                         <SelectItem value={BookingStatus.Complete.toString()}>Hoàn thành</SelectItem>
                     </SelectContent>
                 </Select>
-
                 <Select onValueChange={(value) => onTypeFilter(value as "all" | "individual" | "couple")}>
                     <SelectTrigger className="w-[120px]">
                         <SelectValue placeholder="Loại" />
