@@ -72,6 +72,7 @@ export interface BookingAdmin {
   member: Member;
   member2: Member | null;
   counselor: Counselor;
+   subCategories?: SubCategory[];
 }
 export interface BookingQuery {
   PageNumber: number;
@@ -91,4 +92,8 @@ export interface ApiResponse<T> {
   success: boolean
   data: T
   error: string | null
+}export interface SubCategory {
+  id: string;
+  name: string;
+  status: number;
 }
