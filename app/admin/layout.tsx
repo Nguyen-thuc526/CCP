@@ -1,5 +1,4 @@
 import type React from "react"
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Sidebar } from "@/components/sidebar/Sidebar"
 
