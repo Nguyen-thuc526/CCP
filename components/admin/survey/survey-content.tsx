@@ -1,19 +1,26 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, FileText, AlertCircle, RefreshCw } from "lucide-react"
+import {
+  Plus,
+  Edit,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  AlertCircle,
+  RefreshCw,
+  MoreHorizontal,
+} from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AddQuestionDialog } from "./add-question-dialog"
 import { EditQuestionDialog } from "./edit-question-dialog"
 import { DeleteQuestionDialog } from "./delete-question-dialog"
 import { getSurveyQuestions } from "@/services/surveyService"
-import type { Survey, SurveyQuestion, SurveyAnswer, PagingResponse } from "@/types/survey"
+import type { Survey, SurveyQuestion, PagingResponse } from "@/types/survey"
 
 interface SurveyContentProps {
   surveys: Survey[]
@@ -31,8 +38,7 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
   const [isAddingQuestion, setIsAddingQuestion] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<SurveyQuestion | null>(null)
   const [deletingQuestion, setDeletingQuestion] = useState<SurveyQuestion | null>(null)
-  const [newAnswer, setNewAnswer] = useState<SurveyAnswer>({ text: "", score: 1, tag: "" })
-  const pageSize = 10
+  const pageSize = 3
 
   const currentSurvey = surveys.find((s) => s.id === activeTab)
 
@@ -56,9 +62,9 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
       }
 
       setQuestions(response.data.items)
-      setTotalPages(Math.ceil(response.data.total / pageSize))
-      setTotalItems(response.data.total)
-      setCurrentPage(page)
+      setTotalPages(response.data.totalPages)
+      setTotalItems(response.data.totalCount)
+      setCurrentPage(response.data.pageNumber)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi tải câu hỏi")
     } finally {
@@ -70,37 +76,77 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
     loadQuestions(page)
   }
 
-  const handleQuestionUpdated = () => {
-    loadQuestions(currentPage)
-    onRefresh()
+  // Update question locally without refetching
+  const handleQuestionUpdated = (updatedQuestion: SurveyQuestion) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((question) =>
+        question.surveyId === updatedQuestion.surveyId && question.description === editingQuestion?.description
+          ? updatedQuestion
+          : question,
+      ),
+    )
+    setEditingQuestion(null)
   }
 
-  const handleQuestionAdded = () => {
-    setIsAddingQuestion(false)
-    loadQuestions(currentPage)
-    onRefresh()
-  }
+  // Add question locally without refetching
+  const handleQuestionAdded = (newQuestion: SurveyQuestion) => {
+    // If we're on the last page and it's not full, add to current page
+    const questionsOnCurrentPage = questions.length
+    const isLastPage = currentPage === totalPages || totalPages === 0
+    const canAddToCurrentPage = questionsOnCurrentPage < pageSize
 
-  const handleAddAnswer = (
-    answer: SurveyAnswer,
-    targetQuestions: SurveyAnswer[],
-    setTargetQuestions: (answers: SurveyAnswer[]) => void,
-  ) => {
-    if (answer.text && answer.tag) {
-      setTargetQuestions([...targetQuestions, answer])
-      setNewAnswer({ text: "", score: 1, tag: "" })
+    if (isLastPage && canAddToCurrentPage) {
+      setQuestions((prevQuestions) => [...prevQuestions, newQuestion])
+      setTotalItems((prev) => prev + 1)
+
+      // Update total pages if this is the first question
+      if (totalPages === 0) {
+        setTotalPages(1)
+      }
+    } else {
+      // If current page is full, increment total items and pages if needed
+      const newTotalItems = totalItems + 1
+      const newTotalPages = Math.ceil(newTotalItems / pageSize)
+
+      setTotalItems(newTotalItems)
+      setTotalPages(newTotalPages)
+
+      // If we need a new page, navigate to it
+      if (newTotalPages > totalPages) {
+        setCurrentPage(newTotalPages)
+        setQuestions([newQuestion])
+      }
     }
+
+    setIsAddingQuestion(false)
   }
 
-  const handleRemoveAnswer = (
-    index: number,
-    targetQuestions: SurveyAnswer[],
-    setTargetQuestions: (answers: SurveyAnswer[]) => void,
-  ) => {
-    setTargetQuestions(targetQuestions.filter((_, i) => i !== index))
+  // Delete question locally without refetching
+  const handleQuestionDeleted = (deletedQuestion: SurveyQuestion) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.filter(
+        (question) =>
+          !(question.surveyId === deletedQuestion.surveyId && question.description === deletedQuestion.description),
+      ),
+    )
+
+    const newTotalItems = Math.max(0, totalItems - 1)
+    const newTotalPages = newTotalItems === 0 ? 0 : Math.ceil(newTotalItems / pageSize)
+
+    setTotalItems(newTotalItems)
+    setTotalPages(newTotalPages)
+
+    // If current page becomes empty and it's not the first page, go to previous page
+    const remainingQuestionsOnPage = questions.length - 1
+    if (remainingQuestionsOnPage === 0 && currentPage > 1 && newTotalPages > 0) {
+      setCurrentPage(currentPage - 1)
+      // Load the previous page
+      loadQuestions(currentPage - 1)
+    }
+
+    setDeletingQuestion(null)
   }
 
-  // Loading Spinner Component
   const LoadingSpinner = () => (
     <Card className="border border-gray-200">
       <CardContent className="text-center py-12">
@@ -112,7 +158,6 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
     </Card>
   )
 
-  // Error Message Component
   const ErrorMessage = ({ message, onRetry }: { message: string; onRetry: () => void }) => (
     <Card className="border border-red-200 bg-red-50">
       <CardContent className="text-center py-12">
@@ -129,7 +174,6 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
     </Card>
   )
 
-  // Empty State Component
   const EmptyState = () => (
     <Card className="border border-gray-200">
       <CardContent className="text-center py-12">
@@ -142,63 +186,7 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
     </Card>
   )
 
-  // Answer Form Component
-  const AnswerForm = ({ onAddAnswer }: { onAddAnswer: (answer: SurveyAnswer) => void }) => (
-    <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-      <h4 className="font-medium mb-3">Thêm Lựa Chọn Trả Lời</h4>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-        <div>
-          <Label htmlFor="answer-text" className="text-sm">
-            Nội dung trả lời
-          </Label>
-          <Input
-            id="answer-text"
-            placeholder="Nhập nội dung trả lời..."
-            value={newAnswer.text}
-            onChange={(e) => setNewAnswer({ ...newAnswer, text: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="answer-score" className="text-sm">
-            Điểm số
-          </Label>
-          <Select
-            value={newAnswer.score.toString()}
-            onValueChange={(value) => setNewAnswer({ ...newAnswer, score: Number.parseInt(value) })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[1, 2, 3, 4, 5].map((score) => (
-                <SelectItem key={score} value={score.toString()}>
-                  {score}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="answer-tag" className="text-sm">
-            Nhãn phân loại
-          </Label>
-          <Input
-            id="answer-tag"
-            placeholder="Nhập nhãn..."
-            value={newAnswer.tag}
-            onChange={(e) => setNewAnswer({ ...newAnswer, tag: e.target.value })}
-          />
-        </div>
-      </div>
-      <Button size="sm" onClick={() => onAddAnswer(newAnswer)} disabled={!newAnswer.text || !newAnswer.tag}>
-        <Plus className="w-4 h-4 mr-1" />
-        Thêm Lựa Chọn
-      </Button>
-    </div>
-  )
-
-  // Answers List Component
-  const AnswersList = ({ answers }: { answers: SurveyAnswer[] }) => (
+  const AnswersList = ({ answers }: { answers: any[] }) => (
     <div className="space-y-3">
       <h4 className="font-medium text-sm text-gray-700">Các Lựa Chọn Trả Lời ({answers.length})</h4>
       <div className="space-y-2">
@@ -222,45 +210,95 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
     </div>
   )
 
-  // Pagination Component
   const Pagination = () => {
     const startItem = (currentPage - 1) * pageSize + 1
     const endItem = Math.min(currentPage * pageSize, totalItems)
 
+    const getPageNumbers = () => {
+      const delta = 2
+      const range = []
+      const rangeWithDots = []
+
+      range.push(1)
+
+      for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+        range.push(i)
+      }
+
+      if (totalPages > 1) {
+        range.push(totalPages)
+      }
+
+      const uniqueRange = [...new Set(range)].sort((a, b) => a - b)
+
+      let prev = 0
+      for (const page of uniqueRange) {
+        if (page - prev > 1) {
+          rangeWithDots.push("...")
+        }
+        rangeWithDots.push(page)
+        prev = page
+      }
+
+      return rangeWithDots
+    }
+
+    const pageNumbers = getPageNumbers()
+
     return (
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-700">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="text-sm text-gray-700 order-2 sm:order-1">
           Hiển thị {startItem} đến {endItem} trong tổng số {totalItems} câu hỏi
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-1 order-1 sm:order-2">
+          {/* Previous Button */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage <= 1}
+            className="h-9 px-3"
           >
             <ChevronLeft className="w-4 h-4" />
-            Trước
+            <span className="hidden sm:inline ml-1">Trước</span>
           </Button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <Button
-              key={page}
-              variant={page === currentPage ? "default" : "outline"}
-              size="sm"
-              onClick={() => handlePageChange(page)}
-            >
-              {page}
-            </Button>
-          ))}
+          {/* Page Numbers */}
+          <div className="flex items-center gap-1">
+            {pageNumbers.map((page, index) => {
+              if (page === "...") {
+                return (
+                  <div key={`dots-${index}`} className="flex items-center justify-center h-9 px-2">
+                    <MoreHorizontal className="w-4 h-4 text-gray-400" />
+                  </div>
+                )
+              }
 
+              const pageNum = page as number
+              return (
+                <Button
+                  key={pageNum}
+                  variant={pageNum === currentPage ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNum)}
+                  className="h-9 w-9 p-0"
+                >
+                  {pageNum}
+                </Button>
+              )
+            })}
+          </div>
+
+          {/* Next Button */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage >= totalPages}
+            className="h-9 px-3"
           >
-            Sau
+            <span className="hidden sm:inline mr-1">Sau</span>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
@@ -314,12 +352,12 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
               <div className="space-y-6">
                 <div className="space-y-4">
                   {questions.map((question, index) => (
-                    <Card key={question.surveyId + index} className="border border-gray-200">
+                    <Card key={`${question.surveyId}-${index}-${currentPage}`} className="border border-gray-200">
                       <CardHeader>
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <CardTitle className="text-lg mb-2">
-                              Câu hỏi {(currentPage - 1) * pageSize + index + 1}
+                              Câu hỏi {((currentPage || 1) - 1) * pageSize + index + 1}
                             </CardTitle>
                             <CardDescription className="text-base">{question.description}</CardDescription>
                           </div>
@@ -367,6 +405,7 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
           onClose={() => setEditingQuestion(null)}
           onQuestionUpdated={handleQuestionUpdated}
           question={editingQuestion}
+          surveyName={currentSurvey?.name || ""}
         />
       )}
 
@@ -374,7 +413,7 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
         <DeleteQuestionDialog
           isOpen={!!deletingQuestion}
           onClose={() => setDeletingQuestion(null)}
-          onQuestionDeleted={handleQuestionUpdated}
+          onQuestionDeleted={handleQuestionDeleted}
           question={deletingQuestion}
         />
       )}

@@ -9,6 +9,7 @@ import {
    LivekitTokenResponse,
    UpdateNoteRequest,
    UpdateNoteResponse,
+   UpdateBookingStatusPayload
 } from '@/types/booking';
 
 export const bookingService = {
@@ -66,3 +67,12 @@ export const bookingService = {
       return response.data;
    },
 };
+
+
+
+export const updateBookingStatus = async (
+  payload: UpdateBookingStatusPayload
+): Promise<ApiResponse<null>> => {
+  const response = await axiosInstance.put<ApiResponse<null>>('/api/Booking/change-status', payload)
+  return response.data
+}
