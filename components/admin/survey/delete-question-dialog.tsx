@@ -1,6 +1,5 @@
-"use client"
+"use client";
 
-import { useState } from "react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,57 +9,28 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { deleteSurveyQuestion } from "@/services/surveyService"
-import type { SurveyQuestion } from "@/types/survey"
-import { useToast, ToastType } from "@/hooks/useToast"
+} from "@/components/ui/alert-dialog";
+import type { SurveyQuestion } from "@/types/survey";
+
 interface DeleteQuestionDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onQuestionDeleted: (deletedQuestion: SurveyQuestion) => void
-  question: SurveyQuestion
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  question: SurveyQuestion;
+  loading?: boolean;
+  error?: string | null;
 }
 
-export function DeleteQuestionDialog({ isOpen, onClose, onQuestionDeleted, question }: DeleteQuestionDialogProps) {
-  const { showToast } = useToast()
-
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  console.log(question)
-
-  const handleConfirm = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      if (!question?.id) {
-        console.warn("Question ID is null or undefined. Không thể xoá câu hỏi.")
-        return
-      }
-
-      const questionId = question.id
-      await deleteSurveyQuestion(questionId)
-
-      showToast("Đã xoá câu hỏi thành công", ToastType.Success)
-      onQuestionDeleted(question)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Có lỗi xảy ra khi xóa câu hỏi"
-      console.error("Error deleting question:", err)
-      setError(message)
-      showToast("Xóa câu hỏi thất bại", ToastType.Error)
-    } finally {
-      setLoading(false)
-    }
-  }
-  const handleClose = () => {
-    if (!loading) {
-      setError(null)
-      onClose()
-    }
-  }
-
+export function DeleteQuestionDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  question,
+  loading = false,
+  error = null,
+}: DeleteQuestionDialogProps) {
   return (
-    <AlertDialog open={isOpen} onOpenChange={handleClose}>
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Xác nhận xóa câu hỏi</AlertDialogTitle>
@@ -77,14 +47,14 @@ export function DeleteQuestionDialog({ isOpen, onClose, onQuestionDeleted, quest
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleClose} disabled={loading}>
+          <AlertDialogCancel onClick={onClose} disabled={loading}>
             Hủy bỏ
           </AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} disabled={loading} className="bg-red-600 hover:bg-red-700">
+          <AlertDialogAction onClick={onConfirm} disabled={loading} className="bg-red-600 hover:bg-red-700">
             {loading ? "Đang xóa..." : "Xóa câu hỏi"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }

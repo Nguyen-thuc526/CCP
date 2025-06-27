@@ -19,9 +19,9 @@ import { Badge } from "@/components/ui/badge"
 import { AddQuestionDialog } from "./add-question-dialog"
 import { EditQuestionDialog } from "./edit-question-dialog"
 import { DeleteQuestionDialog } from "./delete-question-dialog"
-import { getSurveyQuestions } from "@/services/surveyService"
+import { createSurveyQuestion, deleteSurveyQuestion, getSurveyQuestions } from "@/services/surveyService"
 import type { Survey, SurveyQuestion, PagingResponse } from "@/types/survey"
-
+import { useToast, ToastType } from "@/hooks/useToast";
 interface SurveyContentProps {
   surveys: Survey[]
   onRefresh: () => void
@@ -38,8 +38,11 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
   const [isAddingQuestion, setIsAddingQuestion] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<SurveyQuestion | null>(null)
   const [deletingQuestion, setDeletingQuestion] = useState<SurveyQuestion | null>(null)
-  const pageSize = 3
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const [errorDelete, setErrorDelete] = useState<string | null>(null);
+  const { showToast } = useToast();
 
+  const pageSize = 10
   const currentSurvey = surveys.find((s) => s.id === activeTab)
 
   useEffect(() => {
@@ -89,63 +92,66 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
   }
 
   // Add question locally without refetching
-  const handleQuestionAdded = (newQuestion: SurveyQuestion) => {
-    // If we're on the last page and it's not full, add to current page
-    const questionsOnCurrentPage = questions.length
-    const isLastPage = currentPage === totalPages || totalPages === 0
-    const canAddToCurrentPage = questionsOnCurrentPage < pageSize
+  const handleQuestionAdded = async (newQuestion: SurveyQuestion) => {
+    try {
+      setIsAddingQuestion(true);
 
-    if (isLastPage && canAddToCurrentPage) {
-      setQuestions((prevQuestions) => [...prevQuestions, newQuestion])
-      setTotalItems((prev) => prev + 1)
+      // API call
+      await createSurveyQuestion(newQuestion);
 
-      // Update total pages if this is the first question
-      if (totalPages === 0) {
-        setTotalPages(1)
-      }
-    } else {
-      // If current page is full, increment total items and pages if needed
-      const newTotalItems = totalItems + 1
-      const newTotalPages = Math.ceil(newTotalItems / pageSize)
+      const newTotalItems = totalItems + 1;
+      const newTotalPages = Math.ceil(newTotalItems / pageSize);
 
-      setTotalItems(newTotalItems)
-      setTotalPages(newTotalPages)
+      setTotalItems(newTotalItems);
+      setTotalPages(newTotalPages);
+      setCurrentPage(1);
 
-      // If we need a new page, navigate to it
-      if (newTotalPages > totalPages) {
-        setCurrentPage(newTotalPages)
-        setQuestions([newQuestion])
-      }
+      // Always load the first page
+      await loadQuestions(1);
+
+      showToast("Tạo câu hỏi thành công", ToastType.Success);
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "Không thể tạo câu hỏi",
+        ToastType.Error
+      );
+    } finally {
+      setIsAddingQuestion(false);
     }
+  };
 
-    setIsAddingQuestion(false)
-  }
 
   // Delete question locally without refetching
-  const handleQuestionDeleted = (deletedQuestion: SurveyQuestion) => {
-    setQuestions((prevQuestions) =>
-      prevQuestions.filter(
-        (question) =>
-          !(question.surveyId === deletedQuestion.surveyId && question.description === deletedQuestion.description),
-      ),
-    )
+  const handleDeleteQuestionConfirm = async () => {
+    if (!deletingQuestion?.id) return;
 
-    const newTotalItems = Math.max(0, totalItems - 1)
-    const newTotalPages = newTotalItems === 0 ? 0 : Math.ceil(newTotalItems / pageSize)
+    try {
+      setLoadingDelete(true);
+      setErrorDelete(null);
 
-    setTotalItems(newTotalItems)
-    setTotalPages(newTotalPages)
+      // Gọi API xóa
+      await deleteSurveyQuestion(deletingQuestion.id);
+      showToast("Đã xoá câu hỏi thành công", ToastType.Success);
 
-    // If current page becomes empty and it's not the first page, go to previous page
-    const remainingQuestionsOnPage = questions.length - 1
-    if (remainingQuestionsOnPage === 0 && currentPage > 1 && newTotalPages > 0) {
-      setCurrentPage(currentPage - 1)
-      // Load the previous page
-      loadQuestions(currentPage - 1)
+      // Cập nhật lại totalItems, totalPages
+      const newTotalItems = totalItems - 1;
+      const newTotalPages = Math.max(1, Math.ceil(newTotalItems / pageSize));
+      const newCurrentPage = Math.min(currentPage, newTotalPages);
+
+      setTotalItems(newTotalItems);
+      setTotalPages(newTotalPages);
+      setCurrentPage(newCurrentPage);
+
+      await loadQuestions(newCurrentPage);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Có lỗi xảy ra khi xóa câu hỏi";
+      setErrorDelete(message);
+      showToast("Xóa câu hỏi thất bại", ToastType.Error);
+    } finally {
+      setLoadingDelete(false);
     }
+  };
 
-    setDeletingQuestion(null)
-  }
 
   const LoadingSpinner = () => (
     <Card className="border border-gray-200">
@@ -326,7 +332,7 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-2xl text-gray-900">{survey.name}</CardTitle>
-                    <CardDescription className="text-base mt-1">{survey.descriptione}</CardDescription>
+                    <CardDescription className="text-base mt-1">{survey.description}</CardDescription>
                   </div>
                   <div className="flex items-center gap-4">
                     <Badge variant="secondary" className="px-3 py-1">
@@ -412,9 +418,16 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
       {deletingQuestion && (
         <DeleteQuestionDialog
           isOpen={!!deletingQuestion}
-          onClose={() => setDeletingQuestion(null)}
-          onQuestionDeleted={handleQuestionDeleted}
-          question={deletingQuestion}
+          onClose={() => {
+            if (!loadingDelete) {
+              setDeletingQuestion(null);
+              setErrorDelete(null);
+            }
+          }}
+          onConfirm={handleDeleteQuestionConfirm}
+          question={deletingQuestion!}
+          loading={loadingDelete}
+          error={errorDelete}
         />
       )}
     </Tabs>

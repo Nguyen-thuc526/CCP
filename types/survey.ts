@@ -1,7 +1,7 @@
 export interface Survey {
   id: string;
   name: string;
-  descriptione: string;
+  description: string;
   image: string;
   createAt: string;
   status: number;
