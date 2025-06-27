@@ -152,16 +152,6 @@ export function SlotDialog({ open, onOpenChange, selectedDate, onSubmit }: SlotD
                 <Label htmlFor="description">Mô tả</Label>
                 <Field as={Input} id="description" name="description" placeholder="Nhập mô tả (tùy chọn)" />
               </div>
-              <div className="flex items-center space-x-2">
-                <Field
-                  as={Switch}
-                  id="recurring"
-                  name="isRecurring"
-                  checked={values.isRecurring}
-                  onCheckedChange={(checked: boolean) => setFieldValue("isRecurring", checked)}
-                />
-                <Label htmlFor="recurring">Lặp lại hàng tuần</Label>
-              </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   Hủy

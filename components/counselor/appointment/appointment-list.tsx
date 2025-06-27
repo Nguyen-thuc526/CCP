@@ -17,16 +17,10 @@ import {
    Search,
 } from 'lucide-react';
 import { AppointmentFilters } from './appointment-filters';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import type { Appointment } from '@/types/appointment';
 import { format } from 'date-fns';
 import { BookingStatus } from '@/utils/enum';
-import { bookingService } from '@/services/bookingService';
-import { toast } from '@/components/ui/use-toast';
-
 interface AppointmentsListProps {
    appointments: Appointment[];
    setAppointments: React.Dispatch<React.SetStateAction<Appointment[]>>;

@@ -176,7 +176,7 @@ export default function AppointmentsManage() {
       </TabsContent>
 
       <TabsContent value="history">
-        <AppointmentHistory />
+        {/* <AppointmentHistory /> */}
       </TabsContent>
     </Tabs>
   )

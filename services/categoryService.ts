@@ -1,6 +1,6 @@
 
 
-import { CategoryResponse } from '@/types/category';
+import { Category, CategoryResponse } from '@/types/category';
 import axiosInstance from './axiosInstance';
 
 export const categoryService = {

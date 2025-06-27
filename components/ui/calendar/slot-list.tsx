@@ -77,7 +77,7 @@ export function SlotList({ selectedDate, timeSlots, deleteWorkSchedule, setTimeS
                       {formatTimeDisplay(slot.startTime)} - {formatTimeDisplay(slot.endTime)}
                     </span>
                   </div>
-                  {slot.isRecurring && <Badge variant="outline">Lặp lại hàng tuần</Badge>}
+                
                   {slot.description && <Badge variant="secondary">{slot.description}</Badge>}
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
                     Trống

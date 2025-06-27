@@ -7,15 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Calendar, Clock, Video, Eye, Users, Search, FileText, Edit3 } from "lucide-react"
+import { Calendar, Clock, Video, Eye, Users, Search, FileText } from "lucide-react"
 import { AppointmentNoteDialog } from "./appointmentNoteDialog"
-
 import Link from "next/link"
 import type { Appointment } from "@/types/appointment"
-import { format } from "date-fns"
 import type { BookingStatus } from "@/utils/enum"
-import { bookingService } from "@/services/bookingService"
-import { toast } from "@/components/ui/use-toast"
 
 interface AppointmentsCompletedListProps {
   appointments: Appointment[]
@@ -40,12 +36,7 @@ export default function AppointmentsCompletedList({
     problemAnalysis: "",
     guides: "",
   })
-  const [formErrors, setFormErrors] = useState({
-    problemSummary: "",
-    guides: "",
-  })
   const [showNoteDialog, setShowNoteDialog] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
 
   const filteredAppointments = useMemo(() => {
     return statusFilter 
@@ -60,88 +51,17 @@ export default function AppointmentsCompletedList({
       problemAnalysis: appointment.notes?.problemAnalysis || "",
       guides: appointment.notes?.guides || "",
     })
-    setFormErrors({ problemSummary: "", guides: "" })
-    const hasNotes = appointment.notes && 
-      (appointment.notes.problemSummary || appointment.notes.problemAnalysis || appointment.notes.guides)
-    setIsEditing(!hasNotes)
     setShowNoteDialog(true)
-  }
-
-  const validateForm = () => {
-    const errors = { problemSummary: "", guides: "" }
-    let isValid = true
-
-    if (!noteForm.problemSummary.trim()) {
-      errors.problemSummary = "Tóm tắt vấn đề là bắt buộc."
-      isValid = false
-    }
-    if (!noteForm.guides.trim()) {
-      errors.guides = "Hướng dẫn là bắt buộc."
-      isValid = false
-    }
-
-    setFormErrors(errors)
-    return isValid
-  }
-
-  const saveNote = async () => {
-    if (!selectedAppointment) return
-
-    if (!validateForm()) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng điền đầy đủ các trường bắt buộc.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    try {
-      const payload = {
-        bookingId: selectedAppointment.id,
-        problemSummary: noteForm.problemSummary,
-        problemAnalysis: noteForm.problemAnalysis,
-        guides: noteForm.guides,
-      }
-
-      const response = await bookingService.updateNote(payload)
-      if (response.success) {
-        setAppointments((prev) =>
-          prev.map((appointment) =>
-            appointment.id === selectedAppointment.id ? { ...appointment, notes: { ...noteForm } } : appointment,
-          ),
-        )
-        toast({
-          title: "Thành công",
-          description: "Ghi chú đã được lưu thành công.",
-        })
-        setFormErrors({ problemSummary: "", guides: "" })
-      } else {
-        toast({
-          title: "Lỗi",
-          description: response.error || "Không thể lưu ghi chú. Vui lòng thử lại.",
-          variant: "destructive",
-        })
-      }
-    } catch (err) {
-      toast({
-        title: "Lỗi",
-        description: "Đã xảy ra lỗi khi lưu ghi chú. Vui lòng kiểm tra kết nối mạng.",
-        variant: "destructive",
-      })
-    }
   }
 
   const closeNoteDialog = () => {
     setShowNoteDialog(false)
     setSelectedAppointment(null)
-    setIsEditing(false)
     setNoteForm({
       problemSummary: "",
       problemAnalysis: "",
       guides: "",
     })
-    setFormErrors({ problemSummary: "", guides: "" })
   }
 
   const renderNoteButton = (appointment: Appointment) => {
@@ -157,13 +77,7 @@ export default function AppointmentsCompletedList({
         </Button>
       )
     }
-
-    return (
-      <Button size="sm" variant="outline" onClick={() => openNoteDialog(appointment)} className="gap-2">
-        <Edit3 className="h-4 w-4" />
-        <span className="hidden sm:inline">Thêm ghi chú</span>
-      </Button>
-    )
+    return null // No button if no notes exist
   }
 
   if (error) {
@@ -249,12 +163,12 @@ export default function AppointmentsCompletedList({
                                   <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                                     <AvatarImage src={appointment.avatar2 || "/placeholder.svg?height=40&width=40"} />
                                     <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
-                                      {appointment.member.split(" ")[3]?.[0] || "?"}
+                                      {appointment.member.split(" ")[3]?.[0] || ""}
                                     </AvatarFallback>
                                   </Avatar>
                                 </div>
                               ) : (
-                                <Avatar className="h-10 w-10 shadow-sm">
+                                <Avatar className="h-10 w-10">
                                   <AvatarImage src={appointment.avatar || "/placeholder.svg?height=40&width=40"} />
                                   <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
                                     {appointment.member.split(" ")[0][0]}
@@ -267,7 +181,7 @@ export default function AppointmentsCompletedList({
                                   {appointment.appointmentType === "couple" && (
                                     <Badge
                                       variant="outline"
-                                      className="text-xs font-medium px-2 py-0.5 h-5 bg-purple-50 text-purple-700 border-purple-200"
+                                      className="text-xs font-medium px-2 py-0.5 bg-purple-50 border-purple-200"
                                     >
                                       <Users className="h-3 w-3 mr-1" />
                                       Cặp đôi
@@ -380,12 +294,12 @@ export default function AppointmentsCompletedList({
                         <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                           <AvatarImage src={appointment.avatar2 || "/placeholder.svg?height=40&width=40"} />
                           <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
-                            {appointment.member.split(" ")[3]?.[0] || "?"}
+                            {appointment.member.split(" ")[3]?.[0] || ""}
                           </AvatarFallback>
                         </Avatar>
                       </div>
                     ) : (
-                      <Avatar className="h-10 w-10 shadow-sm">
+                      <Avatar className="h-10 w-10">
                         <AvatarImage src={appointment.avatar || "/placeholder.svg?height=40&width=40"} />
                         <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
                           {appointment.member.split(" ")[0][0]}
@@ -398,7 +312,7 @@ export default function AppointmentsCompletedList({
                         {appointment.appointmentType === "couple" && (
                           <Badge
                             variant="outline"
-                            className="text-xs font-medium px-2 py-0.5 h-5 bg-purple-50 text-purple-700 border-purple-200"
+                            className="text-xs font-medium px-2 py-0.5 bg-purple-50 border-purple-200"
                           >
                             <Users className="h-3 w-3 mr-1" />
                             Cặp đôi
@@ -406,7 +320,7 @@ export default function AppointmentsCompletedList({
                         )}
                       </div>
                       <Badge className="bg-green-50 text-green-700 border-green-200 border font-medium px-2 py-1 text-xs">
-                        Đã kết thúc
+                        Đã hoàn thành
                       </Badge>
                     </div>
                   </div>
@@ -465,10 +379,10 @@ export default function AppointmentsCompletedList({
         appointment={selectedAppointment}
         noteForm={noteForm}
         setNoteForm={setNoteForm}
-        formErrors={formErrors}
-        onSave={saveNote}
-        isEditing={isEditing}
-        setIsEditing={setIsEditing}
+        formErrors={{ problemSummary: "", guides: "" }}
+        onSave={() => {}}
+        isEditing={false}
+        setIsEditing={() => {}}
       />
     </div>
   )
