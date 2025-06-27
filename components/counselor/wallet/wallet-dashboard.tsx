@@ -9,10 +9,10 @@ import { useErrorLoadingWithUI } from "@/hooks/useErrorLoading"
 import { WalletResponse, WalletData } from "@/types/wallet"
 import { WalletService } from "@/services/walletService"
 import { TransactionApiResponse } from "@/types/transaction"
-
 import { WalletOverview } from "./wallet-overview"
 import { TransactionList } from "./transaction-list"
 import { TransactionService } from "@/services/transactionService"
+import { WithdrawModal } from "./withdraw-modal"
 
 interface Transaction {
   id: string
@@ -28,6 +28,7 @@ export function WalletDashboard() {
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const { loading, error, startLoading, stopLoading, setErrorMessage } = useErrorLoadingWithUI()
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false) // State for modal
 
   const fetchWalletData = async () => {
     try {
@@ -46,16 +47,15 @@ export function WalletDashboard() {
         setErrorMessage(walletResponse.error || "Không thể tải dữ liệu ví. Vui lòng thử lại.")
       }
 
-      // Fetch all transactions without type filtering
       const transactionResponse: TransactionApiResponse = await TransactionService.getTransactions(1, 10)
       if (transactionResponse.success && transactionResponse.data) {
-       const mappedTransactions: Transaction[] = transactionResponse.data.items.map((item, index) => ({
-          id: item.transactionId || `${index + 1}`, // Use transactionId from API if available
-          type: item.transactionType === "7" ? "income" : "withdrawal", // Map transactionType "7" to income, adjust if needed
-          amount: Math.abs(item.amount), // Use absolute value for display
+        const mappedTransactions: Transaction[] = transactionResponse.data.items.map((item, index) => ({
+          id: item.transactionId || `${index + 1}`,
+          type: item.transactionType === "7" ? "income" : "withdrawal",
+          amount: Math.abs(item.amount),
           description: item.description,
           date: item.createDate,
-          status: "completed", // Default to completed; adjust if API provides status
+          status: "completed",
         }))
         setTransactions(mappedTransactions)
       } else {
@@ -75,7 +75,6 @@ export function WalletDashboard() {
   if (loading) {
     return (
       <div className="space-y-6">
-        {/* Skeleton for WalletOverview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {Array.from({ length: 4 }).map((_, index) => (
             <Card key={index}>
@@ -90,8 +89,6 @@ export function WalletDashboard() {
             </Card>
           ))}
         </div>
-
-        {/* Skeleton for Quick Actions */}
         <Card>
           <CardHeader>
             <Skeleton className="h-6 w-32" />
@@ -104,8 +101,6 @@ export function WalletDashboard() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Skeleton for TransactionList */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -153,7 +148,7 @@ export function WalletDashboard() {
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
-            <Button>
+            <Button onClick={() => setIsWithdrawModalOpen(true)}>
               <ArrowDownRight className="mr-2 h-4 w-4" />
               Rút tiền
             </Button>
@@ -161,12 +156,17 @@ export function WalletDashboard() {
               <Download className="mr-2 h-4 w-4" />
               Xuất báo cáo
             </Button>
-            <Button variant="outline">Cài đặt tự động rút</Button>
           </div>
         </CardContent>
       </Card>
 
       <TransactionList transactions={transactions} />
+
+      <WithdrawModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+        onSuccess={fetchWalletData} // Refresh wallet data after successful withdrawal
+      />
     </div>
   )
 }
