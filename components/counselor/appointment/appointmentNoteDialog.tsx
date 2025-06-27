@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { FileText, Search, Lightbulb, Edit3, Save, X, Calendar, Clock, User } from "lucide-react"
 import type { Appointment } from "@/types/appointment"
+import { BookingStatus } from "@/utils/enum"
 
 interface NoteForm {
   problemSummary: string
@@ -47,17 +48,19 @@ export function AppointmentNoteDialog({
 }: AppointmentNoteDialogProps) {
   if (!appointment) return null
 
+  const isEditable = appointment.status === BookingStatus.Finish
   const hasNotes =
     appointment.notes &&
     (appointment.notes.problemSummary || appointment.notes.problemAnalysis || appointment.notes.guides)
 
   const handleEdit = () => {
-    setIsEditing(true)
+    if (isEditable) {
+      setIsEditing(true)
+    }
   }
 
   const handleCancel = () => {
     setIsEditing(false)
-    // Reset form to original values
     setNoteForm({
       problemSummary: appointment.notes?.problemSummary || "",
       problemAnalysis: appointment.notes?.problemAnalysis || "",
@@ -66,8 +69,10 @@ export function AppointmentNoteDialog({
   }
 
   const handleSave = () => {
-    onSave()
-    setIsEditing(false)
+    if (isEditable) {
+      onSave()
+      setIsEditing(false)
+    }
   }
 
   return (
@@ -79,7 +84,7 @@ export function AppointmentNoteDialog({
               <FileText className="h-6 w-6 text-blue-600" />
               Ghi chú tư vấn
             </DialogTitle>
-            {hasNotes && !isEditing && (
+            {hasNotes && !isEditing && isEditable && (
               <Button onClick={handleEdit} size="sm" className="gap-2">
                 <Edit3 className="h-4 w-4" />
                 Chỉnh sửa
@@ -201,8 +206,8 @@ export function AppointmentNoteDialog({
               </Card>
             </TabsContent>
           </Tabs>
-        ) : (
-          // Edit Mode
+        ) : isEditable ? (
+          // Edit Mode (only for Finish status)
           <div className="space-y-6">
             <div className="grid gap-6">
               <Card>
@@ -281,6 +286,21 @@ export function AppointmentNoteDialog({
               </Card>
             </div>
           </div>
+        ) : (
+          // No Notes for Complete Status
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="p-3 bg-gray-100 rounded-full">
+                  <FileText className="h-6 w-6 text-gray-400" />
+                </div>
+                <div>
+                  <p className="text-gray-900 font-medium">Không có ghi chú</p>
+                  <p className="text-gray-500 text-sm">Buổi tư vấn này không có ghi chú nào.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Footer Actions */}
@@ -288,7 +308,7 @@ export function AppointmentNoteDialog({
           <Button variant="outline" onClick={isEditing ? handleCancel : onClose}>
             {isEditing ? "Hủy" : "Đóng"}
           </Button>
-          {isEditing && (
+          {isEditing && isEditable && (
             <Button onClick={handleSave} className="gap-2">
               <Save className="h-4 w-4" />
               Lưu ghi chú

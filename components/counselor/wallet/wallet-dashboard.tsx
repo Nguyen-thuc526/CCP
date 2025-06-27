@@ -1,12 +1,18 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Download, Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ArrowDownRight, Download } from "lucide-react"
+import { useErrorLoadingWithUI } from "@/hooks/useErrorLoading"
+import { WalletResponse, WalletData } from "@/types/wallet"
+import { WalletService } from "@/services/walletService"
+import { TransactionApiResponse } from "@/types/transaction"
+
+import { WalletOverview } from "./wallet-overview"
+import { TransactionList } from "./transaction-list"
+import { TransactionService } from "@/services/transactionService"
 
 interface Transaction {
   id: string
@@ -19,158 +25,128 @@ interface Transaction {
 }
 
 export function WalletDashboard() {
-  const walletData = {
-    balance: 15750000,
-    monthlyEarnings: 8500000,
-    pendingPayments: 2250000,
-    totalWithdrawn: 45000000,
-    availableForWithdrawal: 13500000,
-  }
+  const [walletData, setWalletData] = useState<WalletData | null>(null)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const { loading, error, startLoading, stopLoading, setErrorMessage } = useErrorLoadingWithUI()
 
-  const transactions: Transaction[] = [
-    {
-      id: "1",
-      type: "income",
-      amount: 1500000,
-      description: "Buổi tư vấn 60 phút",
-      clientName: "Nguyễn Văn A",
-      date: "2024-01-15T10:00:00",
-      status: "completed",
-    },
-    {
-      id: "2",
-      type: "income",
-      amount: 1500000,
-      description: "Buổi tư vấn 60 phút",
-      clientName: "Trần Thị B",
-      date: "2024-01-14T14:30:00",
-      status: "completed",
-    },
-    {
-      id: "3",
-      type: "withdrawal",
-      amount: 5000000,
-      description: "Rút tiền về tài khoản VCB",
-      date: "2024-01-13T09:15:00",
-      status: "completed",
-    },
-    {
-      id: "4",
-      type: "pending",
-      amount: 1500000,
-      description: "Buổi tư vấn 60 phút",
-      clientName: "Lê Văn C",
-      date: "2024-01-12T16:00:00",
-      status: "pending",
-    },
-    {
-      id: "5",
-      type: "income",
-      amount: 2250000,
-      description: "Buổi tư vấn 90 phút",
-      clientName: "Phạm Thị D",
-      date: "2024-01-11T11:00:00",
-      status: "completed",
-    },
-  ]
+  const fetchWalletData = async () => {
+    try {
+      startLoading()
+      const walletResponse: WalletResponse = await WalletService.getMyBalance()
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount)
-  }
+      if (walletResponse.success && walletResponse.data && typeof walletResponse.data.remaining === 'number') {
+        setWalletData({
+          balance: walletResponse.data.remaining,
+          monthlyEarnings: 8500000,
+          pendingPayments: 2250000,
+          totalWithdrawn: 45000000,
+          availableForWithdrawal: walletResponse.data.remaining,
+        })
+      } else {
+        setErrorMessage(walletResponse.error || "Không thể tải dữ liệu ví. Vui lòng thử lại.")
+      }
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString("vi-VN")
-  }
-
-  const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case "income":
-        return <ArrowUpRight className="h-4 w-4 text-green-500" />
-      case "withdrawal":
-        return <ArrowDownRight className="h-4 w-4 text-red-500" />
-      case "pending":
-        return <Clock className="h-4 w-4 text-orange-500" />
-      default:
-        return null
+      // Fetch all transactions without type filtering
+      const transactionResponse: TransactionApiResponse = await TransactionService.getTransactions(1, 10)
+      if (transactionResponse.success && transactionResponse.data) {
+       const mappedTransactions: Transaction[] = transactionResponse.data.items.map((item, index) => ({
+          id: item.transactionId || `${index + 1}`, // Use transactionId from API if available
+          type: item.transactionType === "7" ? "income" : "withdrawal", // Map transactionType "7" to income, adjust if needed
+          amount: Math.abs(item.amount), // Use absolute value for display
+          description: item.description,
+          date: item.createDate,
+          status: "completed", // Default to completed; adjust if API provides status
+        }))
+        setTransactions(mappedTransactions)
+      } else {
+        setErrorMessage(transactionResponse.error || "Không thể tải dữ liệu giao dịch. Vui lòng thử lại.")
+      }
+    } catch (err) {
+      setErrorMessage("Đã xảy ra lỗi khi tải dữ liệu. Vui lòng kiểm tra kết nối mạng.")
+    } finally {
+      stopLoading()
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return (
-          <Badge variant="secondary" className="bg-green-100 text-green-800">
-            Hoàn thành
-          </Badge>
-        )
-      case "pending":
-        return (
-          <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-            Chờ xử lý
-          </Badge>
-        )
-      case "failed":
-        return <Badge variant="destructive">Thất bại</Badge>
-      default:
-        return null
-    }
-  }
+  useEffect(() => {
+    fetchWalletData()
+  }, [])
 
-  return (
-    <div className="space-y-6">
-      {/* Wallet Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {/* Skeleton for WalletOverview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Card key={index}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-3 w-20 mt-2" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Skeleton for Quick Actions */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Số dư hiện tại</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(walletData.balance)}</div>
-            <p className="text-xs text-muted-foreground">
-              Có thể rút: {formatCurrency(walletData.availableForWithdrawal)}
-            </p>
+            <div className="flex gap-4">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-36" />
+            </div>
           </CardContent>
         </Card>
 
+        {/* Skeleton for TransactionList */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Thu nhập tháng này</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-36" />
+              <div className="flex gap-2">
+                <Skeleton className="h-10 w-48" />
+                <Skeleton className="h-10 w-32" />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(walletData.monthlyEarnings)}</div>
-            <p className="text-xs text-muted-foreground">+12.5% so với tháng trước</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Chờ thanh toán</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{formatCurrency(walletData.pendingPayments)}</div>
-            <p className="text-xs text-muted-foreground">Sẽ được xử lý trong 24h</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Đã rút</CardTitle>
-            <ArrowDownRight className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(walletData.totalWithdrawn)}</div>
-            <p className="text-xs text-muted-foreground">Tổng số tiền đã rút</p>
+            <Skeleton className="h-10 w-full mb-4" />
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div key={index} className="flex items-center justify-between p-4 border rounded-lg mb-4">
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-4 w-4" />
+                  <div>
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-24 mt-2" />
+                    <Skeleton className="h-3 w-32 mt-1" />
+                  </div>
+                </div>
+                <div className="text-right">
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-4 w-16 mt-2" />
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
+    )
+  }
 
-      {/* Quick Actions */}
+  if (error) return <div>Lỗi: {error} <Button onClick={fetchWalletData}>Thử lại</Button></div>
+  if (!walletData) return null
+
+  return (
+    <div className="space-y-6">
+      <WalletOverview walletData={walletData} />
+
       <Card>
         <CardHeader>
           <CardTitle>Thao tác nhanh</CardTitle>
@@ -190,71 +166,7 @@ export function WalletDashboard() {
         </CardContent>
       </Card>
 
-      {/* Transactions */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Lịch sử giao dịch</CardTitle>
-            <div className="flex gap-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Tìm kiếm..." className="pl-8 w-[200px]" />
-              </div>
-              <Select defaultValue="all">
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Lọc theo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả</SelectItem>
-                  <SelectItem value="income">Thu nhập</SelectItem>
-                  <SelectItem value="withdrawal">Rút tiền</SelectItem>
-                  <SelectItem value="pending">Chờ xử lý</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="all" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="all">Tất cả</TabsTrigger>
-              <TabsTrigger value="income">Thu nhập</TabsTrigger>
-              <TabsTrigger value="withdrawal">Rút tiền</TabsTrigger>
-              <TabsTrigger value="pending">Chờ xử lý</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="all" className="space-y-4">
-              {transactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    {getTransactionIcon(transaction.type)}
-                    <div>
-                      <div className="font-medium">{transaction.description}</div>
-                      {transaction.clientName && (
-                        <div className="text-sm text-muted-foreground">Khách hàng: {transaction.clientName}</div>
-                      )}
-                      <div className="text-xs text-muted-foreground">{formatDateTime(transaction.date)}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div
-                      className={`font-medium text-lg ${
-                        transaction.type === "income" || transaction.type === "pending"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {transaction.type === "withdrawal" ? "-" : "+"}
-                      {formatCurrency(transaction.amount)}
-                    </div>
-                    {getStatusBadge(transaction.status)}
-                  </div>
-                </div>
-              ))}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      <TransactionList transactions={transactions} />
     </div>
   )
 }

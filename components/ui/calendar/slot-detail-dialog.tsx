@@ -51,6 +51,15 @@ export function SlotDetailDialog({
     return `${diffHours}h`
   }
 
+  // Check if the schedule is in the past
+  const isPastSchedule = (schedule: WorkSchedule | null) => {
+    if (!schedule) return true
+    const scheduleDate = new Date(schedule.workDate)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return scheduleDate < today
+  }
+
   const handleEditSubmit = async (
     values: {
       startHour: string
@@ -193,26 +202,11 @@ export function SlotDetailDialog({
                   </p>
                 </div>
 
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-green-100 rounded-full">
-                      <Repeat className="h-4 w-4 text-green-600" />
-                    </div>
-                    <h3 className="font-semibold text-green-900">Trạng thái lặp lại</h3>
+                {isPastSchedule(selectedSlotDetail) && (
+                  <div className="text-sm text-muted-foreground italic">
+                    Lịch trong quá khứ chỉ có thể xem, không thể chỉnh sửa hoặc xóa.
                   </div>
-                  <div className="flex items-center gap-2">
-                    {selectedSlotDetail.isRecurring ? (
-                      <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1">
-                        <Repeat className="h-3 w-3" />
-                        Lặp lại hàng tuần
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-gray-50 text-gray-600">
-                        Chỉ một lần
-                      </Badge>
-                    )}
-                  </div>
-                </div>
+                )}
 
                 <Separator />
 
@@ -224,6 +218,7 @@ export function SlotDetailDialog({
                     variant="secondary"
                     onClick={() => setIsEditing(true)}
                     className="min-w-[100px] flex items-center gap-2"
+                    disabled={isPastSchedule(selectedSlotDetail)}
                   >
                     <Edit3 className="h-4 w-4" />
                     Chỉnh sửa
@@ -232,6 +227,7 @@ export function SlotDetailDialog({
                     variant="destructive"
                     onClick={handleDelete}
                     className="min-w-[100px] flex items-center gap-2"
+                    disabled={isPastSchedule(selectedSlotDetail)}
                   >
                     <X className="h-4 w-4" />
                     Xóa

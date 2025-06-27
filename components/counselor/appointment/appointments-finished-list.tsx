@@ -9,7 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Calendar, Clock, Video, Eye, Users, Search, FileText, Edit3 } from "lucide-react"
 import { AppointmentNoteDialog } from "./appointmentNoteDialog"
-
 import Link from "next/link"
 import type { Appointment } from "@/types/appointment"
 import { format } from "date-fns"
@@ -63,7 +62,7 @@ export default function AppointmentsFinishedList({
     setFormErrors({ problemSummary: "", guides: "" })
     const hasNotes = appointment.notes && 
       (appointment.notes.problemSummary || appointment.notes.problemAnalysis || appointment.notes.guides)
-    setIsEditing(!hasNotes)
+    setIsEditing(!hasNotes) // Start in edit mode if no notes exist
     setShowNoteDialog(true)
   }
 
@@ -115,7 +114,7 @@ export default function AppointmentsFinishedList({
           title: "Thành công",
           description: "Ghi chú đã được lưu thành công.",
         })
-        setFormErrors({ problemSummary: "", guides: "" })
+        setShowNoteDialog(false)
       } else {
         toast({
           title: "Lỗi",
@@ -149,19 +148,10 @@ export default function AppointmentsFinishedList({
       appointment.notes &&
       (appointment.notes.problemSummary || appointment.notes.problemAnalysis || appointment.notes.guides)
 
-    if (hasNotes) {
-      return (
-        <Button size="sm" variant="outline" onClick={() => openNoteDialog(appointment)} className="gap-2">
-          <FileText className="h-4 w-4" />
-          <span className="hidden sm:inline">Xem ghi chú</span>
-        </Button>
-      )
-    }
-
     return (
       <Button size="sm" variant="outline" onClick={() => openNoteDialog(appointment)} className="gap-2">
-        <Edit3 className="h-4 w-4" />
-        <span className="hidden sm:inline">Thêm ghi chú</span>
+        {hasNotes ? <FileText className="h-4 w-4" /> : <Edit3 className="h-4 w-4" />}
+        <span className="hidden sm:inline">{hasNotes ? "Xem/Sửa ghi chú" : "Thêm ghi chú"}</span>
       </Button>
     )
   }
@@ -199,7 +189,7 @@ export default function AppointmentsFinishedList({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Danh sách lịch hẹn đã hoàn thành</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Danh sách lịch hẹn đã kết thúc</h1>
           <p className="text-sm text-gray-600 mt-1">Xem và quản lý các buổi tư vấn đã hoàn tất</p>
         </div>
         <div className="flex items-center gap-3">
@@ -249,12 +239,12 @@ export default function AppointmentsFinishedList({
                                   <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                                     <AvatarImage src={appointment.avatar2 || "/placeholder.svg?height=40&width=40"} />
                                     <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
-                                      {appointment.member.split(" ")[3]?.[0] || "?"}
+                                      {appointment.member.split(" ")[3]?.[0] || ""}
                                     </AvatarFallback>
                                   </Avatar>
                                 </div>
                               ) : (
-                                <Avatar className="h-10 w-10 shadow-sm">
+                                <Avatar className="h-10 w-10">
                                   <AvatarImage src={appointment.avatar || "/placeholder.svg?height=40&width=40"} />
                                   <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
                                     {appointment.member.split(" ")[0][0]}
@@ -267,7 +257,7 @@ export default function AppointmentsFinishedList({
                                   {appointment.appointmentType === "couple" && (
                                     <Badge
                                       variant="outline"
-                                      className="text-xs font-medium px-2 py-0.5 h-5 bg-purple-50 text-purple-700 border-purple-200"
+                                      className="text-xs font-medium px-2 py-0.5 bg-purple-50 border-purple-200"
                                     >
                                       <Users className="h-3 w-3 mr-1" />
                                       Cặp đôi
@@ -306,7 +296,7 @@ export default function AppointmentsFinishedList({
                           <td className="p-4 align-middle">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-green-500" />
-                              <span className="text-sm font-medium text-green-700">Đã hoàn thành</span>
+                              <span className="text-sm font-medium text-green-700">Đã kết thúc</span>
                             </div>
                           </td>
                           <td className="p-6 align-middle">
@@ -380,12 +370,12 @@ export default function AppointmentsFinishedList({
                         <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                           <AvatarImage src={appointment.avatar2 || "/placeholder.svg?height=40&width=40"} />
                           <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
-                            {appointment.member.split(" ")[3]?.[0] || "?"}
+                            {appointment.member.split(" ")[3]?.[0] || ""}
                           </AvatarFallback>
                         </Avatar>
                       </div>
                     ) : (
-                      <Avatar className="h-10 w-10 shadow-sm">
+                      <Avatar className="h-10 w-10">
                         <AvatarImage src={appointment.avatar || "/placeholder.svg?height=40&width=40"} />
                         <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
                           {appointment.member.split(" ")[0][0]}
@@ -398,7 +388,7 @@ export default function AppointmentsFinishedList({
                         {appointment.appointmentType === "couple" && (
                           <Badge
                             variant="outline"
-                            className="text-xs font-medium px-2 py-0.5 h-5 bg-purple-50 text-purple-700 border-purple-200"
+                            className="text-xs font-medium px-2 py-0.5 bg-purple-50 border-purple-200"
                           >
                             <Users className="h-3 w-3 mr-1" />
                             Cặp đôi

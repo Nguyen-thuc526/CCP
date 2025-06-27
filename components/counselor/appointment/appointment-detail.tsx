@@ -1,21 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton'; // Use Skeleton directly
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Video,
-  MessageSquare,
-  X,
-  Users,
-  User,
-} from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowLeft, Calendar, Clock, Video, MessageSquare, X, Users, User, FileText, Search, Lightbulb, Edit3, Save } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -24,10 +15,12 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { bookingService } from '@/services/bookingService';
 import type { SubCategory } from '@/types/certification';
 import { ToastType, useToast } from '@/hooks/useToast';
+import { BookingStatus } from '@/utils/enum';
 
 interface Member {
   id: string;
@@ -56,14 +49,26 @@ interface BookingDetail {
   problemAnalysis: string | null;
   guides: string | null;
   isReport: boolean | null;
+  boolean;
   reportMessage: string | null;
-  status: number;
+  status: BookingStatus;
   member: Member;
   member2: Member | null;
   subCategories: SubCategory[];
 }
 
-export default function AppointmentDetail({
+interface NoteForm {
+  problemSummary: string;
+  problemAnalysis: string;
+  guides: string;
+}
+
+interface FormErrors {
+  problemSummary: string;
+  guides: string;
+}
+
+const AppointmentDetail = memo(function AppointmentDetail({
   appointmentId,
 }: {
   appointmentId: string;
@@ -72,10 +77,19 @@ export default function AppointmentDetail({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [cancellationReason, setCancellationReason] = useState('');
-  const [appointmentNote, setAppointmentNote] = useState('');
+  const [noteForm, setNoteForm] = useState<NoteForm>({
+    problemSummary: '',
+    problemAnalysis: '',
+    guides: '',
+  });
+  const [formErrors, setFormErrors] = useState<FormErrors>({
+    problemSummary: '',
+    guides: '',
+  });
+  const [isEditing, setIsEditing] = useState(false);
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(true); // Manual loading state
-  const [error, setError] = useState<string | null>(null); // Manual error state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchAppointmentDetail = async () => {
     try {
@@ -112,7 +126,7 @@ export default function AppointmentDetail({
 
       setAppointment({
         ...appointment,
-        status: 0,
+        status: BookingStatus.Refund, // Assuming 0 is Cancelled
         cancelReason: cancellationReason,
       });
 
@@ -120,21 +134,73 @@ export default function AppointmentDetail({
       setShowCancelDialog(false);
       setCancellationReason('');
     } catch (error) {
-      showToast('Không thể hủy lịch hẹn. Vui lòng thử lại.', ToastType.Error);
+      showToast(
+        'Không thể hủy lịch hẹn. Vui lòng thử lại.',
+        ToastType.Error
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveNote = () => {
-    if (appointment) {
+  const handleSaveNote = async () => {
+    if (!appointment) return;
+
+    // Validate required fields
+    let errors: FormErrors = { problemSummary: '', guides: '' };
+    if (!noteForm.problemSummary.trim()) {
+      errors.problemSummary = 'Tóm tắt vấn đề là bắt buộc';
+    }
+    if (!noteForm.guides.trim()) {
+      errors.guides = 'Hướng dẫn là bắt buộc';
+    }
+    setFormErrors(errors);
+
+    if (errors.problemSummary || errors.guides) {
+      showToast('Vui lòng điền đầy đủ các trường bắt buộc.', ToastType.Error);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      // Call API to update notes
+      await bookingService.updateNote({
+        bookingId: appointment.id,
+        problemSummary: noteForm.problemSummary,
+        problemAnalysis: noteForm.problemAnalysis,
+        guides: noteForm.guides,
+      });
+
+      // Update local state
       setAppointment({
         ...appointment,
-        note: appointmentNote,
-        status: 2, // Giả định 2 là trạng thái hoàn thành
+        problemSummary: noteForm.problemSummary,
+        problemAnalysis: noteForm.problemAnalysis,
+        guides: noteForm.guides,
+        status: BookingStatus.Complete,
       });
+
+      showToast('Lưu ghi chú thành công.', ToastType.Success);
       setShowNoteDialog(false);
-      // Gửi ghi chú lên server nếu cần
+      setIsEditing(false);
+    } catch (error) {
+      showToast('Lưu ghi chú thất bại. Vui lòng thử lại.', ToastType.Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenNoteDialog = () => {
+    if (appointment) {
+      setNoteForm({
+        problemSummary: appointment.problemSummary || '',
+        problemAnalysis: appointment.problemAnalysis || '',
+        guides: appointment.guides || '',
+      });
+      // Only allow editing for Finish status
+      setIsEditing(appointment.status === BookingStatus.Finish);
+      setFormErrors({ problemSummary: '', guides: '' });
+      setShowNoteDialog(true);
     }
   };
 
@@ -151,20 +217,40 @@ export default function AppointmentDetail({
     return new Date(dateString).toLocaleString('vi-VN');
   };
 
-  const getStatusBadge = (status: number) => {
+  const getStatusBadge = (status: BookingStatus) => {
     switch (status) {
-      case 1:
-        return <Badge variant="default">Đã lên lịch</Badge>;
-      case 0:
-        return <Badge variant="destructive">Đã hủy</Badge>;
-      case 2:
+      case BookingStatus.Confirm:
+        return <Badge variant="default">Đã xác nhận</Badge>;
+      case BookingStatus.Finish:
         return (
           <Badge variant="secondary" className="bg-blue-500">
+            Đã kết thúc
+          </Badge>
+        );
+      case BookingStatus.Reschedule:
+        return <Badge variant="outline">Đề xuất lịch mới</Badge>;
+      case BookingStatus.MemberCancel:
+        return <Badge variant="destructive">Thành viên hủy</Badge>;
+      case BookingStatus.Report:
+        return (
+          <Badge variant="destructive" className="bg-yellow-500">
+            Báo cáo
+          </Badge>
+        );
+      case BookingStatus.Refund:
+        return (
+          <Badge variant="secondary" className="bg-gray-500">
+            Hoàn tiền
+          </Badge>
+        );
+      case BookingStatus.Complete:
+        return (
+          <Badge variant="secondary" className="bg-green-500">
             Hoàn thành
           </Badge>
         );
       default:
-        return null;
+        return <Badge variant="outline">Không xác định</Badge>;
     }
   };
 
@@ -293,9 +379,9 @@ export default function AppointmentDetail({
     : appointment.member.fullname;
   const startDate = new Date(appointment.timeStart);
   const duration = Math.floor(
-    (new Date(appointment.timeEnd).getTime() - startDate.getTime()) /
-      (1000 * 60)
+    (new Date(appointment.timeEnd).getTime() - startDate.getTime()) / (1000 * 60)
   );
+  const hasNotes = appointment.problemSummary || appointment.problemAnalysis || appointment.guides;
 
   return (
     <div className="space-y-6">
@@ -381,15 +467,48 @@ export default function AppointmentDetail({
                     .join(', ') || 'Không xác định'}
                 </p>
               </div>
+              {(appointment.status === BookingStatus.Complete || appointment.status === BookingStatus.Finish) &&
+                (appointment.problemSummary || appointment.problemAnalysis || appointment.guides) && (
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg space-y-3">
+                    <Label className="text-sm font-medium text-green-800">
+                      Ghi chú sau buổi tư vấn
+                    </Label>
 
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">
-                  Mô tả chi tiết
-                </Label>
-                <p className="mt-1 text-sm">
-                  {appointment.note || 'Không có mô tả'}
-                </p>
-              </div>
+                    {appointment.problemSummary && (
+                      <div>
+                        <Label className="text-xs font-medium text-green-700">
+                          Tóm tắt vấn đề:
+                        </Label>
+                        <p className="mt-1 text-sm text-green-700">
+                          {appointment.problemSummary}
+                        </p>
+                      </div>
+                    )}
+
+                    {appointment.problemAnalysis && (
+                      <div>
+                        <Label className="text-xs font-medium text-green-700">
+                          Phân tích vấn đề:
+                        </Label>
+                        <p className="mt-1 text-sm text-green-700">
+                          {appointment.problemAnalysis}
+                        </p>
+                      </div>
+                    )}
+
+                    {appointment.guides && (
+                      <div>
+                        <Label className="text-xs font-medium text-green-700">
+                          Hướng dẫn:
+                        </Label>
+                        <p className="mt-1 text-sm text-green-700">
+                          {appointment.guides}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
               {appointment.cancelReason && (
                 <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                   <Label className="text-sm font-medium text-orange-800">
@@ -404,7 +523,7 @@ export default function AppointmentDetail({
               {appointment.note && (
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <Label className="text-sm font-medium text-blue-800">
-                    Ghi chú buổi tư vấn
+                    Ghi chú từ khách hàng
                   </Label>
                   <p className="mt-1 text-sm text-blue-700">
                     {appointment.note}
@@ -430,7 +549,8 @@ export default function AppointmentDetail({
                     <AvatarImage
                       src={
                         appointment.member.avatar ||
-                        '/placeholder.svg?height=40&width=40'
+                        '/placeholder.svg?height=40&width=40' ||
+                        '/placeholder.svg'
                       }
                     />
                     <AvatarFallback>
@@ -442,7 +562,8 @@ export default function AppointmentDetail({
                       <AvatarImage
                         src={
                           appointment.member2.avatar ||
-                          '/placeholder.svg?height=40&width=40'
+                          '/placeholder.svg?height=40&width=40' ||
+                          '/placeholder.svg'
                         }
                       />
                       <AvatarFallback>
@@ -475,7 +596,7 @@ export default function AppointmentDetail({
                 <CardTitle>Hành động</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {appointment.status === 1 && (
+                {appointment.status === BookingStatus.Confirm && (
                   <>
                     <Button
                       size="sm"
@@ -500,49 +621,61 @@ export default function AppointmentDetail({
                   </>
                 )}
 
-                {(appointment.status === 1 || appointment.status === 2) && (
+                {appointment.status === BookingStatus.Reschedule && (
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setAppointmentNote(appointment.note || '');
-                      setShowNoteDialog(true);
+                      console.log('Xử lý đề xuất lịch mới');
+                    }}
+                    className="w-full"
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Xác nhận lịch mới
+                  </Button>
+                )}
+
+                {(appointment.status === BookingStatus.Confirm ||
+                  appointment.status === BookingStatus.Finish ||
+                  appointment.status === BookingStatus.Complete) && (
+                  <Button
+                    variant="outline"
+                    onClick={handleOpenNoteDialog}
+                    className="w-full"
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    {appointment.status === BookingStatus.Complete && hasNotes
+                      ? 'Xem ghi chú'
+                      : hasNotes
+                      ? 'Xem/Sửa ghi chú'
+                      : 'Thêm ghi chú'}
+                  </Button>
+                )}
+
+                {appointment.status === BookingStatus.Report && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      console.log('Xem báo cáo:', appointment.reportMessage);
                     }}
                     className="w-full"
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
-                    {appointment.note ? 'Xem/Sửa ghi chú' : 'Thêm ghi chú'}
+                    Xem báo cáo
                   </Button>
                 )}
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Lịch sử</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span>
-                      Yêu cầu được tạo: {formatDateTime(appointment.createAt)}
-                    </span>
-                  </div>
-                  {appointment.status !== 1 && (
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-2 h-2 rounded-full ${
-                          appointment.status === 2
-                            ? 'bg-green-500'
-                            : 'bg-red-500'
-                        }`}
-                      ></div>
-                      <span>
-                        {appointment.status === 0 ? 'Đã hủy' : 'Hoàn thành'}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                {appointment.status === BookingStatus.Refund && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      console.log('Xem chi tiết hoàn tiền');
+                    }}
+                    className="w-full"
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Xem hoàn tiền
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -603,58 +736,261 @@ export default function AppointmentDetail({
 
       {/* Note Dialog */}
       <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {appointment.note ? 'Xem/Sửa ghi chú' : 'Thêm ghi chú'} -{' '}
-              {memberName}
-            </DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                <FileText className="h-6 w-6 text-blue-600" />
+                Ghi chú tư vấn
+              </DialogTitle>
+              {hasNotes && !isEditing && appointment.status === BookingStatus.Finish && (
+                <Button onClick={() => setIsEditing(true)} size="sm" className="gap-2">
+                  <Edit3 className="h-4 w-4" />
+                  Chỉnh sửa
+                </Button>
+              )}
+            </div>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-              <div>
-                <Label className="text-sm font-medium">Ngày & Giờ</Label>
-                <p>
-                  {formatDate(appointment.timeStart)} -{' '}
-                  {startDate.toLocaleTimeString('vi-VN', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+
+          {/* Appointment Info */}
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="h-5 w-5 text-gray-600" />
+                Thông tin buổi tư vấn
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="text-sm text-gray-500">Khách hàng</p>
+                    <p className="font-medium">{memberName}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="text-sm text-gray-500">Ngày tư vấn</p>
+                    <p className="font-medium">{formatDate(appointment.timeStart)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="text-sm text-gray-500">Thời gian</p>
+                    <p className="font-medium">
+                      {startDate.toLocaleTimeString('vi-VN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <p className="text-sm text-gray-500 mb-1">Vấn đề tư vấn</p>
+                <p className="text-gray-900 leading-relaxed">
+                  {appointment.subCategories.map((sub) => sub.name).join(', ') || 'Không xác định'}
                 </p>
               </div>
-              <div>
-                <Label className="text-sm font-medium">Vấn đề</Label>
-                <p>
-                  {appointment.subCategories
-                    .map((sub) => sub.name)
-                    .join(', ') || 'Không xác định'}
-                </p>
-              </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="note">Ghi chú buổi tư vấn</Label>
-              <Textarea
-                id="note"
-                value={appointmentNote}
-                onChange={(e) => setAppointmentNote(e.target.value)}
-                placeholder="Nhập ghi chú về buổi tư vấn, kết quả, và các bước tiếp theo..."
-                rows={6}
-              />
-            </div>
+          {/* Notes Content */}
+          {hasNotes && !isEditing ? (
+            // View Mode
+            <Tabs defaultValue="summary" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="summary" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Tóm tắt
+                </TabsTrigger>
+                <TabsTrigger value="analysis" className="gap-2">
+                  <Search className="h-4 w-4" />
+                  Phân tích
+                </TabsTrigger>
+                <TabsTrigger value="guides" className="gap-2">
+                  <Lightbulb className="h-4 w-4" />
+                  Hướng dẫn
+                </TabsTrigger>
+              </TabsList>
 
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setShowNoteDialog(false)}
-              >
-                Hủy
+              <TabsContent value="summary" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      Tóm tắt vấn đề
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {noteForm.problemSummary || 'Chưa có tóm tắt vấn đề'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="analysis" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Search className="h-5 w-5 text-green-600" />
+                      Phân tích vấn đề
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {noteForm.problemAnalysis || 'Chưa có phân tích chi tiết'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="guides" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Lightbulb className="h-5 w-5 text-amber-600" />
+                      Hướng dẫn & Khuyến nghị
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {noteForm.guides || 'Chưa có hướng dẫn'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          ) : appointment.status === BookingStatus.Finish ? (
+            // Edit Mode
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    Tóm tắt vấn đề
+                    <Badge variant="destructive" className="ml-2">Bắt buộc</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={noteForm.problemSummary}
+                    onChange={(e) =>
+                      setNoteForm({ ...noteForm, problemSummary: e.target.value })
+                    }
+                    placeholder="Tóm tắt ngắn gọn vấn đề chính được thảo luận trong buổi tư vấn..."
+                    rows={4}
+                    className={`resize-none ${formErrors.problemSummary ? 'border-red-500' : ''}`}
+                  />
+                  {formErrors.problemSummary && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <X className="h-4 w-4" />
+                      {formErrors.problemSummary}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Search className="h-5 w-5 text-green-600" />
+                    Phân tích vấn đề
+                    <Badge variant="outline" className="ml-2">Tùy chọn</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={noteForm.problemAnalysis}
+                    onChange={(e) =>
+                      setNoteForm({ ...noteForm, problemAnalysis: e.target.value })
+                    }
+                    placeholder="Phân tích chi tiết về nguyên nhân, bối cảnh và các yếu tố ảnh hưởng đến vấn đề..."
+                    rows={4}
+                    className="resize-none"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-amber-600" />
+                    Hướng dẫn & Khuyến nghị
+                    <Badge variant="destructive" className="ml-2">Bắt buộc</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={noteForm.guides}
+                    onChange={(e) =>
+                      setNoteForm({ ...noteForm, guides: e.target.value })
+                    }
+                    placeholder="Các bước tiếp theo, lời khuyên và hướng dẫn cụ thể cho khách hàng..."
+                    rows={4}
+                    className={`resize-none ${formErrors.guides ? 'border-red-500' : ''}`}
+                  />
+                  {formErrors.guides && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <X className="h-4 w-4" />
+                      {formErrors.guides}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            // No Notes
+            <Card>
+              <CardContent className="p-8 text-center">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="p-3 bg-gray-100 rounded-full">
+                    <FileText className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <div>
+                    <p className="text-gray-900 font-medium">Không có ghi chú</p>z
+                    <p className="text-gray-500 text-sm">Buổi tư vấn này không có ghi chú nào.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Footer Actions */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-end pt-6 border-t">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (isEditing) {
+                  setNoteForm({
+                    problemSummary: appointment.problemSummary || '',
+                    problemAnalysis: appointment.problemAnalysis || '',
+                    guides: appointment.guides || '',
+                  });
+                  setIsEditing(false);
+                  setFormErrors({ problemSummary: '', guides: '' });
+                } else {
+                  setShowNoteDialog(false);
+                }
+              }}
+            >
+              {isEditing ? 'Hủy' : 'Đóng'}
+            </Button>
+            {isEditing && appointment.status === BookingStatus.Finish && (
+              <Button onClick={handleSaveNote} className="gap-2">
+                <Save className="h-4 w-4" />
+                Lưu ghi chú
               </Button>
-              <Button onClick={handleSaveNote}>Lưu ghi chú</Button>
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
     </div>
   );
-}
+});
+
+export default AppointmentDetail;

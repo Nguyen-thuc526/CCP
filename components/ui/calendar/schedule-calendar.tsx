@@ -10,8 +10,6 @@ import { SlotDetailDialog } from "./slot-detail-dialog"
 import { workScheduleService } from "@/services/workScheduleService"
 import type { WorkSchedule } from "@/types/workSchedule"
 import { useToast, ToastType } from "@/hooks/useToast"
-import { SettingsDialog } from "./setting-dialog"
-
 interface ScheduleSettings {
   defaultDuration: number
   bufferTime: number
@@ -83,12 +81,7 @@ export function ScheduleCalendar() {
         selectedDate={selectedDate}
         onSubmit={fetchSchedules}
       />
-      <SettingsDialog
-        open={showSettingsDialog}
-        onOpenChange={setShowSettingsDialog}
-        scheduleSettings={scheduleSettings}
-        setScheduleSettings={setScheduleSettings}
-      />
+
       <SlotDetailDialog
         open={showSlotDetailDialog}
         onOpenChange={setShowSlotDetailDialog}
