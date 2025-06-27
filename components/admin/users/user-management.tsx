@@ -82,7 +82,6 @@ export function MemberManagement() {
       );
 
       showToast(
-
         'Đã cập nhật trạng thái member thành công',
         ToastType.Success
       );
@@ -103,13 +102,13 @@ export function MemberManagement() {
 
       {!loading && !error && (
         <>
-          {/* <MemberStats members={filteredMembers} /> */}
-          {/* <MemberFilters
+          <MemberStats members={filteredMembers} />
+          <MemberFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
-          /> */}
+          />
           <MemberTabs
             members={filteredMembers}
             searchTerm={searchTerm}
