@@ -76,7 +76,7 @@ export interface BookingAdmin {
 export interface BookingQuery {
   PageNumber: number;
   PageSize: number;
-  Status?: number; 
+  Status?: number;
 }
 
 
@@ -91,4 +91,9 @@ export interface ApiResponse<T> {
   success: boolean
   data: T
   error: string | null
+}
+
+export interface UpdateBookingStatusPayload {
+  bookingId: string
+  status: number
 }

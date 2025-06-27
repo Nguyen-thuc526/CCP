@@ -1,9 +1,11 @@
 import axiosInstance from "@/services/axiosInstance";
 import {
+  ApiResponse,
   BookingResponse,
   CounselorCancelRequest,
   CounselorCancelResponse,
   LivekitTokenResponse,
+  UpdateBookingStatusPayload,
   UpdateNoteRequest,
   UpdateNoteResponse,
 } from "@/types/booking";
@@ -37,3 +39,12 @@ export const bookingService = {
     return response.data;
   },
 };
+
+
+
+export const updateBookingStatus = async (
+  payload: UpdateBookingStatusPayload
+): Promise<ApiResponse<null>> => {
+  const response = await axiosInstance.put<ApiResponse<null>>('/api/Booking/change-status', payload)
+  return response.data
+}
