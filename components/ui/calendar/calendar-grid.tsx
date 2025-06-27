@@ -1,11 +1,7 @@
-
-"use client"
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Settings } from "lucide-react"
-import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import type { WorkSchedule } from "@/types/workSchedule"
 
 interface CalendarGridProps {
@@ -73,6 +69,15 @@ export function CalendarGrid({
     return `${diffHours}h`
   }
 
+  // Check if a date is within the editable range (today to 7 days in the future)
+  const isDateEditable = (date: Date) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Normalize to start of day
+    const maxEditableDate = new Date(today)
+    maxEditableDate.setDate(today.getDate() + 7) // 7 days from today
+    return date >= today && date <= maxEditableDate
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -82,14 +87,6 @@ export function CalendarGrid({
             Quản lý lịch rảnh
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Cài đặt
-                </Button>
-              </DialogTrigger>
-            </Dialog>
             <Button
               variant="outline"
               onClick={() => {
@@ -132,14 +129,16 @@ export function CalendarGrid({
             const daySlots = getSlotsForDate(day)
             const isToday = day.toDateString() === new Date().toDateString()
             const isPast = day < new Date()
+            const isEditable = isDateEditable(day)
+
             return (
               <div
                 key={day.toISOString()}
-                className={`p-2 h-24 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors ${
-                  isToday ? "bg-primary/10 border-primary" : ""
-                } ${isPast ? "opacity-50" : ""}`}
+                className={`p-2 h-24 border rounded-lg transition-colors ${
+                  isEditable ? "cursor-pointer hover:bg-muted/50" : "cursor-default opacity-50"
+                } ${isToday ? "bg-primary/10 border-primary" : ""}`}
                 onClick={() => {
-                  if (!isPast) {
+                  if (isEditable) {
                     setSelectedDate(day)
                     setShowSlotDialog(true)
                   }

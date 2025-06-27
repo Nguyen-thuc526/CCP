@@ -25,9 +25,7 @@ import { Separator } from '@/components/ui/separator';
 import { CertificateStatus } from '@/utils/enum';
 import { Certification } from '@/types/certification';
 import { getAllCertifications } from '@/services/certificationService';
-import { useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { setSelectedCertificate } from '@/store/slices/certificateSelectedReducer';
 import { useErrorLoadingWithUI } from '@/hooks/useErrorLoading';
 
 const getStatusIcon = (status: number) => {
@@ -80,7 +78,6 @@ export default function CertificatesPage() {
       setErrorMessage,
       renderStatus,
    } = useErrorLoadingWithUI();
-   const dispatch = useDispatch();
    const router = useRouter();
 
    const fetchData = async () => {
@@ -241,12 +238,11 @@ export default function CertificatesPage() {
                               size="sm"
                               variant="outline"
                               className="flex items-center gap-2"
-                              onClick={() => {
-                                 dispatch(setSelectedCertificate(certificate));
+                              onClick={() =>
                                  router.push(
                                     `/admin/certificate-management/${certificate.id}`
-                                 );
-                              }}
+                                 )
+                              }
                            >
                               <Eye className="h-4 w-4" />
                               Xem chi tiết

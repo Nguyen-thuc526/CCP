@@ -1,183 +1,178 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Clock, History, CheckCircle } from "lucide-react"
-import { AppointmentHistory } from "@/components/counselor/appointment/appointment-history"
-import AppointmentsList from "./appointment-list"
-import { bookingService } from "@/services/bookingService"
-import { parseISO, format, differenceInMinutes } from "date-fns"
-import { useErrorLoadingWithUI } from "@/hooks/useErrorLoading"
-import { BookingStatus } from "@/utils/enum"
-import AppointmentsFinishedList from "./appointments-finished-list"
-import AppointmentsCompletedList from "./appointments-completed-list"
-import AppointmentsCanceledList from "./appointments-canceled-list"
+import React, { useEffect, useState } from 'react';
+import {
+   Pagination,
+   PaginationContent,
+   PaginationItem,
+   PaginationLink,
+   PaginationPrevious,
+   PaginationNext,
+} from '@/components/ui/pagination';
 
-interface Appointment {
-  id: string
-  member: string
-  avatar: string
-  avatar2?: string
-  date: string
-  time: string
-  duration: string
-  type: string
-  status: BookingStatus
-  issue: string
-  notes?: string
-  canCancel: boolean
-  cancellationReason?: string
-  requestedAt?: string
-  appointmentType: "couple" | "individual"
-  additionalInfo?: string
-}
+import { BookingAdmin, BookingPagingResponse } from '@/types/booking';
+import { BookingStatus } from '@/utils/enum';
+import { useToast, ToastType } from '@/hooks/useToast';
+import { bookingService } from '@/services/bookingService';
+import { BookingFilters } from './appointment-filter';
+import { BookingTable } from './booking-table';
 
-interface Booking {
-  id: string
-  note: string | null
-  timeStart: string
-  timeEnd: string
-  status: number
-  member: {
-    id: string
-    accountId: string
-    fullname: string
-    avatar: string | null
-  }
-  member2: {
-    id: string
-    accountId: string
-    fullname: string
-    avatar: string | null
-  } | null
-  subCategories: { id: string; name: string; status: number }[]
-}
+const PAGE_SIZE = 10;
 
-interface BookingResponse {
-  success: boolean
-  data: Booking[]
-  error: string | null
-}
+export default function BookingManagement() {
+   const [bookings, setBookings] = useState<BookingAdmin[]>([]);
+   const [total, setTotal] = useState(0);
+   const [currentPage, setCurrentPage] = useState(1);
+   const [loading, setLoading] = useState(false);
 
-export default function AppointmentsManage() {
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const { loading, error, startLoading, stopLoading, setErrorMessage } = useErrorLoadingWithUI()
+   const [searchQuery, setSearchQuery] = useState('');
+   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>(
+      'all'
+   );
+   const [typeFilter, setTypeFilter] = useState<
+      'all' | 'individual' | 'couple'
+   >('all');
 
-  const fetchBookings = async () => {
-    try {
-      startLoading()
-      const response: BookingResponse = await bookingService.getMyBookings()
-      if (response.success) {
-        const mappedAppointments: Appointment[] = response.data.map((booking) => {
-          const startDate = parseISO(booking.timeStart)
-          const endDate = parseISO(booking.timeEnd)
-          const duration = differenceInMinutes(endDate, startDate)
+   const { showToast } = useToast();
+   const totalPages = Math.ceil(total / PAGE_SIZE);
 
-          return {
-            id: booking.id,
-            member: booking.member2
-              ? `${booking.member.fullname} & ${booking.member2.fullname}`
-              : booking.member.fullname,
-            avatar: booking.member.avatar || "/placeholder.svg?height=40&width=40",
-            avatar2: booking.member2?.avatar || (booking.member2 ? "/placeholder.svg?height=40&width=40" : undefined),
-            date: format(startDate, "dd/MM/yyyy"),
-            time: format(startDate, "HH:mm"),
-            duration: `${duration} phút`,
-            type: "Cuộc gọi video",
-            status: booking.status as BookingStatus,
-            issue: booking.subCategories.map((sub) => sub.name).join(", ") || "Không xác định",
-            notes: booking.note || undefined,
-            canCancel: booking.status === BookingStatus.Confirm,
-            requestedAt: format(new Date(), "dd/MM/yyyy"),
-            appointmentType: booking.member2 ? "couple" : "individual",
-            additionalInfo: booking.note || undefined,
-          }
-        })
-        setAppointments(mappedAppointments)
-      } else {
-        setErrorMessage("Không thể tải danh sách lịch hẹn. Vui lòng thử lại.")
+   const fetchBookings = async () => {
+      setLoading(true);
+      try {
+         const response = await bookingService.getMyBookings({
+            PageNumber: currentPage,
+            PageSize: PAGE_SIZE,
+            Status: statusFilter === 'all' ? undefined : statusFilter,
+         });
+
+         if (
+            response &&
+            response.success &&
+            Array.isArray(response.data.items)
+         ) {
+            setBookings(response.data.items);
+            setTotal(response.data.totalCount ?? 0);
+         } else {
+            setBookings([]);
+            setTotal(0);
+            console.warn('Invalid data structure from API:', response);
+         }
+      } catch (error) {
+         console.error('Lỗi khi tải booking:', error);
+         showToast('Tải danh sách booking thất bại', ToastType.Error);
+         setBookings([]);
+         setTotal(0);
+      } finally {
+         setLoading(false);
       }
-    } catch (err) {
-      setErrorMessage("Đã xảy ra lỗi khi tải lịch hẹn. Vui lòng kiểm tra kết nối mạng.")
-    } finally {
-      stopLoading()
-    }
-  }
+   };
 
-  useEffect(() => {
-    fetchBookings()
-  }, [])
+   useEffect(() => {
+      fetchBookings();
+   }, [currentPage, statusFilter]);
 
-  return (
-    <Tabs defaultValue="upcoming" className="space-y-4">
-      <TabsList>
-        <TabsTrigger value="upcoming" className="flex items-center gap-2">
-          <Clock className="h-4 w-4" />
-          Lịch hẹn sắp tới
-        </TabsTrigger>
-        <TabsTrigger value="finished" className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4" />
-          Đã kết thúc
-        </TabsTrigger>
-         <TabsTrigger value="completed" className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4" />
-          Đã hoàn thành
-        </TabsTrigger>
-        <TabsTrigger value="canceled" className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4" />
-          Đã bị hủy
-        </TabsTrigger>
-        <TabsTrigger value="history" className="flex items-center gap-2">
-          <History className="h-4 w-4" />
-          Lịch sử
-        </TabsTrigger>
-      </TabsList>
+   const handleClearFilters = () => {
+      setSearchQuery('');
+      setStatusFilter('all');
+      setTypeFilter('all');
+   };
 
-      <TabsContent value="upcoming">
-        <AppointmentsList
-          appointments={appointments}
-          setAppointments={setAppointments}
-          isLoading={loading}
-          error={error}
-          onRetry={fetchBookings}
-          statusFilter={BookingStatus.Confirm}
-        />
-      </TabsContent>
+   const filteredBookings = bookings.filter((booking) => {
+      const matchesSearch =
+         searchQuery === '' ||
+         booking.member.fullname
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+         booking.counselor.fullname
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+         booking.member2?.fullname
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
 
-      <TabsContent value="finished">
-        <AppointmentsFinishedList
-          appointments={appointments}
-          setAppointments={setAppointments}
-          isLoading={loading}
-          error={error}
-          onRetry={fetchBookings}
-          statusFilter={BookingStatus.Finish}
-        />
-      </TabsContent>
-       <TabsContent value="completed">
-        <AppointmentsCompletedList
-          appointments={appointments}
-          setAppointments={setAppointments}
-          isLoading={loading}
-          error={error}
-          onRetry={fetchBookings}
-          statusFilter={BookingStatus.Complete}
-        />
-      </TabsContent>
-        <TabsContent value="canceled">
-        <AppointmentsCanceledList
-          appointments={appointments}
-          setAppointments={setAppointments}
-          isLoading={loading}
-          error={error}
-          onRetry={fetchBookings}
-          statusFilter={BookingStatus.Refund}
-        />
-      </TabsContent>
+      const matchesType =
+         typeFilter === 'all' ||
+         (typeFilter === 'couple' && booking.isCouple) ||
+         (typeFilter === 'individual' && !booking.isCouple);
 
-      <TabsContent value="history">
-        <AppointmentHistory />
-      </TabsContent>
-    </Tabs>
-  )
+      return matchesSearch && matchesType;
+   });
+
+   return (
+      <div className="space-y-6">
+         <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+               Quản lý Booking
+            </h1>
+            <p className="text-muted-foreground">
+               Quản lý và theo dõi tất cả các lịch hẹn tư vấn
+            </p>
+         </div>
+
+         <div className="space-y-4">
+            <BookingFilters
+               onSearch={setSearchQuery}
+               onStatusFilter={setStatusFilter}
+               onTypeFilter={setTypeFilter}
+               onClearFilters={handleClearFilters}
+            />
+
+            {!loading && (
+               <div className="text-sm text-muted-foreground">
+                  Hiển thị {filteredBookings.length} trong tổng {total} booking
+               </div>
+            )}
+
+            <BookingTable bookings={filteredBookings} isLoading={loading} />
+
+            {totalPages > 1 && (
+               <Pagination>
+                  <PaginationContent>
+                     <PaginationItem>
+                        <PaginationPrevious
+                           className={
+                              currentPage === 1
+                                 ? 'pointer-events-none opacity-50'
+                                 : ''
+                           }
+                           onClick={() =>
+                              setCurrentPage((prev) => Math.max(1, prev - 1))
+                           }
+                        />
+                     </PaginationItem>
+
+                     {Array.from({ length: totalPages }).map((_, i) => {
+                        const page = i + 1;
+                        return (
+                           <PaginationItem key={page}>
+                              <PaginationLink
+                                 isActive={currentPage === page}
+                                 onClick={() => setCurrentPage(page)}
+                              >
+                                 {page}
+                              </PaginationLink>
+                           </PaginationItem>
+                        );
+                     })}
+
+                     <PaginationItem>
+                        <PaginationNext
+                           className={
+                              currentPage === totalPages
+                                 ? 'pointer-events-none opacity-50'
+                                 : ''
+                           }
+                           onClick={() =>
+                              setCurrentPage((prev) =>
+                                 Math.min(totalPages, prev + 1)
+                              )
+                           }
+                        />
+                     </PaginationItem>
+                  </PaginationContent>
+               </Pagination>
+            )}
+         </div>
+      </div>
+   );
 }
