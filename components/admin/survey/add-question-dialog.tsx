@@ -63,6 +63,7 @@ interface AddQuestionDialogProps {
 }
 
 export function AddQuestionDialog({ isOpen, onClose, onQuestionAdded, surveyId, surveyName }: AddQuestionDialogProps) {
+  console.log(surveyId, "current survey")
   const [newQuestion, setNewQuestion] = useState<SurveyQuestion>({
     surveyId,
     description: "",
@@ -106,27 +107,23 @@ export function AddQuestionDialog({ isOpen, onClose, onQuestionAdded, surveyId, 
     }))
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!newQuestion.description || newQuestion.answers.length === 0) {
       setError("Vui lòng nhập nội dung câu hỏi và ít nhất một câu trả lời")
       return
     }
 
-    try {
-      setLoading(true)
-      setError(null)
-      await createSurveyQuestion(newQuestion)
-
-      // Pass the new question to parent for local state update
-      onQuestionAdded(newQuestion)
-
-      // Reset form
-      setNewQuestion({ surveyId, description: "", answers: [] })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi tạo câu hỏi")
-    } finally {
-      setLoading(false)
+    const questionWithLatestSurveyId = {
+      ...newQuestion,
+      surveyId,
     }
+
+    onQuestionAdded(questionWithLatestSurveyId)
+
+    // Reset form
+    setNewQuestion({ surveyId, description: "", answers: [] })
+    setNewAnswerForm({ text: "", score: 1, tag: "" })
+    setError(null)
   }
 
   const handleClose = () => {
