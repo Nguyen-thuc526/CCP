@@ -22,3 +22,13 @@ export interface TransactionApiResponse {
    };
    error: string | null;
 }
+export interface WithdrawResponse {
+  id: string;
+  walletId: string;
+  total: number;
+  stk: string;
+  bankName: string;
+  accountName: string;
+  createAt: string;
+  status: number;
+} 
