@@ -74,3 +74,9 @@ export enum SurveyStatus {
   Inactive = 0,
   Active = 1,
 }
+export enum DepositStatus {
+  TopUp = 0,
+  WithdrawRequestPending = 1,
+  Approved = 2,
+  Rejected = 3,
+}
