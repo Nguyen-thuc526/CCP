@@ -33,8 +33,11 @@ export default function CategoryManagement() {
    const [searchTerm, setSearchTerm] = useState('');
    const [statusFilter, setStatusFilter] = useState<number>(-1);
    const [dialogOpen, setDialogOpen] = useState(false);
-   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-   const [creatingSubCategoryFor, setCreatingSubCategoryFor] = useState<Category | null>(null);
+   const [editingCategory, setEditingCategory] = useState<Category | null>(
+      null
+   );
+   const [creatingSubCategoryFor, setCreatingSubCategoryFor] =
+      useState<Category | null>(null);
    const [editingSubCategory, setEditingSubCategory] = useState<{
       categoryId: string;
       subCategory: SubCategory;
@@ -119,7 +122,9 @@ export default function CategoryManagement() {
             <h1 className="text-3xl font-bold">Quản lý Category</h1>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                <DialogTrigger asChild>
-                  <Button onClick={() => setDialogOpen(true)}>Tạo danh mục</Button>
+                  <Button onClick={() => setDialogOpen(true)}>
+                     Tạo danh mục
+                  </Button>
                </DialogTrigger>
                <DialogContent>
                   <DialogHeader>
@@ -150,18 +155,21 @@ export default function CategoryManagement() {
                <CategoryList
                   categories={filteredCategories}
                   onCategoryUpdated={(categoryId) => {
-                     const category = categories.find((c) => c.id === categoryId);
+                     const category = categories.find(
+                        (c) => c.id === categoryId
+                     );
                      if (category) setEditingCategory(category);
                   }}
                   onCategoryHidden={handleCategoryHidden}
                   onSubCategoryAdded={(categoryId) => {
-                     const category = categories.find((c) => c.id === categoryId);
+                     const category = categories.find(
+                        (c) => c.id === categoryId
+                     );
                      if (category) setCreatingSubCategoryFor(category);
                   }}
                   onSubCategoryUpdated={(categoryId, subCategory) => {
                      setEditingSubCategory({ categoryId, subCategory });
                   }}
-
                   onSubCategoryHidden={handleSubCategoryHidden}
                />
             </>
@@ -184,11 +192,17 @@ export default function CategoryManagement() {
                               ...updates,
                            });
                            fetchCategories();
-                           showToast('Cập nhật danh mục thành công', ToastType.Success);
+                           showToast(
+                              'Cập nhật danh mục thành công',
+                              ToastType.Success
+                           );
                            setEditingCategory(null);
                         } catch (err: any) {
                            console.error(err);
-                           showToast('Cập nhật danh mục thất bại', ToastType.Error);
+                           showToast(
+                              'Cập nhật danh mục thất bại',
+                              ToastType.Error
+                           );
                         }
                      }}
                   />
@@ -213,17 +227,22 @@ export default function CategoryManagement() {
                            });
 
                            fetchCategories();
-                           showToast('Tạo chủ đề con thành công', ToastType.Success);
+                           showToast(
+                              'Tạo chủ đề con thành công',
+                              ToastType.Success
+                           );
                            setCreatingSubCategoryFor(null);
                         } catch (error) {
                            console.error(error);
-                           showToast('Tạo chủ đề con thất bại', ToastType.Error);
+                           showToast(
+                              'Tạo chủ đề con thất bại',
+                              ToastType.Error
+                           );
                         }
                      }}
                   />
                </DialogContent>
             </Dialog>
-
          )}
          {editingSubCategory && (
             <Dialog open onOpenChange={() => setEditingSubCategory(null)}>
@@ -241,19 +260,24 @@ export default function CategoryManagement() {
                               ...updates,
                               categoryId: editingSubCategory.categoryId,
                            });
-                           showToast('Cập nhật chủ đề con thành công', ToastType.Success);
+                           showToast(
+                              'Cập nhật chủ đề con thành công',
+                              ToastType.Success
+                           );
                            fetchCategories();
                            setEditingSubCategory(null);
                         } catch (error) {
                            console.error(error);
-                           showToast('Cập nhật chủ đề con thất bại', ToastType.Error);
+                           showToast(
+                              'Cập nhật chủ đề con thất bại',
+                              ToastType.Error
+                           );
                         }
                      }}
                   />
                </DialogContent>
             </Dialog>
          )}
-
       </div>
    );
 }

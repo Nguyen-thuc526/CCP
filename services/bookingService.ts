@@ -1,6 +1,6 @@
 import axiosInstance from '@/services/axiosInstance';
 import {
-  ApiResponse,
+   ApiResponse,
    BookingPagingResponse,
    BookingQuery,
    BookingResponse,
@@ -9,7 +9,7 @@ import {
    LivekitTokenResponse,
    UpdateNoteRequest,
    UpdateNoteResponse,
-   UpdateBookingStatusPayload
+   UpdateBookingStatusPayload,
 } from '@/types/booking';
 
 export const bookingService = {
@@ -68,11 +68,12 @@ export const bookingService = {
    },
 };
 
-
-
 export const updateBookingStatus = async (
-  payload: UpdateBookingStatusPayload
+   payload: UpdateBookingStatusPayload
 ): Promise<ApiResponse<null>> => {
-  const response = await axiosInstance.put<ApiResponse<null>>('/api/Booking/change-status', payload)
-  return response.data
-}
+   const response = await axiosInstance.put<ApiResponse<null>>(
+      '/api/Booking/change-status',
+      payload
+   );
+   return response.data;
+};

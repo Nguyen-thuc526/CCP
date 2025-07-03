@@ -1,24 +1,24 @@
 export interface SubCategory {
-  id: string;
-  name: string;
-  status: number;
+   id: string;
+   name: string;
+   status: number;
 }
 export interface CategoryDetail {
-  categoryId: string;
-  categoryName: string;
-  subCategories: SubCategory[];
+   categoryId: string;
+   categoryName: string;
+   subCategories: SubCategory[];
 }
 
 export interface MyCertificationsResponse {
-  success: boolean;
-  data: Certification[];
-  error?: string;
+   success: boolean;
+   data: Certification[];
+   error?: string;
 }
-    
+
 export interface CertificationResponse {
-  success: boolean;
-  data?: any; 
-  error?: string;
+   success: boolean;
+   data?: any;
+   error?: string;
 }
 export interface SubCategory {
    id: string;
@@ -45,8 +45,8 @@ export interface Certification {
    time: string | null;
    status: number;
    categories: CategoryDetail[];
-   counselor: Counselor; 
+   counselor: Counselor;
 }
 export interface CertificateListProps {
-  certifications: Certification[]
+   certifications: Certification[];
 }
