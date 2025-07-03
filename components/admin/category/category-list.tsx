@@ -4,7 +4,12 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+   Dialog,
+   DialogContent,
+   DialogHeader,
+   DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Category, SubCategory } from '@/types/category';
@@ -26,9 +31,12 @@ import {
 
 interface CategoryListProps {
    categories: Category[];
-   onCategoryUpdated: (categoryId: string, updates: { name: string; status: number }) => void;
+   onCategoryUpdated: (
+      categoryId: string,
+      updates: { name: string; status: number }
+   ) => void;
    onCategoryHidden: (categoryId: string) => void;
-     onSubCategoryAdded: (categoryId: string) => void; 
+   onSubCategoryAdded: (categoryId: string) => void;
    onSubCategoryUpdated: (categoryId: string, subCategory: SubCategory) => void;
    onSubCategoryHidden: (categoryId: string, subCategory: SubCategory) => void;
 }
@@ -53,7 +61,9 @@ export default function CategoryList({
             <div className="w-24 h-24 bg-gradient-to-br from-rose-100 to-rose-200 rounded-full flex items-center justify-center mb-6">
                <Folder className="w-12 h-12 text-rose-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Chưa có danh mục nào</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+               Chưa có danh mục nào
+            </h3>
             <p className="text-gray-500 text-center max-w-md">
                Không có danh mục phù hợp với tiêu chí tìm kiếm của bạn.
             </p>
@@ -80,7 +90,11 @@ export default function CategoryList({
                         <div
                            className={`p-3 rounded-xl transition-all duration-300 ${isOpen ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg' : 'bg-gradient-to-br from-rose-100 to-pink-100 text-rose-600 group-hover:from-rose-200 group-hover:to-pink-200'}`}
                         >
-                           {isOpen ? <FolderOpen className="w-6 h-6" /> : <Folder className="w-6 h-6" />}
+                           {isOpen ? (
+                              <FolderOpen className="w-6 h-6" />
+                           ) : (
+                              <Folder className="w-6 h-6" />
+                           )}
                         </div>
                         <div>
                            <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-rose-700 transition-colors">
@@ -119,7 +133,10 @@ export default function CategoryList({
                         <DropdownMenuContent align="end">
                            <DropdownMenuItem
                               onClick={() =>
-                                 onCategoryUpdated(category.id, { name: category.name, status: category.status })
+                                 onCategoryUpdated(category.id, {
+                                    name: category.name,
+                                    status: category.status,
+                                 })
                               }
                            >
                               <Pencil className="w-4 h-4 mr-2" />
@@ -166,21 +183,34 @@ export default function CategoryList({
                                           </CardHeader>
                                           <CardContent className="pt-0 flex items-center justify-between">
                                              <Badge
-                                                variant={subIsActive ? 'default' : 'secondary'}
+                                                variant={
+                                                   subIsActive
+                                                      ? 'default'
+                                                      : 'secondary'
+                                                }
                                                 className={`text-xs font-medium ${subIsActive ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0' : 'bg-gray-200 text-gray-600 border-0'}`}
                                              >
-                                                {subIsActive ? 'Hoạt động' : 'Ẩn'}
+                                                {subIsActive
+                                                   ? 'Hoạt động'
+                                                   : 'Ẩn'}
                                              </Badge>
                                              <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                   <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                   <Button
+                                                      variant="ghost"
+                                                      size="icon"
+                                                      className="h-8 w-8"
+                                                   >
                                                       <MoreVertical className="w-4 h-4" />
                                                    </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                    <DropdownMenuItem
                                                       onClick={() =>
-                                                         onSubCategoryUpdated(category.id, sub)
+                                                         onSubCategoryUpdated(
+                                                            category.id,
+                                                            sub
+                                                         )
                                                       }
                                                    >
                                                       <Pencil className="w-4 h-4 mr-2" />
@@ -190,7 +220,10 @@ export default function CategoryList({
                                                    <DropdownMenuItem
                                                       className="text-destructive"
                                                       onClick={() =>
-                                                         onSubCategoryHidden(category.id, sub)
+                                                         onSubCategoryHidden(
+                                                            category.id,
+                                                            sub
+                                                         )
                                                       }
                                                    >
                                                       <Trash2 className="w-4 h-4 mr-2" />
@@ -208,7 +241,9 @@ export default function CategoryList({
                                  <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
                                     <Tag className="w-8 h-8 text-gray-400" />
                                  </div>
-                                 <p className="text-gray-500 text-center font-medium">Chưa có chủ đề con nào</p>
+                                 <p className="text-gray-500 text-center font-medium">
+                                    Chưa có chủ đề con nào
+                                 </p>
                                  <p className="text-gray-400 text-sm text-center mt-1">
                                     Danh mục này hiện tại chưa có chủ đề con
                                  </p>

@@ -1,108 +1,143 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { useSurveys } from "@/hooks/use-survey"
-import { PersonalityTabContent } from "./person-type-content"
+import { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+   Card,
+   CardDescription,
+   CardHeader,
+   CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useSurveys } from '@/hooks/use-survey';
+import { PersonalityTabContent } from './person-type-content';
 
 export function PersonalityManagementContainer() {
-  const { surveys, loading: surveysLoading, refetch: refetchSurveys } = useSurveys()
-  const [activeTab, setActiveTab] = useState<string>("")
-  if (surveys.length > 0 && !activeTab) {
-    setActiveTab(surveys[0].id)
-  }
+   const {
+      surveys,
+      loading: surveysLoading,
+      refetch: refetchSurveys,
+   } = useSurveys();
+   const [activeTab, setActiveTab] = useState<string>('');
+   if (surveys.length > 0 && !activeTab) {
+      setActiveTab(surveys[0].id);
+   }
 
-  const handleRetry = () => {
-    refetchSurveys()
-  }
+   const handleRetry = () => {
+      refetchSurveys();
+   };
 
-  if (surveysLoading) {
-    return (
-      <div className="flex items-center justify-center p-6 text-muted-foreground">
-        Đang tải khảo sát...
-      </div>
-    )
-  }
+   if (surveysLoading) {
+      return (
+         <div className="flex items-center justify-center p-6 text-muted-foreground">
+            Đang tải khảo sát...
+         </div>
+      );
+   }
 
-  if (!surveys || surveys.length === 0) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader className="text-center py-12">
-            <CardTitle>Không có khảo sát nào</CardTitle>
-            <CardDescription>
-              Hiện tại chưa có khảo sát nào được kích hoạt trong hệ thống.
-            </CardDescription>
-            <div className="mt-6">
-              <Button onClick={handleRetry}>Thử lại</Button>
-            </div>
-          </CardHeader>
-        </Card>
-      </div>
-    )
-  }
-
-  return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Quản Lý Tính Cách</h1>
-        <p className="text-muted-foreground">
-          Quản lý các loại tính cách cho từng bài đánh giá riêng biệt
-        </p>
-      </div>
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className={`grid w-full grid-cols-${Math.min(surveys.length, 4)}`}>
-          {surveys.map((survey) => (
-            <TabsTrigger key={survey.id} value={survey.id} className="flex flex-col gap-1 relative">
-              <span className="font-medium">{survey.name}</span>
-             
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {surveys.map((survey) => (
-          <TabsContent key={survey.id} value={survey.id} className="space-y-6">
+   if (!surveys || surveys.length === 0) {
+      return (
+         <div className="container mx-auto p-6">
             <Card>
-              <CardHeader>
-                <div className="flex items-start gap-4">
-                  {survey.image && (
-                    <img
-                      src={survey.image || "/placeholder.svg"}
-                      alt={survey.name}
-                      className="w-16 h-16 rounded-lg object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg?height=64&width=64"
-                      }}
-                    />
-                  )}
-                  <div className="flex-1">
-                    <CardTitle className="flex items-center gap-2">
-                      {survey.name}
-                      <Badge variant={survey.status === 1 ? "default" : "secondary"}>
-                        {survey.status === 1 ? "Hoạt động" : "Tạm dừng"}
-                      </Badge>
-                    </CardTitle>
-                    <CardDescription className="mt-2">{survey.description}</CardDescription>
-                   
+               <CardHeader className="text-center py-12">
+                  <CardTitle>Không có khảo sát nào</CardTitle>
+                  <CardDescription>
+                     Hiện tại chưa có khảo sát nào được kích hoạt trong hệ
+                     thống.
+                  </CardDescription>
+                  <div className="mt-6">
+                     <Button onClick={handleRetry}>Thử lại</Button>
                   </div>
-                </div>
-              </CardHeader>
+               </CardHeader>
             </Card>
+         </div>
+      );
+   }
 
-            <PersonalityTabContent
-              surveyId={survey.id}
-              surveyName={survey.name}
-              isActive={activeTab === survey.id}
-            />
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
-  )
+   return (
+      <div className="container mx-auto p-6 space-y-6">
+         {/* Header */}
+         <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">
+               Quản Lý Tính Cách
+            </h1>
+            <p className="text-muted-foreground">
+               Quản lý các loại tính cách cho từng bài đánh giá riêng biệt
+            </p>
+         </div>
+
+         {/* Tabs */}
+         <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-6"
+         >
+            <TabsList
+               className={`grid w-full grid-cols-${Math.min(surveys.length, 4)}`}
+            >
+               {surveys.map((survey) => (
+                  <TabsTrigger
+                     key={survey.id}
+                     value={survey.id}
+                     className="flex flex-col gap-1 relative"
+                  >
+                     <span className="font-medium">{survey.name}</span>
+                  </TabsTrigger>
+               ))}
+            </TabsList>
+
+            {surveys.map((survey) => (
+               <TabsContent
+                  key={survey.id}
+                  value={survey.id}
+                  className="space-y-6"
+               >
+                  <Card>
+                     <CardHeader>
+                        <div className="flex items-start gap-4">
+                           {survey.image && (
+                              <img
+                                 src={survey.image || '/placeholder.svg'}
+                                 alt={survey.name}
+                                 className="w-16 h-16 rounded-lg object-cover"
+                                 onError={(e) => {
+                                    e.currentTarget.src =
+                                       '/placeholder.svg?height=64&width=64';
+                                 }}
+                              />
+                           )}
+                           <div className="flex-1">
+                              <CardTitle className="flex items-center gap-2">
+                                 {survey.name}
+                                 <Badge
+                                    variant={
+                                       survey.status === 1
+                                          ? 'default'
+                                          : 'secondary'
+                                    }
+                                 >
+                                    {survey.status === 1
+                                       ? 'Hoạt động'
+                                       : 'Tạm dừng'}
+                                 </Badge>
+                              </CardTitle>
+                              <CardDescription className="mt-2">
+                                 {survey.description}
+                              </CardDescription>
+                           </div>
+                        </div>
+                     </CardHeader>
+                  </Card>
+
+                  <PersonalityTabContent
+                     surveyId={survey.id}
+                     surveyName={survey.name}
+                     isActive={activeTab === survey.id}
+                  />
+               </TabsContent>
+            ))}
+         </Tabs>
+      </div>
+   );
 }

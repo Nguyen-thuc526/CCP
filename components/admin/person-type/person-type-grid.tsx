@@ -1,22 +1,26 @@
-import { PersonType } from "@/types/person-type"
-import { PersonalityCard } from "./person-type-card"
+import { PersonType } from '@/types/person-type';
+import { PersonalityCard } from './person-type-card';
 
 interface PersonalityGridProps {
-  personTypes: PersonType[]
-  onView: (personType: PersonType) => void
-  onEdit: (personType: PersonType) => void
+   personTypes: PersonType[];
+   onView: (personType: PersonType) => void;
+   onEdit: (personType: PersonType) => void;
 }
-export function PersonalityGrid({ personTypes, onView, onEdit }: PersonalityGridProps) {
-  return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {personTypes.map((personType) => (
-        <PersonalityCard
-          key={personType.id}
-          personType={personType}
-          onView={() => onView(personType)}
-          onEdit={() => onEdit(personType)}
-        />
-      ))}
-    </div>
-  )
+export function PersonalityGrid({
+   personTypes,
+   onView,
+   onEdit,
+}: PersonalityGridProps) {
+   return (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+         {personTypes.map((personType) => (
+            <PersonalityCard
+               key={personType.id}
+               personType={personType}
+               onView={() => onView(personType)}
+               onEdit={() => onEdit(personType)}
+            />
+         ))}
+      </div>
+   );
 }

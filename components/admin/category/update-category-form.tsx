@@ -1,10 +1,15 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Category } from "@/types/category";
-import { Label } from "@radix-ui/react-label";
-import { Select } from "@radix-ui/react-select";
-import { useState } from "react";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+   SelectContent,
+   SelectItem,
+   SelectTrigger,
+   SelectValue,
+} from '@/components/ui/select';
+import { Category } from '@/types/category';
+import { Label } from '@radix-ui/react-label';
+import { Select } from '@radix-ui/react-select';
+import { useState } from 'react';
 interface UpdateCategoryFormProps {
    category: Category;
    onUpdated: (updates: { name: string; status: number }) => void;

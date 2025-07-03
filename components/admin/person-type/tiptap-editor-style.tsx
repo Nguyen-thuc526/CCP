@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 // Global styles for Tiptap editor
 export const tiptapStyles = `
@@ -103,4 +103,4 @@ export const tiptapStyles = `
     background-color: transparent;
     padding: 0;
   }
-`
+`;

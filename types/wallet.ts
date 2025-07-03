@@ -1,9 +1,9 @@
 export interface WalletData {
-  remaining: number;
+   remaining: number;
 }
 
 export interface WalletResponse {
-  success: boolean;
-  data: WalletData;
-  error?: string | null;
+   success: boolean;
+   data: WalletData;
+   error?: string | null;
 }

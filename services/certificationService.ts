@@ -6,34 +6,42 @@ import {
 import axiosInstance from './axiosInstance';
 
 export const certificationService = {
-  // API gửi chứng chỉ
-  async sendCertification(data: {
-    name: string;
-    description: string;
-    imageUrl: string;
-    subCategoryIds: string[];
-  }): Promise<CertificationResponse> {
-    const response = await axiosInstance.post('/api/Certification/send', data);
-    return response.data;
-  },
+   // API gửi chứng chỉ
+   async sendCertification(data: {
+      name: string;
+      description: string;
+      imageUrl: string;
+      subCategoryIds: string[];
+   }): Promise<CertificationResponse> {
+      const response = await axiosInstance.post(
+         '/api/Certification/send',
+         data
+      );
+      return response.data;
+   },
 
-  // API lấy danh sách chứng chỉ của tôi
-  async getMyCertifications(): Promise<MyCertificationsResponse> {
-    const response = await axiosInstance.get('/api/Certification/my-certifications');
-    return response.data;
-  },
+   // API lấy danh sách chứng chỉ của tôi
+   async getMyCertifications(): Promise<MyCertificationsResponse> {
+      const response = await axiosInstance.get(
+         '/api/Certification/my-certifications'
+      );
+      return response.data;
+   },
 
-  // API cập nhật chứng chỉ
-  async updateCertification(data: {
-    certificationId: string;
-    name: string;
-    description: string;
-    image: string;
-    subCategoryIds: string[];
-  }): Promise<CertificationResponse> {
-    const response = await axiosInstance.put('/api/Certification/update', data);
-    return response.data;
-  },
+   // API cập nhật chứng chỉ
+   async updateCertification(data: {
+      certificationId: string;
+      name: string;
+      description: string;
+      image: string;
+      subCategoryIds: string[];
+   }): Promise<CertificationResponse> {
+      const response = await axiosInstance.put(
+         '/api/Certification/update',
+         data
+      );
+      return response.data;
+   },
 };
 
 export const getAllCertifications = async (): Promise<Certification[]> => {
@@ -63,7 +71,6 @@ export const getCertificationById = async (
       throw new Error(error || 'Không thể lấy chứng chỉ');
    }
 };
-
 
 export const approveCertificationById = async (
    certificationId: string
@@ -97,4 +104,3 @@ export const rejectCertificationById = async (
       throw new Error(error || 'Không thể từ chối chứng chỉ');
    }
 };
-
