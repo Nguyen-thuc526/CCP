@@ -9,13 +9,14 @@ import { BookingStatusBadge } from "./booking-status-badge"
 import { Eye, Star } from "lucide-react"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
-
 interface BookingTableProps {
   bookings: BookingAdmin[]
   onViewDetails: (booking: BookingAdmin) => void
+  currentPage: number
+  pageSize: number
 }
 
-export function BookingTable({ bookings, onViewDetails }: BookingTableProps) {
+export function BookingTable({ bookings, onViewDetails, currentPage, pageSize }: BookingTableProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -32,7 +33,7 @@ export function BookingTable({ bookings, onViewDetails }: BookingTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
+            <TableHead className="w-12 text-center">#</TableHead>
             <TableHead>Khách hàng</TableHead>
             <TableHead>Tư vấn viên</TableHead>
             <TableHead>Thời gian</TableHead>
@@ -44,9 +45,11 @@ export function BookingTable({ bookings, onViewDetails }: BookingTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {bookings.map((booking) => (
+          {bookings.map((booking, index) => (
             <TableRow key={booking.id}>
-              <TableCell className="font-mono text-sm">#{booking.id.slice(-8)}</TableCell>
+              <TableCell className="text-center text-sm text-muted-foreground">
+                {(currentPage - 1) * pageSize + index + 1}
+              </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <Avatar className="h-8 w-8">

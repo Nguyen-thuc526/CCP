@@ -27,6 +27,7 @@ import {
   UserCircle,
   LogOut,
   Brain,
+  Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -61,7 +62,7 @@ export function Sidebar() {
   const role = useSelector((state: RootState) => state.auth.role);
   const router = useRouter();
 
-  
+
   const [collapsed, setCollapsed] = useState(false);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
@@ -91,7 +92,7 @@ export function Sidebar() {
         { href: "/admin/blog", icon: <FileText className="h-5 w-5" />, title: "Blog & Tin tức" },
         { href: "/admin/categories", icon: <Folder className="h-5 w-5" />, title: "Danh mục" },
         { href: "/admin/certificate-management", icon: <BadgeCheck className="h-5 w-5" />, title: "Chứng chỉ" },
-        { href: "/admin/person-type", icon:<Brain className="h-5 w-5" />, title: "Tính cách" },
+        { href: "/admin/person-type", icon: <Brain className="h-5 w-5" />, title: "Tính cách" },
 
       ],
     },
@@ -102,13 +103,14 @@ export function Sidebar() {
         { href: "/admin/users", icon: <User className="h-5 w-5" />, title: "Người dùng" },
         { href: "/admin/counselors", icon: <Users2 className="h-5 w-5" />, title: "Chuyên viên" },
         { href: "/admin/booking", icon: <NotebookText className="h-5 w-5" />, title: "Booking" },
+        { href: "/admin/withdraw", icon: <Banknote className="h-5 w-5" />, title: "Rút tiền" },
       ],
     },
-    {
-      href: "/admin/reports",
-      icon: <ClipboardList className="h-5 w-5" />,
-      title: "Thống kê",
-    },
+    // {
+    //   href: "/admin/reports",
+    //   icon: <ClipboardList className="h-5 w-5" />,
+    //   title: "Thống kê",
+    // },
   ];
 
   const counselorLinks: SidebarItem[] = [

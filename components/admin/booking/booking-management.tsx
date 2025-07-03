@@ -144,8 +144,12 @@ export default function BookingManagement() {
         <div className="text-sm text-muted-foreground">
           {loading ? "Đang tải dữ liệu..." : `Hiển thị ${filteredBookings.length} trong tổng ${total} booking`}
         </div>
-
-        <BookingTable bookings={filteredBookings} onViewDetails={handleViewDetails} />
+        <BookingTable
+          bookings={filteredBookings}
+          onViewDetails={handleViewDetails}
+          currentPage={currentPage}
+          pageSize={PAGE_SIZE}
+        />
 
         {totalPages > 1 && (
           <Pagination>
