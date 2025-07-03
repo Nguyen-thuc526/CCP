@@ -48,7 +48,7 @@ export default function CreateCategoryForm({
          await createCategory(trimmedName);
          showToast('Tạo danh mục thành công', ToastType.Success);
          setName('');
-         onCreated(); 
+         onCreated();
       } catch (error) {
          showToast('Tạo danh mục thất bại', ToastType.Error);
       } finally {

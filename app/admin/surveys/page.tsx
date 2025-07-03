@@ -1,8 +1,5 @@
-import SurveyManagement from "@/components/admin/survey/survey-management";
-
+import SurveyManagement from '@/components/admin/survey/survey-management';
 
 export default function SurveysPage() {
-  return (
-    <SurveyManagement />
-  )
+   return <SurveyManagement />;
 }
