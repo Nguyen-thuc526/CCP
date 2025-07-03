@@ -18,7 +18,7 @@ import { updateSurveyQuestion } from "@/services/surveyService"
 import type { SurveyQuestion, SurveyAnswer } from "@/types/survey"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
+import { useToast, ToastType } from "@/hooks/useToast"
 // Import the same tag constants from add dialog
 const mbtiQuestionTags = [
   "I",
@@ -75,7 +75,7 @@ export function EditQuestionDialog({
   const [newAnswerForm, setNewAnswerForm] = useState<SurveyAnswer>({ text: "", score: 1, tag: "" })
   const [editingAnswerIndex, setEditingAnswerIndex] = useState<number | null>(null)
   const [editingAnswerForm, setEditingAnswerForm] = useState<SurveyAnswer>({ text: "", score: 1, tag: "" })
-
+  const { showToast } = useToast();
   // Get available tags based on survey name
   const getAvailableTags = () => {
     const surveyNameLower = surveyName.toLowerCase()
@@ -140,26 +140,32 @@ export function EditQuestionDialog({
     setEditingAnswerIndex(null)
     setEditingAnswerForm({ text: "", score: 1, tag: "" })
   }
-
   const handleSubmit = async () => {
     if (!editingQuestion.description || editingQuestion.answers.length === 0) {
-      setError("Vui lòng nhập nội dung câu hỏi và ít nhất một câu trả lời")
-      return
+      setError("Vui lòng nhập nội dung câu hỏi và ít nhất một câu trả lời");
+      return;
     }
 
     try {
-      setLoading(true)
-      setError(null)
-      await updateSurveyQuestion(editingQuestion)
+      setLoading(true);
+      setError(null);
 
-      // Pass the updated question to parent for local state update
-      onQuestionUpdated(editingQuestion)
+      await updateSurveyQuestion(editingQuestion);
+
+      // Update parent state
+      onQuestionUpdated(editingQuestion);
+
+      showToast("Cập nhật câu hỏi thành công", ToastType.Success);
+
+      handleClose(); // Đóng dialog sau khi cập nhật thành công
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi cập nhật câu hỏi")
+      const message = err instanceof Error ? err.message : "Có lỗi xảy ra khi cập nhật câu hỏi";
+      setError(message);
+      showToast(message, ToastType.Error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleClose = () => {
     setError(null)

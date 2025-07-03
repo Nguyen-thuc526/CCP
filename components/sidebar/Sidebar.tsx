@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ChevronDown,
   ChevronLeft,
@@ -26,6 +26,7 @@ import {
   FilePlus,
   UserCircle,
   LogOut,
+  Brain,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -58,7 +59,9 @@ export function Sidebar() {
   const pathname = usePathname();
   const dispatch = useDispatch();
   const role = useSelector((state: RootState) => state.auth.role);
+  const router = useRouter();
 
+  
   const [collapsed, setCollapsed] = useState(false);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
@@ -69,6 +72,7 @@ export function Sidebar() {
   const handleLogout = () => {
     storage.removeToken();
     dispatch(logout());
+    router.push("/login");
   };
 
   const adminLinks: SidebarItem[] = [
@@ -87,6 +91,8 @@ export function Sidebar() {
         { href: "/admin/blog", icon: <FileText className="h-5 w-5" />, title: "Blog & Tin tức" },
         { href: "/admin/categories", icon: <Folder className="h-5 w-5" />, title: "Danh mục" },
         { href: "/admin/certificate-management", icon: <BadgeCheck className="h-5 w-5" />, title: "Chứng chỉ" },
+        { href: "/admin/person-type", icon:<Brain className="h-5 w-5" />, title: "Tính cách" },
+
       ],
     },
     {
@@ -96,7 +102,6 @@ export function Sidebar() {
         { href: "/admin/users", icon: <User className="h-5 w-5" />, title: "Người dùng" },
         { href: "/admin/counselors", icon: <Users2 className="h-5 w-5" />, title: "Chuyên viên" },
         { href: "/admin/booking", icon: <NotebookText className="h-5 w-5" />, title: "Booking" },
-        { href: "/admin/user-reports", icon: <Flag className="h-5 w-5" />, title: "Báo cáo" },
       ],
     },
     {
@@ -217,13 +222,11 @@ export function Sidebar() {
       <div className="border-t p-4">
         <Button
           variant="outline"
-          className={cn("w-full", collapsed ? "justify-center" : "justify-start")}
+          className={cn("w-full flex items-center", collapsed ? "justify-center" : "justify-start")}
           onClick={handleLogout}
         >
-          <Link href="/login">
-            <LogOut className={cn("h-4 w-4", collapsed ? "" : "mr-2")} />
-            {!collapsed && <span>Đăng xuất</span>}
-          </Link>
+          <LogOut className={cn("h-4 w-4", collapsed ? "" : "mr-2")} />
+          {!collapsed && <span>Đăng xuất</span>}
         </Button>
       </div>
     </div>
