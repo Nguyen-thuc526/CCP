@@ -71,6 +71,16 @@ export enum MembershipStatus {
 }
 
 export enum SurveyStatus {
+<<<<<<< HEAD
+  Inactive = 0,
+  Active = 1,
+}
+export enum DepositStatus {
+  TopUp = 0,
+  WithdrawRequestPending = 1,
+  Approved = 2,
+  Rejected = 3,
+=======
    Inactive = 0,
    Active = 1,
 }
@@ -79,4 +89,5 @@ export enum WithdrawStatus {
    PendingWithdrawal = 1,
    Approved = 2,
    Rejected = 3,
+>>>>>>> c82cf247b0197f3174a5256ec47b043fa21f1c2b
 }
