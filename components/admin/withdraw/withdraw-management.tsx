@@ -35,14 +35,14 @@ export default function WithdrawManagement() {
             };
          case WithdrawStatus.Approved:
             return {
-               label: 'Đã duyệt',
+               label: 'Đã rút tiền',
                icon: Check,
                color: 'text-green-600',
                count: withdraws[status].length,
             };
          case WithdrawStatus.Rejected:
             return {
-               label: 'Đã từ chối',
+               label: 'Đã hủy',
                icon: X,
                color: 'text-red-600',
                count: withdraws[status].length,
