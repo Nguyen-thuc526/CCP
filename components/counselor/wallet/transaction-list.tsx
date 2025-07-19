@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -6,38 +6,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowUpRight, ArrowDownRight, Clock, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-interface Transaction {
-  id: string
-  type: "income" | "withdrawal" | "pending"
-  amount: number
-  description: string
-  date: string
-  status: "completed" | "pending" | "failed"
-  clientName?: string
-}
+import type { Transaction } from "@/types/transaction"
 
 const formatCurrency = (amount: number) => {
-   return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-   }).format(amount);
-};
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(amount)
+}
 
 const formatDateTime = (dateString: string) => {
-   return new Date(dateString).toLocaleString('vi-VN');
-};
+  return new Date(dateString).toLocaleString("vi-VN")
+}
 
-const getTransactionIcon = (type: string) => {
+const getTransactionIcon = (type: string, status: string) => {
+  if (type === "pending" || status === "pending") {
+    return <Clock className="h-4 w-4 text-orange-500" />
+  }
+
   switch (type) {
     case "income":
       return <ArrowUpRight className="h-4 w-4 text-green-500" />
     case "withdrawal":
       return <ArrowDownRight className="h-4 w-4 text-red-500" />
-    case "pending":
-      return <Clock className="h-4 w-4 text-orange-500" />
     default:
-      return null
+      return <Clock className="h-4 w-4 text-orange-500" />
   }
 }
 
@@ -62,18 +55,44 @@ const getStatusBadge = (status: string) => {
   }
 }
 
+const getTransactionTypeLabel = (type: string) => {
+  switch (type) {
+    case "income":
+      return "Thu nhập"
+    case "withdrawal":
+      return "Rút tiền"
+    case "pending":
+      return "Chờ xử lý"
+    default:
+      return "Khác"
+  }
+}
+
 export function TransactionList({ transactions }: { transactions: Transaction[] }) {
-  // Filter transactions based on the selected tab
   const filteredTransactions = (tabValue: string, selectValue: string) => {
-    let filtered = [...transactions];
-    if (tabValue !== "all") {
-      filtered = filtered.filter((t) => t.type === tabValue);
+    let filtered = [...transactions]
+
+    // Filter by tab
+    if (tabValue === "pending") {
+      filtered = filtered.filter((t) => t.type === "pending" || t.status === "pending")
+    } else if (tabValue === "income") {
+      filtered = filtered.filter((t) => t.type === "income")
+    } else if (tabValue === "withdrawal") {
+      filtered = filtered.filter((t) => t.type === "withdrawal")
     }
+    // "all" shows everything
+
+    // Additional filter by select (if different from tab)
     if (selectValue !== "all" && selectValue !== tabValue) {
-      filtered = filtered.filter((t) => t.type === selectValue);
+      if (selectValue === "pending") {
+        filtered = filtered.filter((t) => t.type === "pending" || t.status === "pending")
+      } else {
+        filtered = filtered.filter((t) => t.type === selectValue)
+      }
     }
-    return filtered;
-  };
+
+    return filtered
+  }
 
   return (
     <Card>
@@ -114,31 +133,38 @@ export function TransactionList({ transactions }: { transactions: Transaction[] 
                 filteredTransactions(tabValue, "all").map((transaction) => (
                   <div
                     key={transaction.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      {getTransactionIcon(transaction.type)}
+                      {getTransactionIcon(transaction.type, transaction.status)}
                       <div>
                         <div className="font-medium">{transaction.description}</div>
-                        {transaction.clientName && (
-                          <div className="text-sm text-muted-foreground">
-                            Khách hàng: {transaction.clientName}
-                          </div>
-                        )}
-                        <div className="text-xs text-muted-foreground">
-                          {formatDateTime(transaction.date)}
+                        <div className="text-sm text-muted-foreground">
+                          Loại: {getTransactionTypeLabel(transaction.type)}
                         </div>
+                        {transaction.clientName && (
+                          <div className="text-sm text-muted-foreground">Khách hàng: {transaction.clientName}</div>
+                        )}
+                        <div className="text-xs text-muted-foreground">{formatDateTime(transaction.date)}</div>
                       </div>
                     </div>
+
                     <div className="text-right">
                       <div
                         className={`font-medium text-lg ${
-                          transaction.type === "income" || transaction.type === "pending"
+                          transaction.type === "income"
                             ? "text-green-600"
-                            : "text-red-600"
+                            : transaction.type === "pending"
+                              ? "text-orange-600"
+                              : "text-red-600"
                         }`}
                       >
-                        {transaction.type === "withdrawal" ? "-" : "+"}
+                        {/* 
+                          - Income (completed bookings): +amount (green)
+                          - Pending withdrawals: -amount (orange) 
+                          - Completed withdrawals: -amount (red)
+                        */}
+                        {transaction.type === "income" ? "+" : "-"}
                         {formatCurrency(transaction.amount)}
                       </div>
                       {getStatusBadge(transaction.status)}
@@ -146,8 +172,14 @@ export function TransactionList({ transactions }: { transactions: Transaction[] 
                   </div>
                 ))
               ) : (
-                <div className="text-center text-muted-foreground py-4">
-                  Không có giao dịch nào.
+                <div className="text-center text-muted-foreground py-8">
+                  <div className="text-lg mb-2">Không có giao dịch nào</div>
+                  <div className="text-sm">
+                    {tabValue === "all" && "Chưa có giao dịch nào được thực hiện."}
+                    {tabValue === "income" && "Chưa có thu nhập nào từ booking."}
+                    {tabValue === "withdrawal" && "Chưa có giao dịch rút tiền nào hoàn thành."}
+                    {tabValue === "pending" && "Không có yêu cầu rút tiền nào đang chờ xử lý."}
+                  </div>
                 </div>
               )}
             </TabsContent>
