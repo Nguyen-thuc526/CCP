@@ -1,4 +1,4 @@
-import { AdminCourseDetail } from '@/components/admin/admin-course-detail';
+import { AdminCourseDetail } from '@/components/admin/course/admin-course-detail';
 
 interface CourseDetailPageProps {
    params: {
