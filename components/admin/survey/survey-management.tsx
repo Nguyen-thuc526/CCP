@@ -57,9 +57,9 @@ export default function SurveyManagement() {
    };
 
    return (
-      <div className="p-6">
+      <div className="space-y-6">
          {/* Page Title */}
-         <div className="mb-6">
+         <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
                Quản Lý Khảo Sát
             </h1>

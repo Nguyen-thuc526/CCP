@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Member } from '@/types/member';
 import { getMembers, updateMemberStatus } from '@/services/adminService';
 import MemberStats from './member-stats';
@@ -17,8 +17,15 @@ export function MemberManagement() {
    const [selectedMember, setSelectedMember] = useState<Member | null>(null);
    const [showMemberDetail, setShowMemberDetail] = useState(false);
    const { showToast } = useToast();
+
+   // Backend paging
+   const [backendPage] = useState(1); // chỉ lấy 1 trang lớn
+   const [backendPageSize] = useState(1000); // gọi hết 1 lần
+
+   // Frontend paging
    const [page, setPage] = useState(1);
-   const [pageSize] = useState(10);
+   const frontendPageSize = 10;
+
    const [totalCount, setTotalCount] = useState(0);
 
    const {
@@ -34,17 +41,15 @@ export function MemberManagement() {
       startLoading();
       try {
          const response = await getMembers({
-            PageNumber: page,
-            PageSize: pageSize,
+            PageNumber: backendPage,
+            PageSize: backendPageSize,
          });
 
          setRawMembers(response.items);
-         setTotalCount(response.totalCount);
+         setTotalCount(response.totalCount || response.items.length);
       } catch (err) {
          console.error(err);
-         setErrorMessage(
-            'Không thể tải danh sách thành viên. Vui lòng thử lại.'
-         );
+         setErrorMessage('Không thể tải danh sách thành viên. Vui lòng thử lại.');
       } finally {
          stopLoading();
       }
@@ -52,7 +57,7 @@ export function MemberManagement() {
 
    useEffect(() => {
       fetchMembers();
-   }, [page]);
+   }, []);
 
    useEffect(() => {
       let filtered = rawMembers;
@@ -73,6 +78,7 @@ export function MemberManagement() {
       }
 
       setFilteredMembers(filtered);
+      setPage(1); // reset về trang đầu khi filter/search thay đổi
    }, [rawMembers, searchTerm, statusFilter]);
 
    const handleStatusChange = async (memberId: string, newStatus: number) => {
@@ -87,28 +93,31 @@ export function MemberManagement() {
             )
          );
 
-         showToast(
-            'Đã cập nhật trạng thái member thành công',
-            ToastType.Success
-         );
+         showToast('Đã cập nhật trạng thái member thành công', ToastType.Success);
       } catch (error) {
          console.error('Lỗi cập nhật trạng thái:', error);
          setErrorMessage('Không thể cập nhật trạng thái. Vui lòng thử lại.');
          showToast('Lỗi cập nhật trạng thái thành viên.', ToastType.Error);
       }
    };
+
    const openMemberDetail = (member: Member) => {
       setSelectedMember(member);
       setShowMemberDetail(true);
    };
 
-   return (
-      <div className="space-y-6">
-         {renderStatus({ onRetry: fetchMembers })}
+   // Phân trang client: cắt 10 người/page từ filteredMembers
+   const paginatedMembers = useMemo(() => {
+      const startIndex = (page - 1) * frontendPageSize;
+      return filteredMembers.slice(startIndex, startIndex + frontendPageSize);
+   }, [filteredMembers, page]);
 
+   return (
+      <>
+         {renderStatus({ onRetry: fetchMembers })}
          {!loading && !error && (
             <>
-               <MemberStats members={filteredMembers} />
+               <MemberStats members={rawMembers} />
                <MemberFilters
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
@@ -116,18 +125,18 @@ export function MemberManagement() {
                   setStatusFilter={setStatusFilter}
                />
                <MemberTabs
-                  members={filteredMembers}
+                  members={paginatedMembers}
                   searchTerm={searchTerm}
                   statusFilter={statusFilter}
                   handleStatusChange={handleStatusChange}
                   openMemberDetail={openMemberDetail}
                   page={page}
-                  pageSize={pageSize}
-                  totalCount={totalCount}
+                  pageSize={frontendPageSize}
+                  totalCount={filteredMembers.length}
                   onPageChange={setPage}
                />
             </>
          )}
-      </div>
+      </>
    );
 }
