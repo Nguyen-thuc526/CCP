@@ -151,10 +151,10 @@ export default function BookingManagement() {
    return (
       <div className="space-y-6">
          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
                Quản lý Booking
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-gray-600">
                Quản lý và theo dõi tất cả các lịch hẹn tư vấn
             </p>
          </div>

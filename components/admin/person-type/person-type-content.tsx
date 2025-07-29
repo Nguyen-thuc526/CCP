@@ -17,6 +17,8 @@ import { AddPersonalityModal } from './add-person-type-modal';
 import { EditPersonalityModal } from './edit-person-type-modal';
 import { EmptyState } from './empty-state';
 import ViewPersonalityModal from './view-person-type-modal';
+import { Router } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 interface PersonalityTabContentProps {
    surveyId: string;
@@ -33,7 +35,7 @@ export function PersonalityTabContent({
       surveyId,
       enabled: isActive,
    });
-
+   const router = useRouter();
    const [searchTerm, setSearchTerm] = useState('');
    const [selectedCategory, setSelectedCategory] = useState<string>('all');
    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -84,6 +86,10 @@ export function PersonalityTabContent({
    const handleView = (personType: PersonType) => {
       setSelectedPersonType(personType);
       setIsViewModalOpen(true);
+   };
+
+   const handleCompare = (personTypeId: string) => {
+      router.push(`/admin/person-type/compare/${personTypeId}`);
    };
 
    const handleAddSubmit = async (
@@ -172,6 +178,7 @@ export function PersonalityTabContent({
                personTypes={filteredPersonTypes}
                onView={handleView}
                onEdit={handleEdit}
+               onCompare={handleCompare}
             />
          ) : (
             <EmptyState

@@ -35,14 +35,14 @@ export default function WithdrawManagement() {
             };
          case WithdrawStatus.Approved:
             return {
-               label: 'Đã duyệt',
+               label: 'Đã rút tiền',
                icon: Check,
                color: 'text-green-600',
                count: withdraws[status].length,
             };
          case WithdrawStatus.Rejected:
             return {
-               label: 'Đã từ chối',
+               label: 'Đã hủy',
                icon: X,
                color: 'text-red-600',
                count: withdraws[status].length,
@@ -113,11 +113,11 @@ export default function WithdrawManagement() {
    };
 
    return (
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="space-y-6">
          <div className="flex items-center justify-between">
             <div>
-               <h1 className="text-3xl font-bold">Quản lý rút tiền</h1>
-               <p className="text-muted-foreground">
+               <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý rút tiền</h1>
+               <p className="text-gray-600">
                   Quản lý các yêu cầu rút tiền từ người dùng
                </p>
             </div>

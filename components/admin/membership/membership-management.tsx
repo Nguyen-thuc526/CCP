@@ -98,8 +98,8 @@ export function MembershipManagement() {
       <div className="space-y-6">
          <div className="flex items-center justify-between">
             <div>
-               <h1 className="text-3xl font-bold">Các gói Membership</h1>
-               <p className="text-muted-foreground">
+               <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý gói Membership</h1>
+               <p className="text-gray-600">
                   Quản lý các gói membership với cấp bậc từ thấp đến cao
                </p>
             </div>
@@ -287,8 +287,8 @@ export function MembershipManagement() {
                      <div className="text-2xl font-bold text-purple-600">
                         {membershipTiers.length > 0
                            ? membershipTiers.reduce((max, current) =>
-                                current.rank > max.rank ? current : max
-                             ).memberShipName
+                              current.rank > max.rank ? current : max
+                           ).memberShipName
                            : '—'}
                      </div>
                      <div className="text-sm text-muted-foreground">
@@ -300,8 +300,8 @@ export function MembershipManagement() {
                      <div className="text-2xl font-bold text-orange-600">
                         {membershipTiers.length > 0
                            ? Math.max(
-                                ...membershipTiers.map((t) => t.discountCourse)
-                             ) + '%'
+                              ...membershipTiers.map((t) => t.discountCourse)
+                           ) + '%'
                            : '—'}
                      </div>
                      <div className="text-sm text-muted-foreground">
@@ -313,8 +313,8 @@ export function MembershipManagement() {
                      <div className="text-2xl font-bold text-pink-600">
                         {membershipTiers.length > 0
                            ? Math.max(
-                                ...membershipTiers.map((t) => t.discountBooking)
-                             ) + '%'
+                              ...membershipTiers.map((t) => t.discountBooking)
+                           ) + '%'
                            : '—'}
                      </div>
                      <div className="text-sm text-muted-foreground">
@@ -326,8 +326,8 @@ export function MembershipManagement() {
                      <div className="text-2xl font-bold text-cyan-600">
                         {membershipTiers.length > 0
                            ? Math.max(
-                                ...membershipTiers.map((t) => t.expiryDate)
-                             ) + ' ngày'
+                              ...membershipTiers.map((t) => t.expiryDate)
+                           ) + ' ngày'
                            : '—'}
                      </div>
                      <div className="text-sm text-muted-foreground">
