@@ -158,6 +158,7 @@ export default function SubmitCertificateModal({
             name: formData.name,
             description: formData.description,
             image: formData.image,
+            time: new Date().toISOString(),
             subCategoryIds: selectedSubCategories,
          };
 

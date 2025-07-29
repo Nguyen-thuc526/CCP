@@ -10,7 +10,8 @@ export const certificationService = {
    async sendCertification(data: {
       name: string;
       description: string;
-      imageUrl: string;
+      image: string;
+      time: string;
       subCategoryIds: string[];
    }): Promise<CertificationResponse> {
       const response = await axiosInstance.post(
@@ -19,6 +20,7 @@ export const certificationService = {
       );
       return response.data;
    },
+
 
    // API lấy danh sách chứng chỉ của tôi
    async getMyCertifications(): Promise<MyCertificationsResponse> {
