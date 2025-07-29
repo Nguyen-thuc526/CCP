@@ -17,3 +17,11 @@ export interface ResultPersonType {
     personType: PersonType;
     personType2: PersonType;
 }
+export interface UpdatePersonTypePayload {
+  id: string;
+  categoryId: string;
+  description: string;
+  detail: string;
+  compatibility: number;
+  image: string;
+}

@@ -70,3 +70,18 @@ export const comparePersonType = async (
       throw new Error(error || 'Failed to compare person type');
    }
 };
+
+export const updateResultPersonType = async (
+   data: UpdatePersonTypePayload
+): Promise<ApiResponse<null>> => {
+   try {
+      const response = await axiosInstance.put<ApiResponse<null>>(
+         `/api/ResultPersonType/edit`,
+         data
+      );
+      return response.data;
+   } catch (error: any) {
+      console.error('Error updating result person type:', error);
+      throw error;
+   }
+};

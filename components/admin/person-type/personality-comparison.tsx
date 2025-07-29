@@ -23,12 +23,15 @@ import {
   Filter,
   ArrowRight,
   ArrowLeft,
+  Edit,
 } from "lucide-react"
 import Image from "next/image"
 import { useErrorLoadingWithUI } from "@/hooks/useErrorLoading"
 import { useToast, ToastType } from "@/hooks/useToast"
 import type { ResultPersonType } from "@/types/result-person-type"
-import { comparePersonType } from "@/services/personTypeService"
+import { comparePersonType, updateResultPersonType } from "@/services/personTypeService"
+import { UpdatePersonTypePayload } from "@/types/result-person-type"
+import EditResultPersonTypeModal from "./edit-result-person-type"
 
 interface PersonalityComparisonProps {
   initialPersonTypeId: string
@@ -45,19 +48,63 @@ export default function PersonalityComparison({ initialPersonTypeId }: Personali
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [currentPersonType, setCurrentPersonType] = useState<any>(null)
 
+  const [editingComparison, setEditingComparison] = useState<ResultPersonType | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  const [formValues, setFormValues] = useState<UpdatePersonTypePayload>({
+    id: '',
+    description: '',
+    detail: '',
+    image: '',
+    categoryId: '',
+    compatibility: 0,
+  })
   // State for detail view
   const [viewMode, setViewMode] = useState<"list" | "detail">("list")
   const [selectedComparison, setSelectedComparison] = useState<ResultPersonType | null>(null)
+  const handleEdit = (comparison: ResultPersonType) => {
+    setEditingComparison(comparison);
+    setFormValues({
+      id: comparison.id,
+      description: comparison.description || '',
+      detail: comparison.detail || '',
+      image: comparison.personType2?.image || '',
+      categoryId: comparison.categoryId || '',
+      compatibility: comparison.compatibility || 0
+    });
+    setIsEditModalOpen(true);
+  };
 
+  const handleModalSubmit = async (data: UpdatePersonTypePayload) => {
+    setIsSaving(true);
+    try {
+      await updateResultPersonType(data);
+      setIsEditModalOpen(false);
+
+      await loadData();
+
+      showToast("Cập nhật thành công", ToastType.Success);
+    } catch (err) {
+      console.error("Error updating:", err);
+      showToast("Cập nhật thất bại", ToastType.Error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleFormChange = (field: keyof UpdatePersonTypePayload, value: string) => {
+    setFormValues((prev) => ({ ...prev, [field]: value }));
+  };
   const loadData = async () => {
     startLoading()
     try {
       const result = await comparePersonType(initialPersonTypeId)
-      setData(result)
-      setFilteredData(result)
+      setData(Array.isArray(result) ? result : [result])
+      setFilteredData(Array.isArray(result) ? result : [result])
       // Set current person type from the first result
-      if (result.length > 0) {
-        setCurrentPersonType(result[0].personType)
+      if ((Array.isArray(result) ? result : [result]).length > 0) {
+        setCurrentPersonType((Array.isArray(result) ? result : [result])[0].personType)
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi không xác định"
@@ -622,10 +669,23 @@ export default function PersonalityComparison({ initialPersonTypeId }: Personali
                     </div>
 
                     {/* View Details Button */}
-                    <Button onClick={() => handleViewDetails(comparison)} className="w-full" >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Xem Chi Tiết
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button
+                        onClick={() => handleViewDetails(comparison)}
+                        className="w-full sm:w-1/2"
+                        variant="outline"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Xem Chi Tiết
+                      </Button>
+                      <Button
+                        onClick={() => handleEdit(comparison)}
+                        className="w-full sm:w-1/2"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Chỉnh Sửa
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               )
@@ -633,6 +693,15 @@ export default function PersonalityComparison({ initialPersonTypeId }: Personali
           </div>
         )}
       </div>
+      <EditResultPersonTypeModal
+        open={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={handleModalSubmit}
+        isSaving={isSaving}
+        formValues={formValues}
+        onChange={handleFormChange}
+      />
     </div>
+
   )
 }
