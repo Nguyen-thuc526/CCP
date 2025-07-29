@@ -76,24 +76,28 @@ export default function PersonalityComparison({ initialPersonTypeId }: Personali
     setIsEditModalOpen(true);
   };
 
-  const handleModalSubmit = async (data: UpdatePersonTypePayload) => {
+  const handleModalSubmit = async (updatedData: UpdatePersonTypePayload) => {
     setIsSaving(true);
     try {
-      await updateResultPersonType(data);
+      await updateResultPersonType(updatedData);
+      showToast('Cập nhật kết quả thành công!', ToastType.Success);
+
+      const result = await comparePersonType(initialPersonTypeId);
+      const resultArray = Array.isArray(result) ? result : [result];
+      setData(resultArray);
+      setFilteredData(resultArray);
       setIsEditModalOpen(false);
-
-      await loadData();
-
-      showToast("Cập nhật thành công", ToastType.Success);
-    } catch (err) {
-      console.error("Error updating:", err);
-      showToast("Cập nhật thất bại", ToastType.Error);
+    } catch (error) {
+      showToast('Lỗi cập nhật kết quả.', ToastType.Error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleFormChange = (field: keyof UpdatePersonTypePayload, value: string) => {
+  const handleFormChange = (
+    field: keyof UpdatePersonTypePayload,
+    value: string | number
+  ) => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
   };
   const loadData = async () => {
