@@ -21,7 +21,6 @@ export const certificationService = {
       return response.data;
    },
 
-
    // API lấy danh sách chứng chỉ của tôi
    async getMyCertifications(): Promise<MyCertificationsResponse> {
       const response = await axiosInstance.get(
