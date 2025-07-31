@@ -1,6 +1,6 @@
 'use client';
 
-import { Edit, Eye, ImageIcon } from 'lucide-react';
+import { BarChart2, Edit, Eye, ImageIcon, ListTree, Scale, ScanEye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
    Card,
@@ -28,16 +28,18 @@ interface PersonalityCardProps {
    personType: PersonType;
    onView: () => void;
    onEdit: () => void;
+   onCompare: (id: string) => void;
 }
 
 export function PersonalityCard({
    personType,
    onView,
    onEdit,
+   onCompare
 }: PersonalityCardProps) {
+
    return (
       <Card className="overflow-hidden group hover:shadow-lg transition-shadow duration-300">
-         {/* Banner Image */}
          <div className="relative h-48 bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
             {personType.image ? (
                <img
@@ -45,6 +47,7 @@ export function PersonalityCard({
                   alt={personType.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                />
+
             ) : (
                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
                   <ImageIcon className="h-16 w-16 text-gray-400" />
@@ -74,17 +77,30 @@ export function PersonalityCard({
                      src={personType.image || '/placeholder.svg'}
                      alt={personType.name}
                   />
+
                   <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg font-semibold">
                      {personType.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
+
                </Avatar>
             </div>
 
             {/* Title with proper spacing for avatar */}
             <div className="pt-10">
-               <CardTitle className="text-xl font-bold text-gray-900 mb-1">
-                  {personType.name}
-               </CardTitle>
+               <div className="flex justify-between items-center">
+                  <CardTitle className="text-xl font-bold text-gray-900 mb-1">
+                     {personType.name}
+                  </CardTitle>
+                  <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={() => onCompare(personType.id)}
+                     className="hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-colors bg-transparent"
+                  >
+                     <ScanEye className="mr-1 h-4 w-4" />
+                     So sánh
+                  </Button>
+               </div>
             </div>
          </CardHeader>
 
@@ -97,6 +113,7 @@ export function PersonalityCard({
 
             {/* Action buttons */}
             <div className="flex justify-between items-center">
+
                <Button
                   variant="outline"
                   size="sm"
@@ -117,40 +134,6 @@ export function PersonalityCard({
                </Button>
             </div>
          </CardContent>
-      </Card>
-   );
-}
-
-// Demo component to showcase the card
-export default function PersonalityCardDemo() {
-   const samplePersonType: PersonType = {
-      id: '1',
-      name: 'Nhà Lãnh Đạo Tự Nhiên',
-      description:
-         'Một người có khả năng lãnh đạo bẩm sinh, luôn tìm cách truyền cảm hứng và dẫn dắt người khác. Họ có tầm nhìn xa, khả năng ra quyết định nhanh chóng và không ngại đối mặt với thử thách.',
-      image: '/placeholder.svg?height=200&width=400',
-      category: {
-         name: 'Lãnh Đạo',
-      },
-   };
-
-   const handleView = () => {
-      console.log('Viewing personality type');
-   };
-
-   const handleEdit = () => {
-      console.log('Editing personality type');
-   };
-
-   return (
-      <div className="p-8 bg-gray-50 min-h-screen">
-         <div className="max-w-sm mx-auto">
-            <PersonalityCard
-               personType={samplePersonType}
-               onView={handleView}
-               onEdit={handleEdit}
-            />
-         </div>
-      </div>
+      </Card >
    );
 }

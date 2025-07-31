@@ -5,6 +5,7 @@ import {
    UpdatePersonTypePayload,
 } from '@/types/person-type';
 import axiosInstance from './axiosInstance';
+import { ResultPersonType } from '@/types/result-person-type';
 
 export const getPersonTypesBySurveyId = async (
    surveyId: string
@@ -50,5 +51,37 @@ export const createPersonType = async (
       return data;
    } else {
       throw new Error(error || 'Failed to create person type');
+   }
+};
+
+export const comparePersonType = async (
+   personTypeId: string
+): Promise<ResultPersonType> => {
+
+   const response = await axiosInstance.get<ApiResponse<ResultPersonType>>(
+      `/api/ResultPersonType/by-persontype/${personTypeId}`
+   );
+
+   const { success, data, error } = response.data;
+
+   if (success) {
+      return data;
+   } else {
+      throw new Error(error || 'Failed to compare person type');
+   }
+};
+
+export const updateResultPersonType = async (
+   data: UpdatePersonTypePayload
+): Promise<ApiResponse<null>> => {
+   try {
+      const response = await axiosInstance.put<ApiResponse<null>>(
+         `/api/ResultPersonType/edit`,
+         data
+      );
+      return response.data;
+   } catch (error: any) {
+      console.error('Error updating result person type:', error);
+      throw error;
    }
 };
