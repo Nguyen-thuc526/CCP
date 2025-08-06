@@ -33,6 +33,8 @@ import { comparePersonType, updateResultPersonType } from "@/services/personType
 import { UpdatePersonTypePayload } from "@/types/result-person-type"
 import EditResultPersonTypeModal from "./edit-result-person-type"
 
+import "@/styles/tiptap.css"
+
 interface PersonalityComparisonProps {
   initialPersonTypeId: string
 }
@@ -59,10 +61,16 @@ export default function PersonalityComparison({ initialPersonTypeId }: Personali
     image: '',
     categoryId: '',
     compatibility: 0,
-  })
+    weaknesses: '',
+    strongPoints: '',
+  });
+
   // State for detail view
   const [viewMode, setViewMode] = useState<"list" | "detail">("list")
   const [selectedComparison, setSelectedComparison] = useState<ResultPersonType | null>(null)
+
+  console.log(selectedComparison)
+
   const handleEdit = (comparison: ResultPersonType) => {
     setEditingComparison(comparison);
     setFormValues({
@@ -71,7 +79,9 @@ export default function PersonalityComparison({ initialPersonTypeId }: Personali
       detail: comparison.detail || '',
       image: comparison.personType2?.image || '',
       categoryId: comparison.categoryId || '',
-      compatibility: comparison.compatibility || 0
+      compatibility: comparison.compatibility || 0,
+      weaknesses: comparison.weaknesses || '',
+      strongPoints: comparison.strongPoints || '',
     });
     setIsEditModalOpen(true);
   };
@@ -390,7 +400,7 @@ export default function PersonalityComparison({ initialPersonTypeId }: Personali
           </Card>
 
           {/* Compatibility Details */}
-          {(selectedComparison.description || selectedComparison.detail) && (
+          {(selectedComparison.description || selectedComparison.detail || selectedComparison.strongPoints || selectedComparison.weaknesses) && (
             <Card className="border border-gray-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -399,36 +409,37 @@ export default function PersonalityComparison({ initialPersonTypeId }: Personali
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {selectedComparison.description && (
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">Mô tả:</h4>
-                    <p className="text-gray-700">{selectedComparison.description}</p>
-                  </div>
-                )}
-                {selectedComparison.detail && (
+                {selectedComparison.strongPoints && (
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Chi tiết:</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2">Điểm mạnh:</h4>
                     <div
-                      className="prose max-w-none text-gray-700"
-                      dangerouslySetInnerHTML={{ __html: selectedComparison.detail }}
+                      className="prose max-w-none text-green-700"
+                      style={{
+                        listStyleType: 'disc',
+                        listStylePosition: 'inside',
+                      }}
+                      dangerouslySetInnerHTML={{ __html: selectedComparison.strongPoints }}
                     />
                   </div>
                 )}
+
+                {selectedComparison.weaknesses && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Điểm yếu:</h4>
+                    <div
+                      className="prose max-w-none text-red-700"
+                      style={{
+                        listStyleType: 'disc',
+                        listStylePosition: 'inside',
+                      }}
+                      dangerouslySetInnerHTML={{ __html: selectedComparison.weaknesses }}
+                    />
+                  </div>
+                )}
+
               </CardContent>
             </Card>
           )}
-
-          {/* Action Buttons */}
-          <div className="flex justify-center gap-4">
-            <Button onClick={handleBackToList} variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Quay lại
-            </Button>
-            <Button onClick={handleSaveResult}>
-              <Download className="w-4 h-4 mr-2" />
-              Lưu kết quả
-            </Button>
-          </div>
 
           {/* Metadata */}
           <Card className="bg-gray-50 border border-gray-200">

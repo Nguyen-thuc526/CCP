@@ -1,11 +1,31 @@
-'use client';
-
 // Global styles for Tiptap editor
 export const tiptapStyles = `
   .ProseMirror {
     outline: none;
     padding: 1rem;
     min-height: 200px;
+  }
+
+  .ProseMirror ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .ProseMirror ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .ProseMirror li {
+    margin: 0.25rem 0;
+  }
+
+  /* Fix bullet list hiển thị khi có <p> trong <li> */
+  .ProseMirror li > p {
+    margin: 0;
+    display: inline;
   }
 
   .ProseMirror p.is-editor-empty:first-child::before {
@@ -38,15 +58,6 @@ export const tiptapStyles = `
     line-height: 1.75rem;
     margin-top: 1rem;
     margin-bottom: 0.5rem;
-  }
-
-  .ProseMirror ul, .ProseMirror ol {
-    padding-left: 1.5rem;
-    margin: 0.5rem 0;
-  }
-
-  .ProseMirror li {
-    margin: 0.25rem 0;
   }
 
   .ProseMirror blockquote {
