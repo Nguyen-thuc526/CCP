@@ -50,4 +50,4 @@ export const useUploadVideo = () => {
     };
 
     return { uploadVideo, videoUrl, duration, loading, error };
-};
+}
