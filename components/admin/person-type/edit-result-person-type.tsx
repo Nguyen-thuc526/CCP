@@ -13,15 +13,9 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { TiptapEditor } from './tiptap-editor';
 import { useUploadImage } from '@/hooks/upload-image';
+import { UpdatePersonTypePayload } from '@/types/result-person-type';
 
-export interface UpdatePersonTypePayload {
-   id: string;
-   categoryId: string;
-   description: string;
-   detail: string;
-   compatibility: number;
-   image: string;
-}
+
 
 interface EditResultPersonTypeModalProps {
    open: boolean;
@@ -69,7 +63,25 @@ export default function EditResultPersonTypeModal({
                      placeholder="Nhập nội dung chi tiết..."
                   />
                </div>
+               {/* Điểm mạnh */}
+               <div className="grid gap-2">
+                  <Label>Điểm mạnh</Label>
+                  <TiptapEditor
+                     content={formValues.strongPoints}
+                     onChange={(html) => onChange('strongPoints', html)}
+                     placeholder="Nhập điểm mạnh..."
+                  />
+               </div>
 
+               {/* Điểm yếu */}
+               <div className="grid gap-2">
+                  <Label>Điểm yếu</Label>
+                  <TiptapEditor
+                     content={formValues.weaknesses}
+                     onChange={(html) => onChange('weaknesses', html)}
+                     placeholder="Nhập điểm yếu..."
+                  />
+               </div>
                {/* Hình ảnh */}
                <div className="grid gap-2">
                   <Label>Hình ảnh</Label>
