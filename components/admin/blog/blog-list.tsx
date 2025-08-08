@@ -179,3 +179,4 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
     </>
   )
 }
+

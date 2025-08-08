@@ -19,7 +19,7 @@ export function BlogForm({ onSuccess }: BlogFormProps) {
 const [open, setOpen] = useState(false)
 const [title, setTitle] = useState("")
 const [description, setDescription] = useState("")
-const [image, setImage] = useState<string | null>(null) // State for image URL
+const [image, setImage] = useState<string | null>(null) 
 const [loading, setLoading] = useState(false)
 const { showToast } = useToast()
 
