@@ -196,11 +196,6 @@ export function Sidebar() {
                icon: <Wallet className="h-5 w-5" />,
                title: 'Ví',
             },
-            {
-               href: '/counselor/payments',
-               icon: <CreditCard className="h-5 w-5" />,
-               title: 'Chính sách',
-            },
          ],
       },
    ];

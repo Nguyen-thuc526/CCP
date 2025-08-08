@@ -1,8 +1,11 @@
+import { UpdateCounselorProfileRequest, UserResponse } from '@/types/user';
 import axiosInstance from './axiosInstance';
 
+// API service for counselor profile
 export const userService = {
-   async getCounselorProfile(bookingId: string): Promise<UserResponse> {
-      const response = await axiosInstance.get(
+   // Get current counselor profile
+   async getCounselorProfile(): Promise<UserResponse> {
+      const response = await axiosInstance.get<UserResponse>(
          '/api/Account/counselor-my-profile'
       );
       return response.data;
@@ -10,11 +13,11 @@ export const userService = {
 
    // Update counselor profile
    async updateCounselorProfile(
-      data: UpdateCounselorProfileRequest
+      payload: UpdateCounselorProfileRequest
    ): Promise<UserResponse> {
-      const response = await axiosInstance.put(
+      const response = await axiosInstance.put<UserResponse>(
          '/api/Account/counselor-edit-profile',
-         data
+         payload
       );
       return response.data;
    },

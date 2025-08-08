@@ -1,4 +1,5 @@
-import AppointmentDetail from '@/components/counselor/appointment/appointment-detail';
+import AppointmentDetail from "@/components/counselor/appointment/detail/appointment-detail";
+
 
 interface AppointmentDetailPageProps {
    params: Promise<{ id: string }>; // Xác định params là Promise

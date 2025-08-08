@@ -1,4 +1,11 @@
-type CounselorProfile = {
+export interface UserResponse {
+   success: boolean;
+   data: CounselorProfile;
+   error: string | null;
+}
+
+// Main profile model
+export interface CounselorProfile {
    id: string;
    fullname: string;
    avatar: string;
@@ -7,20 +14,14 @@ type CounselorProfile = {
    yearOfJob: number;
    phone: string | null;
    status: number;
-};
+}
 
-// Define the API response type
-type UserResponse = {
-   success: boolean;
-   data: CounselorProfile;
-   error: string | null;
-};
-
-interface UpdateCounselorProfileRequest {
-   fullName?: string;
-   description?: string;
-   price?: number;
-   phone?: string;
-   yearOfJob?: number;
-   avatar?: string;
+// Payload to update profile
+export interface UpdateCounselorProfileRequest {
+  fullName?: string | null;
+  description?: string | null;
+  price?: number;
+  phone?: string | null;
+  yearOfJob?: number;
+  avatar?: string | null;
 }

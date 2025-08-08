@@ -19,32 +19,8 @@ import { userService } from '@/services/userService';
 import { useErrorLoadingWithUI } from '@/hooks/useErrorLoading';
 import { ToastType, useToast } from '@/hooks/useToast';
 import { useUploadImage } from '@/hooks/upload-image';
+import { CounselorProfile, UpdateCounselorProfileRequest } from '@/types/user';
 
-type CounselorProfile = {
-   id: string;
-   fullname: string;
-   avatar: string;
-   description: string | null;
-   price: number;
-   yearOfJob: number;
-   phone: string | null;
-   status: number;
-};
-
-type UserResponse = {
-   success: boolean;
-   data: CounselorProfile;
-   error: string | null;
-};
-
-type UpdateCounselorProfileRequest = {
-   fullName?: string;
-   description?: string;
-   price?: number;
-   phone?: string;
-   yearOfJob?: number;
-   avatar?: string;
-};
 
 export function GeneralInfoTab() {
    const [profile, setProfile] = useState<CounselorProfile | null>(null);
@@ -52,7 +28,7 @@ export function GeneralInfoTab() {
    const [hasChanges, setHasChanges] = useState(false);
    const fileInputRef = useRef<HTMLInputElement>(null);
    const { showToast } = useToast();
-   const { error, setErrorMessage, renderStatus, renderSkeleton } =
+   const { error, setErrorMessage, renderStatus } =
       useErrorLoadingWithUI();
    const [isSaving, setIsSaving] = useState(false);
    const {
