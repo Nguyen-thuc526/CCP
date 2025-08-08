@@ -1,9 +1,8 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Edit, Eye, Trash2, FileText } from "lucide-react"
+import { Edit, Eye, Trash2, FileText } from 'lucide-react'
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { PostItem } from "@/types/post"
@@ -43,7 +42,6 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
 
   const handleDeleteConfirm = async () => {
     if (!selectedId) return
-
     try {
       const result = await PostService.deletePost(selectedId)
       if (result.success) {
@@ -73,6 +71,7 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
             <table className="w-full caption-bottom text-sm">
               <thead className="border-b">
                 <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                  <th className="h-12 px-4 text-left align-middle font-medium">Ảnh Thumbnail</th> {/* New column header */}
                   <th className="h-12 px-4 text-left align-middle font-medium">Tiêu đề</th>
                   <th className="h-12 px-4 text-left align-middle font-medium">Ngày</th>
                   <th className="h-12 px-4 text-left align-middle font-medium">Lượt xem</th>
@@ -83,13 +82,13 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-4">
+                    <td colSpan={6} className="text-center py-4"> {/* Updated colspan */}
                       Đang tải dữ liệu...
                     </td>
                   </tr>
                 ) : posts.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-4">
+                    <td colSpan={6} className="text-center py-4"> {/* Updated colspan */}
                       Không có bài viết nào.
                     </td>
                   </tr>
@@ -99,6 +98,13 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
                       key={post.id}
                       className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                     >
+                      <td className="p-4 align-middle"> {/* New column for thumbnail */}
+                        <img
+                          src={post.image || "/placeholder.svg?height=64&width=64&query=blog post thumbnail"}
+                          alt={post.title}
+                          className="w-16 h-16 object-cover rounded-md"
+                        />
+                      </td>
                       <td className="p-4 align-middle">
                         <div className="max-w-[300px] truncate font-medium">{post.title}</div>
                       </td>
@@ -143,7 +149,6 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
           </div>
         </CardContent>
       </Card>
-
       {/* Delete Confirmation Dialog */}
       <Dialog open={selectedId !== null} onOpenChange={() => setSelectedId(null)}>
         <DialogContent className="sm:max-w-md">
@@ -160,10 +165,8 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* View Post Modal */}
       {viewPostId && <BlogViewModal postId={viewPostId} open={!!viewPostId} onOpenChange={() => setViewPostId(null)} />}
-
       {/* Edit Post Modal */}
       {editPost && (
         <BlogEditModal

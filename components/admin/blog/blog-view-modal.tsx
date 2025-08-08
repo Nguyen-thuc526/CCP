@@ -1,9 +1,8 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Calendar, Loader2 } from "lucide-react"
+import { Eye, Calendar, Loader2 } from 'lucide-react'
 import type { PostItem } from "@/types/post"
 import { PostService } from "@/services/postService"
 import { useToast, ToastType } from "@/hooks/useToast"
@@ -65,7 +64,13 @@ export function BlogViewModal({ postId, open, onOpenChange }: BlogViewModalProps
                 </Badge>
               </div>
             </DialogHeader>
-
+            <div className="mt-4">
+              <img
+                src={post.image || "/placeholder.svg?height=400&width=800&query=blog post article content"}
+                alt={post.title}
+                className="w-full h-auto max-h-80 object-cover rounded-md"
+              />
+            </div>
             <div className="mt-6">
               <div
                 className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none"
