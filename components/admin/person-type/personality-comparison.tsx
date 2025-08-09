@@ -640,7 +640,7 @@ export default function PersonalityComparison({
             <div className="space-y-4">
                <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-bold text-gray-900">
-                     So Sánh Tính Cách MBTI
+                     So Sánh Tính Cách
                   </h1>
                </div>
                <p className="text-gray-600">
