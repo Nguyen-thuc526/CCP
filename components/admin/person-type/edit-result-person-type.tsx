@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import { TiptapEditor } from './tiptap-editor';
 import { useUploadImage } from '@/hooks/upload-image';
 import { UpdatePersonTypePayload } from '@/types/result-person-type';
@@ -59,7 +60,7 @@ export default function EditResultPersonTypeModal({
                   />
                </div>
 
-               {/* Chi tiết với Tiptap */}
+               {/* Chi tiết */}
                <div className="grid gap-2">
                   <Label>Chi tiết</Label>
                   <TiptapEditor
@@ -68,6 +69,7 @@ export default function EditResultPersonTypeModal({
                      placeholder="Nhập nội dung chi tiết..."
                   />
                </div>
+
                {/* Điểm mạnh */}
                <div className="grid gap-2">
                   <Label>Điểm mạnh</Label>
@@ -87,6 +89,7 @@ export default function EditResultPersonTypeModal({
                      placeholder="Nhập điểm yếu..."
                   />
                </div>
+
                {/* Hình ảnh */}
                <div className="grid gap-2">
                   <Label>Hình ảnh</Label>
@@ -95,7 +98,7 @@ export default function EditResultPersonTypeModal({
                      <img
                         src={formValues.image}
                         alt="preview"
-                        className="w-32 h-32 object-cover rounded-md"
+                        className="w-32 h-32 object-cover rounded-md border"
                      />
                   )}
 
@@ -126,17 +129,36 @@ export default function EditResultPersonTypeModal({
                </div>
 
                {/* Độ tương thích */}
-               <div className="grid gap-2">
-                  <Label>Độ tương thích (%)</Label>
-                  <Input
-                     type="number"
-                     min={0}
-                     max={100}
-                     value={formValues.compatibility}
-                     onChange={(e) =>
-                        onChange('compatibility', Number(e.target.value))
-                     }
-                  />
+               <div className="grid gap-3">
+                  <Label>Độ tương thích</Label>
+                  <div className="flex items-center gap-4">
+                     <Slider
+                        value={[formValues.compatibility]}
+                        min={0}
+                        max={100}
+                        step={1}
+                        onValueChange={(val) =>
+                           onChange('compatibility', val[0])
+                        }
+                        className="flex-1"
+                     />
+                     <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={formValues.compatibility}
+                        onChange={(e) => {
+                           let value = Number(e.target.value);
+                           if (value > 100) value = 100;
+                           if (value < 0) value = 0;
+                           onChange('compatibility', value);
+                        }}
+                        className="w-20 text-center"
+                     />
+                     <span className="text-lg font-semibold w-10 text-center">
+                        %
+                     </span>
+                  </div>
                </div>
             </div>
 

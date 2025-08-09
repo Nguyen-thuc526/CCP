@@ -168,14 +168,6 @@ export default function PersonalityComparison({
       setSelectedComparison(null);
    };
 
-   const handleSaveResult = () => {
-      if (selectedComparison) {
-         showToast('Kết quả đã được lưu thành công!', ToastType.Success);
-      } else {
-         showToast('Không có dữ liệu để lưu', ToastType.Warning);
-      }
-   };
-
    // Filter and search functionality
    useEffect(() => {
       let filtered = data;
