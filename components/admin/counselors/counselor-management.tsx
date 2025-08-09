@@ -11,7 +11,9 @@ import CounselorFilters from './counselor-filter';
 
 export function CounselorManagement() {
    const [rawCounselors, setRawCounselors] = useState<Counselor[]>([]);
-   const [filteredCounselors, setFilteredCounselors] = useState<Counselor[]>([]);
+   const [filteredCounselors, setFilteredCounselors] = useState<Counselor[]>(
+      []
+   );
    const [statusFilter, setStatusFilter] = useState('all');
    const [searchTerm, setSearchTerm] = useState('');
    const [page, setPage] = useState(1);
@@ -38,7 +40,9 @@ export function CounselorManagement() {
          setRawCounselors(res.items);
       } catch (err) {
          console.error(err);
-         setErrorMessage('Không thể tải danh sách chuyên viên. Vui lòng thử lại.');
+         setErrorMessage(
+            'Không thể tải danh sách chuyên viên. Vui lòng thử lại.'
+         );
       } finally {
          stopLoading();
       }
@@ -53,7 +57,9 @@ export function CounselorManagement() {
       let filtered = rawCounselors;
 
       if (statusFilter !== 'all') {
-         filtered = filtered.filter(c => c.status.toString() === statusFilter);
+         filtered = filtered.filter(
+            (c) => c.status.toString() === statusFilter
+         );
       }
 
       if (searchTerm) {
@@ -72,7 +78,10 @@ export function CounselorManagement() {
    // Pagination trên frontend
    const paginatedCounselors = useMemo(() => {
       const startIndex = (page - 1) * frontendPageSize;
-      return filteredCounselors.slice(startIndex, startIndex + frontendPageSize);
+      return filteredCounselors.slice(
+         startIndex,
+         startIndex + frontendPageSize
+      );
    }, [filteredCounselors, page]);
 
    const handleStatusChange = async (
@@ -86,10 +95,16 @@ export function CounselorManagement() {
                c.id === counselorId ? { ...c, status: newStatus } : c
             )
          );
-         showToast('Đã cập nhật trạng thái chuyên viên thành công', ToastType.Success);
+         showToast(
+            'Đã cập nhật trạng thái chuyên viên thành công',
+            ToastType.Success
+         );
       } catch (error) {
          console.error('Lỗi cập nhật trạng thái:', error);
-         showToast('Không thể cập nhật trạng thái. Vui lòng thử lại.', ToastType.Error);
+         showToast(
+            'Không thể cập nhật trạng thái. Vui lòng thử lại.',
+            ToastType.Error
+         );
       }
    };
 

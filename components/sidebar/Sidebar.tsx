@@ -18,11 +18,9 @@ import {
    FileText,
    ClipboardList,
    Package,
-   Flag,
    Calendar,
    MessageSquare,
    Wallet,
-   CreditCard,
    FilePlus,
    UserCircle,
    LogOut,
@@ -63,17 +61,6 @@ export function Sidebar() {
    const router = useRouter();
 
    const [collapsed, setCollapsed] = useState(false);
-   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
-
-   const toggleGroup = (title: string) => {
-      setOpenGroups((prev) => ({ ...prev, [title]: !prev[title] }));
-   };
-
-   const handleLogout = () => {
-      storage.removeToken();
-      dispatch(logout());
-      router.push('/login');
-   };
 
    const adminLinks: SidebarItem[] = [
       {
@@ -148,11 +135,6 @@ export function Sidebar() {
             },
          ],
       },
-      // {
-      //   href: "/admin/reports",
-      //   icon: <ClipboardList className="h-5 w-5" />,
-      //   title: "Thống kê",
-      // },
    ];
 
    const counselorLinks: SidebarItem[] = [
@@ -205,6 +187,47 @@ export function Sidebar() {
       role === Role.Admin ? '/admin/dashboard' : '/counselor/dashboard';
    const title = role === Role.Admin ? 'CCP Admin' : 'CCP Tư vấn viên';
 
+   // ✅ Initialize all groups as open
+   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
+      links.reduce(
+         (acc, item) => {
+            if (isGroup(item)) acc[item.title] = true;
+            return acc;
+         },
+         {} as Record<string, boolean>
+      )
+   );
+
+   const toggleGroup = (title: string) => {
+      setOpenGroups((prev) => ({ ...prev, [title]: !prev[title] }));
+   };
+
+   const handleLogout = () => {
+      storage.removeToken();
+      dispatch(logout());
+      router.push('/login');
+   };
+
+   const toggleSidebar = () => {
+      setCollapsed((prev) => {
+         const newState = !prev;
+         if (!newState) {
+            const activeGroup = links.find(
+               (item) =>
+                  isGroup(item) &&
+                  item.children.some((child) => child.href === pathname)
+            );
+            if (activeGroup) {
+               setOpenGroups((prevGroups) => ({
+                  ...prevGroups,
+                  [activeGroup.title]: true,
+               }));
+            }
+         }
+         return newState;
+      });
+   };
+
    return (
       <div
          className={cn(
@@ -212,11 +235,12 @@ export function Sidebar() {
             collapsed ? 'w-20' : 'w-64'
          )}
       >
+         {/* Nút toggle */}
          <Button
             variant="ghost"
             size="icon"
             className="absolute -right-3 top-20 z-10 h-6 w-6 rounded-full border bg-background"
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={toggleSidebar}
          >
             {collapsed ? (
                <ChevronRight className="h-3 w-3" />
@@ -225,6 +249,7 @@ export function Sidebar() {
             )}
          </Button>
 
+         {/* Logo */}
          <div
             className={cn(
                'flex h-14 items-center border-b px-4',
@@ -240,6 +265,7 @@ export function Sidebar() {
             </Link>
          </div>
 
+         {/* Menu */}
          <ScrollArea className="flex-1">
             <nav className="grid gap-1 px-2 py-4">
                {links.map((item) =>
@@ -307,6 +333,7 @@ export function Sidebar() {
             </nav>
          </ScrollArea>
 
+         {/* Đăng xuất */}
          <div className="border-t p-4">
             <Button
                variant="outline"

@@ -120,9 +120,12 @@ export default function CategoryManagement() {
       <div className="space-y-6">
          <div className="flex items-center justify-between">
             <div>
-               <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý các Danh mục</h1>
+               <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  Quản lý các Danh mục
+               </h1>
                <p className="text-gray-600">
-                  Quản lý hệ thống danh mục và danh mục con dùng cho các dịch vụ, bài kiểm tra và nội dung tư vấn.
+                  Quản lý hệ thống danh mục và danh mục con dùng cho các dịch
+                  vụ, bài kiểm tra và nội dung tư vấn.
                </p>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

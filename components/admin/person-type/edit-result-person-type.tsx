@@ -15,15 +15,16 @@ import { TiptapEditor } from './tiptap-editor';
 import { useUploadImage } from '@/hooks/upload-image';
 import { UpdatePersonTypePayload } from '@/types/result-person-type';
 
-
-
 interface EditResultPersonTypeModalProps {
    open: boolean;
    onClose: () => void;
    onSubmit: (data: UpdatePersonTypePayload) => void;
    isSaving: boolean;
    formValues: UpdatePersonTypePayload;
-   onChange: (field: keyof UpdatePersonTypePayload, value: string | number) => void;
+   onChange: (
+      field: keyof UpdatePersonTypePayload,
+      value: string | number
+   ) => void;
 }
 
 export default function EditResultPersonTypeModal({
@@ -34,7 +35,11 @@ export default function EditResultPersonTypeModal({
    formValues,
    onChange,
 }: EditResultPersonTypeModalProps) {
-   const { uploadImage, loading: uploading, error: uploadError } = useUploadImage();
+   const {
+      uploadImage,
+      loading: uploading,
+      error: uploadError,
+   } = useUploadImage();
 
    return (
       <Dialog open={open} onOpenChange={onClose}>
@@ -104,13 +109,16 @@ export default function EditResultPersonTypeModal({
                         await uploadImage({
                            file,
                            onSuccess: (url) => onChange('image', url),
-                           onError: (err) => console.error('Upload failed:', err),
+                           onError: (err) =>
+                              console.error('Upload failed:', err),
                         });
                      }}
                   />
 
                   {uploading && (
-                     <p className="text-sm text-muted-foreground">Đang tải ảnh lên...</p>
+                     <p className="text-sm text-muted-foreground">
+                        Đang tải ảnh lên...
+                     </p>
                   )}
                   {uploadError && (
                      <p className="text-sm text-red-500">{uploadError}</p>

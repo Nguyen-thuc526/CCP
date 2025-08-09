@@ -55,7 +55,7 @@ export default function MemberTabs({
    onPageChange,
 }: MemberTabsProps) {
    const totalPages = Math.ceil(totalCount / pageSize);
-console.log(members)
+   console.log(members);
    const getStatusBadge = (status: number) => {
       switch (status) {
          case AccountStatus.Active:
@@ -128,7 +128,6 @@ console.log(members)
                                           <div className="font-medium">
                                              {member.fullname}
                                           </div>
-                                          
                                        </div>
                                     </div>
                                  </td>

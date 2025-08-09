@@ -26,18 +26,26 @@ export default function CounselorStats({ counselors }: CounselorStatsProps) {
          <Card>
             <CardContent className="p-4">
                <div className="text-2xl font-bold">{stats.total}</div>
-               <div className="text-sm text-muted-foreground">Tổng chuyên viên</div>
+               <div className="text-sm text-muted-foreground">
+                  Tổng chuyên viên
+               </div>
             </CardContent>
          </Card>
          <Card>
             <CardContent className="p-4">
-               <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-               <div className="text-sm text-muted-foreground">Đang hoạt động</div>
+               <div className="text-2xl font-bold text-green-600">
+                  {stats.active}
+               </div>
+               <div className="text-sm text-muted-foreground">
+                  Đang hoạt động
+               </div>
             </CardContent>
          </Card>
          <Card>
             <CardContent className="p-4">
-               <div className="text-2xl font-bold text-red-600">{stats.blocked}</div>
+               <div className="text-2xl font-bold text-red-600">
+                  {stats.blocked}
+               </div>
                <div className="text-sm text-muted-foreground">Đã khóa</div>
             </CardContent>
          </Card>

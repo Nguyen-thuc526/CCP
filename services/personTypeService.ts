@@ -57,7 +57,6 @@ export const createPersonType = async (
 export const comparePersonType = async (
    personTypeId: string
 ): Promise<ResultPersonType> => {
-
    const response = await axiosInstance.get<ApiResponse<ResultPersonType>>(
       `/api/ResultPersonType/by-persontype/${personTypeId}`
    );

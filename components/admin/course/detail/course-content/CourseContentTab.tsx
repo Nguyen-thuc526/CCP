@@ -150,7 +150,11 @@ export function CourseContentTab(props: CourseContentTabProps) {
 
    // Sau khi loadChapterDetail xong, nếu đang edit quiz, cập nhật lại currentEditingChapter.quiz
    useEffect(() => {
-      if (editingChapterId && currentEditingChapter && currentEditingChapter.type === 'quiz') {
+      if (
+         editingChapterId &&
+         currentEditingChapter &&
+         currentEditingChapter.type === 'quiz'
+      ) {
          const detail = chapterDetails.get(editingChapterId);
          if (detail?.quiz?.questions) {
             setCurrentEditingChapter({
@@ -305,86 +309,102 @@ export function CourseContentTab(props: CourseContentTabProps) {
       [showToast, chapterDetails, loadChapterDetail, props.onRefreshCourse]
    );
 
- const updateQuestion = useCallback(
-  async (questionId: string, questionData: any, chapterId?: string) => {
-    try {
-      const response = await CourseService.updateQuestion({
-        id: questionId,
-        ...questionData,
-      });
+   const updateQuestion = useCallback(
+      async (questionId: string, questionData: any, chapterId?: string) => {
+         try {
+            const response = await CourseService.updateQuestion({
+               id: questionId,
+               ...questionData,
+            });
 
-      if (response?.success) {
-        showToast('Câu hỏi đã được cập nhật.', ToastType.Success);
+            if (response?.success) {
+               showToast('Câu hỏi đã được cập nhật.', ToastType.Success);
 
-        if (chapterId) {
-          const updatedDetail = await CourseService.getChapterDetail(chapterId);
-          setChapterDetails((prev) => new Map(prev).set(chapterId, updatedDetail));
-        }
+               if (chapterId) {
+                  const updatedDetail =
+                     await CourseService.getChapterDetail(chapterId);
+                  setChapterDetails((prev) =>
+                     new Map(prev).set(chapterId, updatedDetail)
+                  );
+               }
 
-        return true;
-      }
+               return true;
+            }
 
-      showToast('Không thể cập nhật câu hỏi.', ToastType.Error);
+            showToast('Không thể cập nhật câu hỏi.', ToastType.Error);
 
-      if (chapterId) {
-        const updatedDetail = await CourseService.getChapterDetail(chapterId);
-        setChapterDetails((prev) => new Map(prev).set(chapterId, updatedDetail));
-      }
+            if (chapterId) {
+               const updatedDetail =
+                  await CourseService.getChapterDetail(chapterId);
+               setChapterDetails((prev) =>
+                  new Map(prev).set(chapterId, updatedDetail)
+               );
+            }
 
-      return false;
-    } catch (error) {
-      showToast('Lỗi khi cập nhật câu hỏi.', ToastType.Error);
+            return false;
+         } catch (error) {
+            showToast('Lỗi khi cập nhật câu hỏi.', ToastType.Error);
 
-      if (chapterId) {
-        const updatedDetail = await CourseService.getChapterDetail(chapterId);
-        setChapterDetails((prev) => new Map(prev).set(chapterId, updatedDetail));
-      }
+            if (chapterId) {
+               const updatedDetail =
+                  await CourseService.getChapterDetail(chapterId);
+               setChapterDetails((prev) =>
+                  new Map(prev).set(chapterId, updatedDetail)
+               );
+            }
 
-      return false;
-    }
-  },
-  [showToast, setChapterDetails]
-);
+            return false;
+         }
+      },
+      [showToast, setChapterDetails]
+   );
 
+   const deleteQuestion = useCallback(
+      async (questionId: string, chapterId?: string) => {
+         try {
+            const response = await CourseService.deleteQuestion(questionId);
 
-  const deleteQuestion = useCallback(
-  async (questionId: string, chapterId?: string) => {
-    try {
-      const response = await CourseService.deleteQuestion(questionId);
+            if (response?.success) {
+               showToast('Câu hỏi đã được xóa.', ToastType.Success);
 
-      if (response?.success) {
-        showToast('Câu hỏi đã được xóa.', ToastType.Success);
+               if (chapterId) {
+                  const updatedDetail =
+                     await CourseService.getChapterDetail(chapterId);
+                  setChapterDetails((prev) =>
+                     new Map(prev).set(chapterId, updatedDetail)
+                  );
+               }
 
-        if (chapterId) {
-          const updatedDetail = await CourseService.getChapterDetail(chapterId);
-          setChapterDetails((prev) => new Map(prev).set(chapterId, updatedDetail));
-        }
+               return true;
+            }
 
-        return true;
-      }
+            showToast('Không thể xóa câu hỏi.', ToastType.Error);
 
-      showToast('Không thể xóa câu hỏi.', ToastType.Error);
+            if (chapterId) {
+               const updatedDetail =
+                  await CourseService.getChapterDetail(chapterId);
+               setChapterDetails((prev) =>
+                  new Map(prev).set(chapterId, updatedDetail)
+               );
+            }
 
-      if (chapterId) {
-        const updatedDetail = await CourseService.getChapterDetail(chapterId);
-        setChapterDetails((prev) => new Map(prev).set(chapterId, updatedDetail));
-      }
+            return false;
+         } catch (error) {
+            showToast('Lỗi khi xóa câu hỏi.', ToastType.Error);
 
-      return false;
-    } catch (error) {
-      showToast('Lỗi khi xóa câu hỏi.', ToastType.Error);
+            if (chapterId) {
+               const updatedDetail =
+                  await CourseService.getChapterDetail(chapterId);
+               setChapterDetails((prev) =>
+                  new Map(prev).set(chapterId, updatedDetail)
+               );
+            }
 
-      if (chapterId) {
-        const updatedDetail = await CourseService.getChapterDetail(chapterId);
-        setChapterDetails((prev) => new Map(prev).set(chapterId, updatedDetail));
-      }
-
-      return false;
-    }
-  },
-  [showToast, setChapterDetails]
-);
-
+            return false;
+         }
+      },
+      [showToast, setChapterDetails]
+   );
 
    const updateLecture = useCallback(
       async (
@@ -710,7 +730,9 @@ export function CourseContentTab(props: CourseContentTabProps) {
                <AddChapterForm
                   onAddChapter={addChapter}
                   onCancel={() => setIsAddingChapter(false)}
-                  videoInputRef={videoInputRef as React.RefObject<HTMLInputElement>}
+                  videoInputRef={
+                     videoInputRef as React.RefObject<HTMLInputElement>
+                  }
                   quizBasicInfo={quizBasicInfo}
                   onQuizBasicInfoChange={setQuizBasicInfo}
                   onResetQuizForm={resetQuizForm}
@@ -733,11 +755,13 @@ export function CourseContentTab(props: CourseContentTabProps) {
                onSaveEditingChapter={saveEditingChapter}
                onCancelEditingChapter={cancelEditingChapter}
                onChapterChange={setCurrentEditingChapter}
-               editingVideoInputRef={editingVideoInputRef as React.RefObject<HTMLInputElement>}
+               editingVideoInputRef={
+                  editingVideoInputRef as React.RefObject<HTMLInputElement>
+               }
                chapterDetails={chapterDetails}
-onUpdateQuestion={(questionId, questionData, chapterId) =>
-  updateQuestion(questionId, questionData, chapterId)
-}
+               onUpdateQuestion={(questionId, questionData, chapterId) =>
+                  updateQuestion(questionId, questionData, chapterId)
+               }
                onDeleteQuestion={(questionId) =>
                   deleteQuestion(questionId, editingChapterId || undefined)
                }

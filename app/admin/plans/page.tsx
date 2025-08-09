@@ -2,7 +2,5 @@ import { MembershipManagement } from '@/components/admin/membership/membership-m
 import React from 'react';
 
 export default function page() {
-   return (
-      <MembershipManagement />
-   );
+   return <MembershipManagement />;
 }

@@ -56,8 +56,7 @@ export function TiptapEditor({
       content,
       editorProps: {
          attributes: {
-            class:
-               'ProseMirror min-h-[200px] p-4 border rounded-md focus:outline-none',
+            class: 'ProseMirror min-h-[200px] p-4 border rounded-md focus:outline-none',
          },
       },
    });
@@ -120,7 +119,12 @@ export function TiptapEditor({
          return;
       }
 
-      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+      editor
+         .chain()
+         .focus()
+         .extendMarkRange('link')
+         .setLink({ href: url })
+         .run();
    }, [editor]);
 
    if (!editor) return null;
@@ -154,7 +158,9 @@ export function TiptapEditor({
                   variant={editor.isActive('underline') ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => editor.chain().focus().toggleUnderline().run()}
-                  disabled={!editor.can().chain().focus().toggleUnderline().run()}
+                  disabled={
+                     !editor.can().chain().focus().toggleUnderline().run()
+                  }
                >
                   <UnderlineIcon className="h-4 w-4" />
                </Button>
@@ -173,21 +179,27 @@ export function TiptapEditor({
                <Button
                   variant={editor.isActive('bulletList') ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => editor.chain().focus().toggleBulletList().run()}
+                  onClick={() =>
+                     editor.chain().focus().toggleBulletList().run()
+                  }
                >
                   <List className="h-4 w-4" />
                </Button>
                <Button
                   variant={editor.isActive('orderedList') ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                  onClick={() =>
+                     editor.chain().focus().toggleOrderedList().run()
+                  }
                >
                   <ListOrdered className="h-4 w-4" />
                </Button>
                <Button
                   variant={editor.isActive('blockquote') ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                  onClick={() =>
+                     editor.chain().focus().toggleBlockquote().run()
+                  }
                >
                   <Quote className="h-4 w-4" />
                </Button>
@@ -196,25 +208,41 @@ export function TiptapEditor({
 
                {/* Text Alignment */}
                <Button
-                  variant={editor.isActive({ textAlign: 'left' }) ? 'default' : 'ghost'}
+                  variant={
+                     editor.isActive({ textAlign: 'left' })
+                        ? 'default'
+                        : 'ghost'
+                  }
                   size="sm"
-                  onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                  onClick={() =>
+                     editor.chain().focus().setTextAlign('left').run()
+                  }
                >
                   <AlignLeft className="h-4 w-4" />
                </Button>
                <Button
                   variant={
-                     editor.isActive({ textAlign: 'center' }) ? 'default' : 'ghost'
+                     editor.isActive({ textAlign: 'center' })
+                        ? 'default'
+                        : 'ghost'
                   }
                   size="sm"
-                  onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                  onClick={() =>
+                     editor.chain().focus().setTextAlign('center').run()
+                  }
                >
                   <AlignCenter className="h-4 w-4" />
                </Button>
                <Button
-                  variant={editor.isActive({ textAlign: 'right' }) ? 'default' : 'ghost'}
+                  variant={
+                     editor.isActive({ textAlign: 'right' })
+                        ? 'default'
+                        : 'ghost'
+                  }
                   size="sm"
-                  onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                  onClick={() =>
+                     editor.chain().focus().setTextAlign('right').run()
+                  }
                >
                   <AlignRight className="h-4 w-4" />
                </Button>

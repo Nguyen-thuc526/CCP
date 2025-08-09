@@ -116,7 +116,9 @@ export default function WithdrawManagement() {
       <div className="space-y-6">
          <div className="flex items-center justify-between">
             <div>
-               <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý rút tiền</h1>
+               <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  Quản lý rút tiền
+               </h1>
                <p className="text-gray-600">
                   Quản lý các yêu cầu rút tiền từ người dùng
                </p>

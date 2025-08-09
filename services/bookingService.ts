@@ -29,12 +29,14 @@ export const bookingService = {
       );
       return response.data;
    },
-async getBookingDetail(bookingId: string): Promise<ApiResponse<BookingAdmin>> {
-   const response = await axiosInstance.get(
-      `/api/Booking/booking-detail/${bookingId}`
-   );
-   return response.data;
-},
+   async getBookingDetail(
+      bookingId: string
+   ): Promise<ApiResponse<BookingAdmin>> {
+      const response = await axiosInstance.get(
+         `/api/Booking/booking-detail/${bookingId}`
+      );
+      return response.data;
+   },
 
    async getRoomUrl(bookingId: string): Promise<LivekitTokenResponse> {
       const response = await axiosInstance.get(

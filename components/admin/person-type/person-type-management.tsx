@@ -59,7 +59,9 @@ export function PersonalityManagementContainer() {
       <div className="space-y-6">
          {/* Header */}
          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản Lý Tính Cách</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+               Quản Lý Tính Cách
+            </h1>
             <p className="text-gray-600">
                Quản lý các loại tính cách cho từng bài đánh giá riêng biệt
             </p>

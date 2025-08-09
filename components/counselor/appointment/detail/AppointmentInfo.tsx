@@ -164,9 +164,7 @@ const AppointmentInfo: React.FC<AppointmentInfoProps> = ({
                   <Label className="text-sm font-medium text-orange-800">
                      Lý do hủy
                   </Label>
-                  <p className="mt-1 text-sm text-orange-700">
-                     {cancelReason}
-                  </p>
+                  <p className="mt-1 text-sm text-orange-700">{cancelReason}</p>
                </div>
             )}
 
@@ -183,4 +181,4 @@ const AppointmentInfo: React.FC<AppointmentInfoProps> = ({
    );
 };
 
-export default AppointmentInfo; 
+export default AppointmentInfo;

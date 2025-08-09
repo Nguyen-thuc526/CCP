@@ -56,7 +56,7 @@ export default function CounselorTabs({
                <CardHeader>
                   <CardTitle>Danh sách chuyên viên</CardTitle>
                </CardHeader>
-               
+
                <CardContent className="p-0">
                   <div className="relative w-full overflow-auto">
                      <table className="w-full caption-bottom text-sm">
@@ -119,41 +119,41 @@ export default function CounselorTabs({
                                  <td className="p-4 flex gap-2">
                                     {counselor.status !==
                                        CounselorStatus.NoFunc && (
-                                          <div className="flex gap-2">
-                                             <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                disabled={
-                                                   counselor.status ===
+                                       <div className="flex gap-2">
+                                          <Button
+                                             variant="ghost"
+                                             size="sm"
+                                             disabled={
+                                                counselor.status ===
+                                                CounselorStatus.Block
+                                             }
+                                             onClick={() =>
+                                                handleStatusChange(
+                                                   counselor.id,
                                                    CounselorStatus.Block
-                                                }
-                                                onClick={() =>
-                                                   handleStatusChange(
-                                                      counselor.id,
-                                                      CounselorStatus.Block
-                                                   )
-                                                }
-                                             >
-                                                <Ban className="h-4 w-4 text-red-600" />
-                                             </Button>
-                                             <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                disabled={
-                                                   counselor.status ===
+                                                )
+                                             }
+                                          >
+                                             <Ban className="h-4 w-4 text-red-600" />
+                                          </Button>
+                                          <Button
+                                             variant="ghost"
+                                             size="sm"
+                                             disabled={
+                                                counselor.status ===
+                                                CounselorStatus.Active
+                                             }
+                                             onClick={() =>
+                                                handleStatusChange(
+                                                   counselor.id,
                                                    CounselorStatus.Active
-                                                }
-                                                onClick={() =>
-                                                   handleStatusChange(
-                                                      counselor.id,
-                                                      CounselorStatus.Active
-                                                   )
-                                                }
-                                             >
-                                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                             </Button>
-                                          </div>
-                                       )}
+                                                )
+                                             }
+                                          >
+                                             <CheckCircle className="h-4 w-4 text-green-600" />
+                                          </Button>
+                                       </div>
+                                    )}
                                  </td>
                               </tr>
                            ))}
