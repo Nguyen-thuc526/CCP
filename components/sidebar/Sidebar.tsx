@@ -18,11 +18,9 @@ import {
    FileText,
    ClipboardList,
    Package,
-   Flag,
    Calendar,
    MessageSquare,
    Wallet,
-   CreditCard,
    FilePlus,
    UserCircle,
    LogOut,
@@ -62,18 +60,7 @@ export function Sidebar() {
    const role = useSelector((state: RootState) => state.auth.role);
    const router = useRouter();
 
-   const [collapsed, setCollapsed] = useState(false);
-   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
-
-   const toggleGroup = (title: string) => {
-      setOpenGroups((prev) => ({ ...prev, [title]: !prev[title] }));
-   };
-
-   const handleLogout = () => {
-      storage.removeToken();
-      dispatch(logout());
-      router.push('/login');
-   };
+   const [collapsed, setCollapsed] = useState(false); 
 
    const adminLinks: SidebarItem[] = [
       {
@@ -85,74 +72,25 @@ export function Sidebar() {
          title: 'Quản lý nội dung',
          icon: <Folder className="h-5 w-5" />,
          children: [
-            {
-               href: '/admin/surveys',
-               icon: <ClipboardList className="h-5 w-5" />,
-               title: 'Khảo sát',
-            },
-            {
-               href: '/admin/plans',
-               icon: <Package className="h-5 w-5" />,
-               title: 'Gói đăng ký',
-            },
-            {
-               href: '/admin/managecourse',
-               icon: <BookOpen className="h-5 w-5" />,
-               title: 'Khóa học',
-            },
-            {
-               href: '/admin/blog',
-               icon: <FileText className="h-5 w-5" />,
-               title: 'Blog & Tin tức',
-            },
-            {
-               href: '/admin/categories',
-               icon: <Folder className="h-5 w-5" />,
-               title: 'Danh mục',
-            },
-            {
-               href: '/admin/certificate-management',
-               icon: <BadgeCheck className="h-5 w-5" />,
-               title: 'Chứng chỉ',
-            },
-            {
-               href: '/admin/person-type',
-               icon: <Brain className="h-5 w-5" />,
-               title: 'Tính cách',
-            },
+            { href: '/admin/surveys', icon: <ClipboardList className="h-5 w-5" />, title: 'Khảo sát' },
+            { href: '/admin/plans', icon: <Package className="h-5 w-5" />, title: 'Gói đăng ký' },
+            { href: '/admin/managecourse', icon: <BookOpen className="h-5 w-5" />, title: 'Khóa học' },
+            { href: '/admin/blog', icon: <FileText className="h-5 w-5" />, title: 'Blog & Tin tức' },
+            { href: '/admin/categories', icon: <Folder className="h-5 w-5" />, title: 'Danh mục' },
+            { href: '/admin/certificate-management', icon: <BadgeCheck className="h-5 w-5" />, title: 'Chứng chỉ' },
+            { href: '/admin/person-type', icon: <Brain className="h-5 w-5" />, title: 'Tính cách' },
          ],
       },
       {
          title: 'Quản lý người dùng',
          icon: <User className="h-5 w-5" />,
          children: [
-            {
-               href: '/admin/users',
-               icon: <User className="h-5 w-5" />,
-               title: 'Người dùng',
-            },
-            {
-               href: '/admin/counselors',
-               icon: <Users2 className="h-5 w-5" />,
-               title: 'Chuyên viên',
-            },
-            {
-               href: '/admin/booking',
-               icon: <NotebookText className="h-5 w-5" />,
-               title: 'Booking',
-            },
-            {
-               href: '/admin/withdraw',
-               icon: <Banknote className="h-5 w-5" />,
-               title: 'Rút tiền',
-            },
+            { href: '/admin/users', icon: <User className="h-5 w-5" />, title: 'Người dùng' },
+            { href: '/admin/counselors', icon: <Users2 className="h-5 w-5" />, title: 'Chuyên viên' },
+            { href: '/admin/booking', icon: <NotebookText className="h-5 w-5" />, title: 'Booking' },
+            { href: '/admin/withdraw', icon: <Banknote className="h-5 w-5" />, title: 'Rút tiền' },
          ],
       },
-      // {
-      //   href: "/admin/reports",
-      //   icon: <ClipboardList className="h-5 w-5" />,
-      //   title: "Thống kê",
-      // },
    ];
 
    const counselorLinks: SidebarItem[] = [
@@ -165,45 +103,62 @@ export function Sidebar() {
          title: 'Tư vấn',
          icon: <Calendar className="h-5 w-5" />,
          children: [
-            {
-               href: '/counselor/profile',
-               icon: <UserCircle className="h-5 w-5" />,
-               title: 'Hồ sơ của tôi',
-            },
-            {
-               href: '/counselor/appointments',
-               icon: <Calendar className="h-5 w-5" />,
-               title: 'Lịch hẹn',
-            },
-            {
-               href: '/counselor/consultations',
-               icon: <MessageSquare className="h-5 w-5" />,
-               title: 'Hồ sơ tư vấn',
-            },
-            {
-               href: '/counselor/certificates',
-               icon: <FilePlus className="h-5 w-5" />,
-               title: 'Chứng chỉ',
-            },
+            { href: '/counselor/profile', icon: <UserCircle className="h-5 w-5" />, title: 'Hồ sơ của tôi' },
+            { href: '/counselor/appointments', icon: <Calendar className="h-5 w-5" />, title: 'Lịch hẹn' },
+            { href: '/counselor/consultations', icon: <MessageSquare className="h-5 w-5" />, title: 'Hồ sơ tư vấn' },
+            { href: '/counselor/certificates', icon: <FilePlus className="h-5 w-5" />, title: 'Chứng chỉ' },
          ],
       },
       {
          title: 'Thanh toán',
          icon: <Wallet className="h-5 w-5" />,
          children: [
-            {
-               href: '/counselor/wallet',
-               icon: <Wallet className="h-5 w-5" />,
-               title: 'Ví',
-            },
+            { href: '/counselor/wallet', icon: <Wallet className="h-5 w-5" />, title: 'Ví' },
          ],
       },
    ];
 
    const links = role === Role.Admin ? adminLinks : counselorLinks;
-   const dashboardLink =
-      role === Role.Admin ? '/admin/dashboard' : '/counselor/dashboard';
+   const dashboardLink = role === Role.Admin ? '/admin/dashboard' : '/counselor/dashboard';
    const title = role === Role.Admin ? 'CCP Admin' : 'CCP Tư vấn viên';
+
+   // ✅ Initialize all groups as open
+   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
+      links.reduce((acc, item) => {
+         if (isGroup(item)) acc[item.title] = true;
+         return acc;
+      }, {} as Record<string, boolean>)
+   );
+
+   const toggleGroup = (title: string) => {
+      setOpenGroups((prev) => ({ ...prev, [title]: !prev[title] }));
+   };
+
+   const handleLogout = () => {
+      storage.removeToken();
+      dispatch(logout());
+      router.push('/login');
+   };
+
+   const toggleSidebar = () => {
+      setCollapsed((prev) => {
+         const newState = !prev;
+         if (!newState) {
+            const activeGroup = links.find(
+               (item) =>
+                  isGroup(item) &&
+                  item.children.some((child) => child.href === pathname)
+            );
+            if (activeGroup) {
+               setOpenGroups((prevGroups) => ({
+                  ...prevGroups,
+                  [activeGroup.title]: true,
+               }));
+            }
+         }
+         return newState;
+      });
+   };
 
    return (
       <div
@@ -212,34 +167,25 @@ export function Sidebar() {
             collapsed ? 'w-20' : 'w-64'
          )}
       >
+         {/* Nút toggle */}
          <Button
             variant="ghost"
             size="icon"
             className="absolute -right-3 top-20 z-10 h-6 w-6 rounded-full border bg-background"
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={toggleSidebar}
          >
-            {collapsed ? (
-               <ChevronRight className="h-3 w-3" />
-            ) : (
-               <ChevronLeft className="h-3 w-3" />
-            )}
+            {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
          </Button>
 
-         <div
-            className={cn(
-               'flex h-14 items-center border-b px-4',
-               collapsed && 'justify-center'
-            )}
-         >
-            <Link
-               href={dashboardLink}
-               className="flex items-center gap-2 font-semibold"
-            >
+         {/* Logo */}
+         <div className={cn('flex h-14 items-center border-b px-4', collapsed && 'justify-center')}>
+            <Link href={dashboardLink} className="flex items-center gap-2 font-semibold">
                <Heart className="h-6 w-6 text-rose-500" />
                {!collapsed && <span className="text-lg">{title}</span>}
             </Link>
          </div>
 
+         {/* Menu */}
          <ScrollArea className="flex-1">
             <nav className="grid gap-1 px-2 py-4">
                {links.map((item) =>
@@ -307,6 +253,7 @@ export function Sidebar() {
             </nav>
          </ScrollArea>
 
+         {/* Đăng xuất */}
          <div className="border-t p-4">
             <Button
                variant="outline"
