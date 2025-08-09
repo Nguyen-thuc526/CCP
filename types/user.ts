@@ -18,10 +18,10 @@ export interface CounselorProfile {
 
 // Payload to update profile
 export interface UpdateCounselorProfileRequest {
-  fullName?: string | null;
-  description?: string | null;
-  price?: number;
-  phone?: string | null;
-  yearOfJob?: number;
-  avatar?: string | null;
+   fullName?: string | null;
+   description?: string | null;
+   price?: number;
+   phone?: string | null;
+   yearOfJob?: number;
+   avatar?: string | null;
 }

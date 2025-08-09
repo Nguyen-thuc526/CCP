@@ -49,7 +49,9 @@ export function MemberManagement() {
          setTotalCount(response.totalCount || response.items.length);
       } catch (err) {
          console.error(err);
-         setErrorMessage('Không thể tải danh sách thành viên. Vui lòng thử lại.');
+         setErrorMessage(
+            'Không thể tải danh sách thành viên. Vui lòng thử lại.'
+         );
       } finally {
          stopLoading();
       }
@@ -93,7 +95,10 @@ export function MemberManagement() {
             )
          );
 
-         showToast('Đã cập nhật trạng thái member thành công', ToastType.Success);
+         showToast(
+            'Đã cập nhật trạng thái member thành công',
+            ToastType.Success
+         );
       } catch (error) {
          console.error('Lỗi cập nhật trạng thái:', error);
          setErrorMessage('Không thể cập nhật trạng thái. Vui lòng thử lại.');

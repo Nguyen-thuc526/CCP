@@ -21,15 +21,13 @@ import { ToastType, useToast } from '@/hooks/useToast';
 import { useUploadImage } from '@/hooks/upload-image';
 import { CounselorProfile, UpdateCounselorProfileRequest } from '@/types/user';
 
-
 export function GeneralInfoTab() {
    const [profile, setProfile] = useState<CounselorProfile | null>(null);
    const [isEditing, setIsEditing] = useState(false);
    const [hasChanges, setHasChanges] = useState(false);
    const fileInputRef = useRef<HTMLInputElement>(null);
    const { showToast } = useToast();
-   const { error, setErrorMessage, renderStatus } =
-      useErrorLoadingWithUI();
+   const { error, setErrorMessage, renderStatus } = useErrorLoadingWithUI();
    const [isSaving, setIsSaving] = useState(false);
    const {
       uploadImage,

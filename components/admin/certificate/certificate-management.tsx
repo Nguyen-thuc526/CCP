@@ -128,12 +128,11 @@ export default function CertificatesPage() {
 
    return (
       <>
-
          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý Chứng chỉ</h1>
-            <p className="text-gray-600">
-               Danh sách các chứng chỉ chờ duyệt
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+               Quản lý Chứng chỉ
+            </h1>
+            <p className="text-gray-600">Danh sách các chứng chỉ chờ duyệt</p>
          </div>
 
          {/* Tìm kiếm & Bộ lọc */}

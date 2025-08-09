@@ -34,11 +34,11 @@ interface ChapterListProps {
    onChapterChange: (chapter: Chapter) => void;
    editingVideoInputRef: React.RefObject<HTMLInputElement>;
    chapterDetails: Map<string, ChapterDetail>;
-  onUpdateQuestion?: (
-   questionId: string,
-   questionData: any,
-   chapterId: string
-) => Promise<boolean>;
+   onUpdateQuestion?: (
+      questionId: string,
+      questionData: any,
+      chapterId: string
+   ) => Promise<boolean>;
    onDeleteQuestion?: (questionId: string) => Promise<boolean>;
    onCreateQuestions?: (
       chapterId: string,
@@ -92,7 +92,7 @@ export function ChapterList({
       const willExpand = !expandedChapters.has(chapterId);
       onToggleChapterExpansion(chapterId);
       if (willExpand && !chapterDetails.has(chapterId)) {
-        onLoadChapterDetail(chapterId);
+         onLoadChapterDetail(chapterId);
       }
    };
 
@@ -140,7 +140,10 @@ export function ChapterList({
             const chapterDetailType = detail?.chapterType?.toLowerCase();
             let questions: any[] = [];
 
-            if (detail?.quiz?.questions && Array.isArray(detail.quiz.questions)) {
+            if (
+               detail?.quiz?.questions &&
+               Array.isArray(detail.quiz.questions)
+            ) {
                questions = detail.quiz.questions.map((q) => ({
                   id: q.id,
                   question: q.description,
@@ -206,10 +209,13 @@ export function ChapterList({
                            </div>
                         </div>
                         <div className="text-sm text-muted-foreground">
-             {getChapterTypeLabel({
-   ...chapter,
-   duration: chapter.duration || detail?.video?.timeVideo || 'Chưa có thời lượng',
-})}
+                           {getChapterTypeLabel({
+                              ...chapter,
+                              duration:
+                                 chapter.duration ||
+                                 detail?.video?.timeVideo ||
+                                 'Chưa có thời lượng',
+                           })}
                         </div>
                         {expandedChapters.has(chapter.id) &&
                            !isCurrentlyEditing && (
@@ -224,7 +230,9 @@ export function ChapterList({
                                        {chapterErrors.get(chapter.id)}
                                        <Button
                                           variant="link"
-                                          onClick={() => onLoadChapterDetail(chapter.id)}
+                                          onClick={() =>
+                                             onLoadChapterDetail(chapter.id)
+                                          }
                                           className="ml-2"
                                        >
                                           Thử lại
@@ -234,21 +242,27 @@ export function ChapterList({
                                  {!loadingChapters.has(chapter.id) &&
                                     !chapterErrors.has(chapter.id) && (
                                        <>
-                                          {(chapterType === 'video' || chapterDetailType === 'video') &&
-                                           (chapter.videoUrl || detail?.video?.videoUrl) && (
+                                          {(chapterType === 'video' ||
+                                             chapterDetailType === 'video') &&
+                                             (chapter.videoUrl ||
+                                                detail?.video?.videoUrl) && (
                                                 <div className="space-y-2">
                                                    <Label className="text-sm font-medium">
                                                       Video preview:
                                                    </Label>
                                                    <video
-                                                   src={chapter.videoUrl || detail?.video?.videoUrl}
+                                                      src={
+                                                         chapter.videoUrl ||
+                                                         detail?.video?.videoUrl
+                                                      }
                                                       controls
                                                       className="w-full max-w-md h-48 rounded border"
                                                    />
                                                 </div>
                                              )}
 
-                                          {(chapterType === 'article' || chapterDetailType === 'lecture') &&
+                                          {(chapterType === 'article' ||
+                                             chapterDetailType === 'lecture') &&
                                              detail?.lecture && (
                                                 <div className="space-y-4">
                                                    {/* Không có detail.lecture.description, chỉ có name */}
@@ -265,7 +279,13 @@ export function ChapterList({
                                                          Nội dung chi tiết:
                                                       </Label>
                                                       <div className="bg-muted/30 p-3 rounded overflow-y-auto">
-                                                         <HTMLViewer htmlContent={detail.lecture.lectureMetadata || ''} />
+                                                         <HTMLViewer
+                                                            htmlContent={
+                                                               detail.lecture
+                                                                  .lectureMetadata ||
+                                                               ''
+                                                            }
+                                                         />
                                                       </div>
                                                    </div>
                                                 </div>
@@ -285,13 +305,19 @@ export function ChapterList({
                                                             quiz: newQuiz,
                                                          })
                                                       }
-                                                       onUpdateQuestion={onUpdateQuestion}
-  chapterId={chapter.id}
-                                                      onDeleteQuestion={onDeleteQuestion}
+                                                      onUpdateQuestion={
+                                                         onUpdateQuestion
+                                                      }
+                                                      chapterId={chapter.id}
+                                                      onDeleteQuestion={
+                                                         onDeleteQuestion
+                                                      }
                                                       onCreateQuestions={async (
                                                          questions: any[]
                                                       ) => {
-                                                         if (onCreateQuestions) {
+                                                         if (
+                                                            onCreateQuestions
+                                                         ) {
                                                             return await onCreateQuestions(
                                                                chapter.id,
                                                                questions
@@ -303,26 +329,36 @@ export function ChapterList({
                                                       showQuizInfo={false}
                                                       quizId={detail?.quiz?.id}
                                                       chapterId={chapter.id}
-                                                      onLoadChapterDetail={onLoadChapterDetail}
+                                                      onLoadChapterDetail={
+                                                         onLoadChapterDetail
+                                                      }
                                                    />
                                                 ) : (
                                                    <>
-                                                      {questions.length === 0 ? (
+                                                      {questions.length ===
+                                                      0 ? (
                                                          <div className="text-center py-8 bg-muted/20 rounded-lg border-2 border-dashed border-muted">
                                                             <HelpCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                                                             <h3 className="text-lg font-medium mb-2">
-                                                               Chưa có câu hỏi nào
+                                                               Chưa có câu hỏi
+                                                               nào
                                                             </h3>
                                                             <p className="text-muted-foreground">
-                                                               Quiz này chưa có câu hỏi.
-                                                               Hãy thêm câu hỏi đầu tiên.
+                                                               Quiz này chưa có
+                                                               câu hỏi. Hãy thêm
+                                                               câu hỏi đầu tiên.
                                                             </p>
                                                          </div>
                                                       ) : (
                                                          questions.map(
-                                                            (question, qIndex) => (
+                                                            (
+                                                               question,
+                                                               qIndex
+                                                            ) => (
                                                                <div
-                                                                  key={question.id}
+                                                                  key={
+                                                                     question.id
+                                                                  }
                                                                   className="bg-muted/30 rounded border"
                                                                >
                                                                   <div className="flex items-center justify-between p-3">
@@ -336,7 +372,9 @@ export function ChapterList({
                                                                      >
                                                                         <p className="text-sm font-medium">
                                                                            Câu{' '}
-                                                                           {qIndex + 1}:{' '}
+                                                                           {qIndex +
+                                                                              1}
+                                                                           :{' '}
                                                                            {
                                                                               question.question
                                                                            }
@@ -350,7 +388,8 @@ export function ChapterList({
                                                                               question.id
                                                                            )
                                                                         }
-                                                                        className="p-1"A
+                                                                        className="p-1"
+                                                                        A
                                                                      >
                                                                         {expandedQuestions.has(
                                                                            question.id
@@ -367,14 +406,25 @@ export function ChapterList({
                                                                      <div className="px-3 pb-3 border-t bg-muted/20">
                                                                         <div className="space-y-2 mt-3">
                                                                            <Label className="text-xs font-medium text-muted-foreground">
-                                                                              Các câu trả
+                                                                              Các
+                                                                              câu
+                                                                              trả
                                                                               lời:
                                                                            </Label>
                                                                            <div className="space-y-1 ml-2">
                                                                               {question.answers.map(
-                                                                                 (answer: { id: string; text: string; isCorrect: boolean }, aIndex: number) => (
+                                                                                 (
+                                                                                    answer: {
+                                                                                       id: string;
+                                                                                       text: string;
+                                                                                       isCorrect: boolean;
+                                                                                    },
+                                                                                    aIndex: number
+                                                                                 ) => (
                                                                                     <div
-                                                                                       key={answer.id}
+                                                                                       key={
+                                                                                          answer.id
+                                                                                       }
                                                                                        className={`flex items-center gap-2 text-sm p-2 rounded ${
                                                                                           answer.isCorrect
                                                                                              ? 'bg-green-50 border border-green-200'
@@ -386,6 +436,7 @@ export function ChapterList({
                                                                                              65 +
                                                                                                 aIndex
                                                                                           )}
+
                                                                                           .
                                                                                        </span>
                                                                                        <span

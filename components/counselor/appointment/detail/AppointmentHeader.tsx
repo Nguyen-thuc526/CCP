@@ -78,4 +78,4 @@ const AppointmentHeader: React.FC<AppointmentHeaderProps> = ({
    );
 };
 
-export default AppointmentHeader; 
+export default AppointmentHeader;

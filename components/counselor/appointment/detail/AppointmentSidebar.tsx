@@ -186,4 +186,4 @@ const AppointmentSidebar: React.FC<AppointmentSidebarProps> = ({
    );
 };
 
-export default AppointmentSidebar; 
+export default AppointmentSidebar;

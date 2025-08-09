@@ -1,6 +1,14 @@
 'use client';
 
-import { BarChart2, Edit, Eye, ImageIcon, ListTree, Scale, ScanEye } from 'lucide-react';
+import {
+   BarChart2,
+   Edit,
+   Eye,
+   ImageIcon,
+   ListTree,
+   Scale,
+   ScanEye,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
    Card,
@@ -35,9 +43,8 @@ export function PersonalityCard({
    personType,
    onView,
    onEdit,
-   onCompare
+   onCompare,
 }: PersonalityCardProps) {
-
    return (
       <Card className="overflow-hidden group hover:shadow-lg transition-shadow duration-300">
          <div className="relative h-48 bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
@@ -47,7 +54,6 @@ export function PersonalityCard({
                   alt={personType.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                />
-
             ) : (
                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
                   <ImageIcon className="h-16 w-16 text-gray-400" />
@@ -81,7 +87,6 @@ export function PersonalityCard({
                   <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg font-semibold">
                      {personType.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
-
                </Avatar>
             </div>
 
@@ -113,7 +118,6 @@ export function PersonalityCard({
 
             {/* Action buttons */}
             <div className="flex justify-between items-center">
-
                <Button
                   variant="outline"
                   size="sm"
@@ -134,6 +138,6 @@ export function PersonalityCard({
                </Button>
             </div>
          </CardContent>
-      </Card >
+      </Card>
    );
 }

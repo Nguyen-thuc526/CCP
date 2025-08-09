@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const axiosInstance = axios.create({
    baseURL: 'https://ppcbackend.azurewebsites.net', // Thay bằng base URL thực tế
-timeout: 30000,
+   timeout: 30000,
    headers: {
       'Content-Type': 'application/json',
    },

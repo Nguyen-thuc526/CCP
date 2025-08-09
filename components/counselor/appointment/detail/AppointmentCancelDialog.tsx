@@ -50,7 +50,7 @@ const AppointmentCancelDialog: React.FC<AppointmentCancelDialogProps> = ({
 
    const handleCancel = async () => {
       if (!cancellationReason.trim()) return;
-      
+
       await onCancel(cancellationReason);
       setCancellationReason('');
    };
@@ -73,8 +73,8 @@ const AppointmentCancelDialog: React.FC<AppointmentCancelDialogProps> = ({
                      {memberName}
                   </p>
                   <p className="text-sm">
-                     <strong>Thời gian:</strong>{' '}
-                     {formatDate(timeStart)} - {formatTime(timeStart)}
+                     <strong>Thời gian:</strong> {formatDate(timeStart)} -{' '}
+                     {formatTime(timeStart)}
                   </p>
                </div>
 
@@ -111,4 +111,4 @@ const AppointmentCancelDialog: React.FC<AppointmentCancelDialogProps> = ({
    );
 };
 
-export default AppointmentCancelDialog; 
+export default AppointmentCancelDialog;

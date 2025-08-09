@@ -321,27 +321,27 @@ export function AdminCourseDetail({ courseId }: AdminCourseDetailProps) {
       setIsEditingContent(false);
    };
 
-  const handleToggleStatus = async (newStatus: "public" | "hidden") => {
-  if (!course) return;
-  try {
-    const response = await CourseService.changeCourseStatus({
-      courseId: course.id,
-      newStatus: newStatus === "public" ? 1 : 0,
-    });
+   const handleToggleStatus = async (newStatus: 'public' | 'hidden') => {
+      if (!course) return;
+      try {
+         const response = await CourseService.changeCourseStatus({
+            courseId: course.id,
+            newStatus: newStatus === 'public' ? 1 : 0,
+         });
 
-    if (response.success) {
-      setCourse({ ...course, status: newStatus });
-      showToast(
-        `Khóa học đã được ${newStatus === "public" ? "công khai" : "ẩn"}.`,
-        ToastType.Success
-      );
-    } else {
-      throw new Error(response.error || "Lỗi khi cập nhật trạng thái.");
-    }
-  } catch (err) {
-    showToast("Lỗi khi cập nhật trạng thái.", ToastType.Error);
-  }
-};
+         if (response.success) {
+            setCourse({ ...course, status: newStatus });
+            showToast(
+               `Khóa học đã được ${newStatus === 'public' ? 'công khai' : 'ẩn'}.`,
+               ToastType.Success
+            );
+         } else {
+            throw new Error(response.error || 'Lỗi khi cập nhật trạng thái.');
+         }
+      } catch (err) {
+         showToast('Lỗi khi cập nhật trạng thái.', ToastType.Error);
+      }
+   };
 
    const handleThumbnailUpload = async (
       event: React.ChangeEvent<HTMLInputElement>
