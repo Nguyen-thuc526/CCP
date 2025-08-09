@@ -292,36 +292,37 @@ export default function PersonalityComparison({
          selectedComparison.compatibility
       );
       return (
-         <div className="min-h-screen bg-gray-50">
-            <div className="max-w-6xl mx-auto p-6 space-y-6">
+         <div className="min-h-screen bg-gray-50 py-8">
+            <div className="max-w-6xl mx-auto px-6 space-y-8">
                {/* Back Button */}
                <Button
                   onClick={handleBackToList}
                   variant="outline"
-                  className="mb-4 bg-transparent"
+                  className="bg-white shadow-sm hover:shadow-md transition rounded-lg px-4 py-2"
                >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Quay lại danh sách
                </Button>
 
                {/* Header */}
-               <div className="space-y-6">
-                  <div className="flex items-center gap-3">
-                     <h1 className="text-2xl font-bold text-gray-900">
-                        Phân Tích Tương Thích Tính Cách
-                     </h1>
-                  </div>
-                  <Badge variant="secondary" className="text-sm">
-                     <Users className="w-4 h-4 mr-2" />
+               <div className="space-y-4">
+                  <h1 className="text-3xl font-bold text-gray-900">
+                     Phân Tích Tương Thích Tính Cách
+                  </h1>
+                  <Badge
+                     variant="secondary"
+                     className="inline-flex items-center gap-2 px-3 py-1 text-sm"
+                  >
+                     <Users className="w-4 h-4" />
                      {selectedComparison.category?.name || 'Không xác định'}
                   </Badge>
                </div>
 
                {/* Compatibility Overview */}
-               <Card className="border border-gray-200">
+               <Card className="border border-gray-200 shadow-sm rounded-xl">
                   <CardHeader>
-                     <CardTitle className="flex items-center gap-2 text-lg">
-                        <Heart className="w-5 h-5 text-gray-700" />
+                     <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                        <Heart className="w-5 h-5 text-red-500" />
                         Tổng Quan Tương Thích
                      </CardTitle>
                   </CardHeader>
@@ -329,27 +330,25 @@ export default function PersonalityComparison({
                      <div className="grid md:grid-cols-3 gap-8 items-center">
                         {/* Person Type 1 */}
                         <div className="text-center space-y-4">
-                           <div className="w-24 h-24 mx-auto">
-                              <Image
-                                 src={
-                                    selectedComparison.personType?.image ||
-                                    '/placeholder.svg?height=96&width=96'
-                                 }
-                                 alt={
-                                    selectedComparison.personType?.name ||
-                                    'Person Type'
-                                 }
-                                 width={96}
-                                 height={96}
-                                 className="rounded-full object-cover border-2 border-gray-200"
-                              />
-                           </div>
+                           <Image
+                              src={
+                                 selectedComparison.personType?.image ||
+                                 '/placeholder.svg?height=96&width=96'
+                              }
+                              alt={
+                                 selectedComparison.personType?.name ||
+                                 'Person Type'
+                              }
+                              width={96}
+                              height={96}
+                              className="rounded-full object-cover border-2 border-gray-200 mx-auto"
+                           />
                            <div>
-                              <h3 className="text-xl font-semibold text-gray-900">
+                              <h3 className="text-lg font-semibold text-gray-900">
                                  {selectedComparison.personType?.name ||
                                     'Không xác định'}
                               </h3>
-                              <p className="text-sm text-gray-600 mt-2">
+                              <p className="text-sm text-gray-600 mt-1 line-clamp-3">
                                  {selectedComparison.personType?.description ||
                                     ''}
                               </p>
@@ -359,20 +358,18 @@ export default function PersonalityComparison({
                         {/* Compatibility Score */}
                         <div className="text-center space-y-4">
                            <div className="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center border-2 border-gray-200">
-                              <div className="text-center">
-                                 <div className="text-2xl font-bold text-gray-900">
-                                    {selectedComparison.compatibility}%
-                                 </div>
-                              </div>
+                              <span className="text-2xl font-bold text-gray-900">
+                                 {selectedComparison.compatibility}%
+                              </span>
                            </div>
-                           <div className="space-y-2">
+                           <div>
                               <Badge
                                  variant="secondary"
-                                 className={`${compatibility.bgColor} ${compatibility.color} border`}
+                                 className={`${compatibility.bgColor} ${compatibility.color} border px-3 py-1`}
                               >
                                  {compatibility.level}
                               </Badge>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-xs text-gray-500 mt-1">
                                  Độ Tương Thích
                               </p>
                            </div>
@@ -380,27 +377,25 @@ export default function PersonalityComparison({
 
                         {/* Person Type 2 */}
                         <div className="text-center space-y-4">
-                           <div className="w-24 h-24 mx-auto">
-                              <Image
-                                 src={
-                                    selectedComparison.personType2?.image ||
-                                    '/placeholder.svg?height=96&width=96'
-                                 }
-                                 alt={
-                                    selectedComparison.personType2?.name ||
-                                    'Person Type 2'
-                                 }
-                                 width={96}
-                                 height={96}
-                                 className="rounded-full object-cover border-2 border-gray-200"
-                              />
-                           </div>
+                           <Image
+                              src={
+                                 selectedComparison.personType2?.image ||
+                                 '/placeholder.svg?height=96&width=96'
+                              }
+                              alt={
+                                 selectedComparison.personType2?.name ||
+                                 'Person Type 2'
+                              }
+                              width={96}
+                              height={96}
+                              className="rounded-full object-cover border-2 border-gray-200 mx-auto"
+                           />
                            <div>
-                              <h3 className="text-xl font-semibold text-gray-900">
+                              <h3 className="text-lg font-semibold text-gray-900">
                                  {selectedComparison.personType2?.name ||
                                     'Không xác định'}
                               </h3>
-                              <p className="text-sm text-gray-600 mt-2">
+                              <p className="text-sm text-gray-600 mt-1 line-clamp-3">
                                  {selectedComparison.personType2?.description ||
                                     ''}
                               </p>
@@ -411,9 +406,9 @@ export default function PersonalityComparison({
                </Card>
 
                {/* Detailed Analysis */}
-               <Card className="border border-gray-200">
+               <Card className="border border-gray-200 shadow-sm rounded-xl">
                   <Tabs defaultValue="type1" className="w-full">
-                     <TabsList className="grid w-full grid-cols-2 mb-6">
+                     <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100 rounded-lg">
                         <TabsTrigger
                            value="type1"
                            className="flex items-center gap-2"
@@ -436,26 +431,25 @@ export default function PersonalityComparison({
                         </TabsTrigger>
                      </TabsList>
 
+                     {/* Type 1 */}
                      <TabsContent value="type1" className="mt-0">
-                        <CardHeader className="pb-4">
+                        <CardContent className="space-y-4">
                            <div className="flex items-center gap-4">
-                              <div className="w-16 h-16">
-                                 <Image
-                                    src={
-                                       selectedComparison.personType?.image ||
-                                       '/placeholder.svg?height=64&width=64'
-                                    }
-                                    alt={
-                                       selectedComparison.personType?.name ||
-                                       'Person Type'
-                                    }
-                                    width={64}
-                                    height={64}
-                                    className="rounded-full object-cover border-2 border-gray-200"
-                                 />
-                              </div>
+                              <Image
+                                 src={
+                                    selectedComparison.personType?.image ||
+                                    '/placeholder.svg?height=64&width=64'
+                                 }
+                                 alt={
+                                    selectedComparison.personType?.name ||
+                                    'Person Type'
+                                 }
+                                 width={64}
+                                 height={64}
+                                 className="rounded-full object-cover border-2 border-gray-200"
+                              />
                               <div>
-                                 <CardTitle className="text-xl text-gray-900">
+                                 <CardTitle className="text-lg text-gray-900">
                                     {selectedComparison.personType?.name ||
                                        'Không xác định'}
                                  </CardTitle>
@@ -465,8 +459,6 @@ export default function PersonalityComparison({
                                  </CardDescription>
                               </div>
                            </div>
-                        </CardHeader>
-                        <CardContent>
                            <div
                               className="prose max-w-none text-gray-700"
                               dangerouslySetInnerHTML={{
@@ -478,26 +470,25 @@ export default function PersonalityComparison({
                         </CardContent>
                      </TabsContent>
 
+                     {/* Type 2 */}
                      <TabsContent value="type2" className="mt-0">
-                        <CardHeader className="pb-4">
+                        <CardContent className="space-y-4">
                            <div className="flex items-center gap-4">
-                              <div className="w-16 h-16">
-                                 <Image
-                                    src={
-                                       selectedComparison.personType2?.image ||
-                                       '/placeholder.svg?height=64&width=64'
-                                    }
-                                    alt={
-                                       selectedComparison.personType2?.name ||
-                                       'Person Type 2'
-                                    }
-                                    width={64}
-                                    height={64}
-                                    className="rounded-full object-cover border-2 border-gray-200"
-                                 />
-                              </div>
+                              <Image
+                                 src={
+                                    selectedComparison.personType2?.image ||
+                                    '/placeholder.svg?height=64&width=64'
+                                 }
+                                 alt={
+                                    selectedComparison.personType2?.name ||
+                                    'Person Type 2'
+                                 }
+                                 width={64}
+                                 height={64}
+                                 className="rounded-full object-cover border-2 border-gray-200"
+                              />
                               <div>
-                                 <CardTitle className="text-xl text-gray-900">
+                                 <CardTitle className="text-lg text-gray-900">
                                     {selectedComparison.personType2?.name ||
                                        'Không xác định'}
                                  </CardTitle>
@@ -507,8 +498,6 @@ export default function PersonalityComparison({
                                  </CardDescription>
                               </div>
                            </div>
-                        </CardHeader>
-                        <CardContent>
                            <div
                               className="prose max-w-none text-gray-700"
                               dangerouslySetInnerHTML={{
@@ -523,124 +512,126 @@ export default function PersonalityComparison({
                </Card>
 
                {/* Compatibility Details */}
-               {(selectedComparison.description ||
-                  selectedComparison.detail ||
+               {(selectedComparison.detail ||
                   selectedComparison.strongPoints ||
                   selectedComparison.weaknesses) && (
-                  <Card className="border border-gray-200">
+                  <Card className="border border-gray-200 shadow-sm rounded-xl">
                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                           <Heart className="w-5 h-5 text-gray-700" />
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                           <Heart className="w-5 h-5 text-red-500" />
                            Chi Tiết Tương Thích
                         </CardTitle>
                      </CardHeader>
-                     <CardContent>
-                        {selectedComparison.strongPoints && (
-                           <div>
+                     <CardContent className="space-y-6">
+                        {selectedComparison.detail && (
+                           <section>
                               <h4 className="font-semibold text-gray-900 mb-2">
-                                 Điểm mạnh:
+                                 Phân tích chi tiết
+                              </h4>
+                              <div
+                                 className="prose max-w-none text-gray-700"
+                                 dangerouslySetInnerHTML={{
+                                    __html: selectedComparison.detail,
+                                 }}
+                              />
+                           </section>
+                        )}
+
+                        {selectedComparison.strongPoints && (
+                           <section>
+                              <h4 className="font-semibold text-green-700 mb-2">
+                                 Điểm mạnh
                               </h4>
                               <div
                                  className="prose max-w-none text-green-700"
-                                 style={{
-                                    listStyleType: 'disc',
-                                    listStylePosition: 'inside',
-                                 }}
                                  dangerouslySetInnerHTML={{
                                     __html: selectedComparison.strongPoints,
                                  }}
                               />
-                           </div>
+                           </section>
                         )}
 
                         {selectedComparison.weaknesses && (
-                           <div>
-                              <h4 className="font-semibold text-gray-900 mb-2">
-                                 Điểm yếu:
+                           <section>
+                              <h4 className="font-semibold text-red-700 mb-2">
+                                 Điểm yếu
                               </h4>
                               <div
                                  className="prose max-w-none text-red-700"
-                                 style={{
-                                    listStyleType: 'disc',
-                                    listStylePosition: 'inside',
-                                 }}
                                  dangerouslySetInnerHTML={{
                                     __html: selectedComparison.weaknesses,
                                  }}
                               />
-                           </div>
+                           </section>
                         )}
                      </CardContent>
                   </Card>
                )}
 
                {/* Metadata */}
-               <Card className="bg-gray-50 border border-gray-200">
+               <Card className="bg-white border border-gray-200 shadow-sm rounded-xl">
                   <CardContent className="pt-6">
                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
-                        <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              <Info className="w-4 h-4 text-gray-600" />
+                        {[
+                           {
+                              icon: <Info className="w-4 h-4 text-gray-600" />,
+                              label: 'ID Kết quả',
+                              value: selectedComparison.id.slice(-8),
+                              mono: true,
+                           },
+                           {
+                              icon: <Users className="w-4 h-4 text-gray-600" />,
+                              label: 'Khảo sát',
+                              value: selectedComparison.surveyId,
+                           },
+                           {
+                              icon: (
+                                 <Calendar className="w-4 h-4 text-gray-600" />
+                              ),
+                              label: 'Ngày tạo',
+                              value: new Date(
+                                 selectedComparison.createAt
+                              ).toLocaleDateString('vi-VN'),
+                           },
+                           {
+                              icon: (
+                                 <CheckCircle className="w-4 h-4 text-gray-600" />
+                              ),
+                              label: 'Trạng thái',
+                              value: (
+                                 <Badge
+                                    variant={
+                                       selectedComparison.status === 1
+                                          ? 'default'
+                                          : 'secondary'
+                                    }
+                                    className="mt-1"
+                                 >
+                                    {selectedComparison.status === 1
+                                       ? 'Hoạt động'
+                                       : 'Không hoạt động'}
+                                 </Badge>
+                              ),
+                           },
+                        ].map((item, idx) => (
+                           <div key={idx} className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                 {item.icon}
+                              </div>
+                              <div>
+                                 <p className="font-medium text-gray-900">
+                                    {item.label}
+                                 </p>
+                                 <p
+                                    className={`text-gray-600 text-xs ${
+                                       item.mono ? 'font-mono' : ''
+                                    }`}
+                                 >
+                                    {item.value}
+                                 </p>
+                              </div>
                            </div>
-                           <div>
-                              <p className="font-medium text-gray-900">
-                                 ID Kết quả
-                              </p>
-                              <p className="text-gray-600 text-xs font-mono">
-                                 {selectedComparison.id.slice(-8)}
-                              </p>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              <Users className="w-4 h-4 text-gray-600" />
-                           </div>
-                           <div>
-                              <p className="font-medium text-gray-900">
-                                 Khảo sát
-                              </p>
-                              <p className="text-gray-600">
-                                 {selectedComparison.surveyId}
-                              </p>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              <Calendar className="w-4 h-4 text-gray-600" />
-                           </div>
-                           <div>
-                              <p className="font-medium text-gray-900">
-                                 Ngày tạo
-                              </p>
-                              <p className="text-gray-600">
-                                 {new Date(
-                                    selectedComparison.createAt
-                                 ).toLocaleDateString('vi-VN')}
-                              </p>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              <CheckCircle className="w-4 h-4 text-gray-600" />
-                           </div>
-                           <div>
-                              <p className="font-medium text-gray-900">
-                                 Trạng thái
-                              </p>
-                              <Badge
-                                 variant={
-                                    selectedComparison.status === 1
-                                       ? 'default'
-                                       : 'secondary'
-                                 }
-                                 className="mt-1"
-                              >
-                                 {selectedComparison.status === 1
-                                    ? 'Hoạt động'
-                                    : 'Không hoạt động'}
-                              </Badge>
-                           </div>
-                        </div>
+                        ))}
                      </div>
                   </CardContent>
                </Card>
