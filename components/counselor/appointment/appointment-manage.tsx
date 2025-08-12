@@ -17,7 +17,7 @@ import type { BookingStatus } from '@/utils/enum';
 import { useToast, ToastType } from '@/hooks/useToast';
 import { bookingService } from '@/services/bookingService';
 import { BookingFilters } from './appointment-filter';
-import { BookingTable } from './booking-table';
+
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import {
@@ -28,6 +28,7 @@ import {
    CalendarIcon,
 } from 'lucide-react';
 import { CalendarGrid } from './CalendarGrid';
+import { BookingTableWithSurvey } from './booking-table';
 
 const PAGE_SIZE = 10;
 
@@ -314,7 +315,7 @@ export default function BookingManagement() {
                         </div>
                      )}
 
-                     <BookingTable
+                     <BookingTableWithSurvey
                         bookings={selectedDateBookings}
                         isLoading={loading}
                      />
@@ -422,7 +423,7 @@ export default function BookingManagement() {
                      </div>
                   )}
 
-                  <BookingTable
+                  <BookingTableWithSurvey
                      bookings={paginatedHistoryBookings}
                      isLoading={historyLoading}
                   />

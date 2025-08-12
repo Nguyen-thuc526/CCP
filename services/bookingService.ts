@@ -11,6 +11,11 @@ import {
    UpdateNoteResponse,
    UpdateBookingStatusPayload,
    BookingAdmin,
+   PersonTypeBeforeBookingRequest,
+   PersonTypeBeforeBookingResponse,
+   CoupleByBookingResponse,
+   PersonTypeByNameRequest,
+   PersonTypeByNameResponse,
 } from '@/types/booking';
 
 export const bookingService = {
@@ -69,7 +74,27 @@ export const bookingService = {
       );
       return response.data;
    },
+async personTypeBeforeBooking(
+  payload: PersonTypeBeforeBookingRequest
+): Promise<PersonTypeBeforeBookingResponse> {
+  const response = await axiosInstance.post('/api/PersonType/before-booking', payload);
+  return response.data;
+},
+    async getCoupleByBooking(
+    bookingId: string
+  ): Promise<CoupleByBookingResponse> {
+    const response = await axiosInstance.post('/api/Couple/by-booking', { bookingId });
+    return response.data;
+  },
+  async getPersonTypeByName(
+  payload: PersonTypeByNameRequest
+): Promise<PersonTypeByNameResponse> {
+  const response = await axiosInstance.post('/api/PersonType/get-by-name', payload);
+  return response.data;
+}
 };
+
+
 
 export const updateBookingStatus = async (
    payload: UpdateBookingStatusPayload

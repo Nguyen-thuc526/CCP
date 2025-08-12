@@ -102,3 +102,27 @@ export interface UpdateBookingStatusPayload {
    bookingId: string;
    status: number;
 }
+
+export interface PersonTypeItem {
+  surveyId: string;
+  result: string;
+  description: string | null;
+  scores: Record<string, number>;
+}
+
+export interface PersonTypeBeforeBookingRequest {
+  memberId: string;
+  surveyId: string;
+  bookingId: string;
+}
+export interface CoupleByBookingRequest {
+  bookingId: string;
+}
+export interface PersonTypeByNameRequest {
+  name: string;
+  surveyId: string;
+}
+export type CoupleByBookingResponse = ApiResponse<Record<string, any>>;
+// nếu có schema trả về sau này, chỉ cần đổi Record<string, any> thành interface cụ thể
+export type PersonTypeBeforeBookingResponse = ApiResponse<PersonTypeItem[]>;
+export type PersonTypeByNameResponse = ApiResponse<PersonTypeItem | null>;
