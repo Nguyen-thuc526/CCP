@@ -28,7 +28,8 @@ import {
    CalendarIcon,
 } from 'lucide-react';
 import { CalendarGrid } from './CalendarGrid';
-import { BookingTableWithSurvey } from './booking-table';
+import { BookingTableUpdated } from './booking-table';
+
 
 const PAGE_SIZE = 10;
 
@@ -315,7 +316,7 @@ export default function BookingManagement() {
                         </div>
                      )}
 
-                     <BookingTableWithSurvey
+                     <BookingTableUpdated
                         bookings={selectedDateBookings}
                         isLoading={loading}
                      />
@@ -423,7 +424,7 @@ export default function BookingManagement() {
                      </div>
                   )}
 
-                  <BookingTableWithSurvey
+                  <BookingTableUpdated
                      bookings={paginatedHistoryBookings}
                      isLoading={historyLoading}
                   />

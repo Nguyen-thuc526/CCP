@@ -5,38 +5,38 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Separator } from "@/components/ui/separator"
-import { Progress } from "@/components/ui/progress"
 import type { BookingAdmin } from "@/types/booking"
-import { Eye, Star, Users, Brain, Info, Target, User, BarChart3, TrendingUp, Heart } from "lucide-react"
+import { Eye, Star, Users, User } from "lucide-react"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
 import { BookingStatusBadge } from "./booking-status-badge"
 import Link from "next/link"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { SurveyResultsDialog } from "./survey-results-dialog"
-
-
+import { useCallback, useMemo, useState } from "react"
+import { IndividualSurveyResultsDialog } from "./individual-survey-results-dialog"
+import { CoupleSurveyResultsDialog } from "./couple-results-dialog"
 
 interface BookingTableProps {
   bookings: BookingAdmin[]
   isLoading?: boolean
 }
 
-export function BookingTableWithSurvey({ bookings, isLoading = false }: BookingTableProps) {
-  const [surveyDialogOpen, setSurveyDialogOpen] = useState(false)
+export function BookingTableUpdated({ bookings, isLoading = false }: BookingTableProps) {
+  const [individualSurveyDialogOpen, setIndividualSurveyDialogOpen] = useState(false)
+  const [coupleSurveyDialogOpen, setCoupleSurveyDialogOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<BookingAdmin | null>(null)
 
   const formatDateTime = useCallback((dateString: string) => {
     return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: vi })
   }, [])
 
-  const handleViewSurvey = useCallback((booking: BookingAdmin) => {
+  const handleViewIndividualSurvey = useCallback((booking: BookingAdmin) => {
     setSelectedBooking(booking)
-    setSurveyDialogOpen(true)
+    setIndividualSurveyDialogOpen(true)
+  }, [])
+
+  const handleViewCoupleSurvey = useCallback((booking: BookingAdmin) => {
+    setSelectedBooking(booking)
+    setCoupleSurveyDialogOpen(true)
   }, [])
 
   const SkeletonRow = useMemo(
@@ -105,7 +105,7 @@ export function BookingTableWithSurvey({ bookings, isLoading = false }: BookingT
           </TableRow>
         )
       },
-    []
+    [],
   )
 
   return (
@@ -138,7 +138,7 @@ export function BookingTableWithSurvey({ bookings, isLoading = false }: BookingT
             ) : (
               bookings.map((booking) => {
                 const mins = Math.round(
-                  (new Date(booking.timeEnd).getTime() - new Date(booking.timeStart).getTime()) / (60 * 1000)
+                  (new Date(booking.timeEnd).getTime() - new Date(booking.timeStart).getTime()) / (60 * 1000),
                 )
                 return (
                   <TableRow key={booking.id}>
@@ -166,7 +166,10 @@ export function BookingTableWithSurvey({ bookings, isLoading = false }: BookingT
                                 <span className="font-medium text-gray-900 text-sm">
                                   {booking.member.fullname} & {booking.member2.fullname}
                                 </span>
-                                <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 bg-purple-50 border-purple-200">
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs font-medium px-2 py-0.5 bg-purple-50 border-purple-200"
+                                >
                                   <Users className="h-3 w-3 mr-1" />
                                   Cặp đôi
                                 </Badge>
@@ -269,16 +272,25 @@ export function BookingTableWithSurvey({ bookings, isLoading = false }: BookingT
                           </Link>
                         </Button>
 
-                        {/* API chỉ hỗ trợ cá nhân -> disable cho cặp đôi */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => (booking.isCouple ? undefined : handleViewSurvey(booking))}
-                          title={booking.isCouple ? "Chỉ hỗ trợ cá nhân" : "Xem kết quả khảo sát"}
-                          disabled={!!booking.isCouple}
-                        >
-                          {booking.isCouple ? <Info className="w-4 h-4" /> : <Brain className="w-4 h-4" />}
-                        </Button>
+                        {booking.isCouple ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewCoupleSurvey(booking)}
+                            title="Xem kết quả khảo sát cặp đôi"
+                          >
+                            <Users className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewIndividualSurvey(booking)}
+                            title="Xem kết quả khảo sát cá nhân"
+                          >
+                            <User className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -289,15 +301,23 @@ export function BookingTableWithSurvey({ bookings, isLoading = false }: BookingT
         </Table>
       </div>
 
-      {selectedBooking && (
-        <SurveyResultsDialog
-          isOpen={surveyDialogOpen}
-          onClose={() => setSurveyDialogOpen(false)}
+      {selectedBooking && !selectedBooking.isCouple && (
+        <IndividualSurveyResultsDialog
+          isOpen={individualSurveyDialogOpen}
+          onClose={() => setIndividualSurveyDialogOpen(false)}
           memberName={selectedBooking.member.fullname}
           memberId={selectedBooking.member.id}
           bookingId={selectedBooking.id}
-          isCouple={!!selectedBooking.isCouple}
-          partnerName={selectedBooking.member2?.fullname}
+        />
+      )}
+
+      {selectedBooking && selectedBooking.isCouple && selectedBooking.member2 && (
+        <CoupleSurveyResultsDialog
+          isOpen={coupleSurveyDialogOpen}
+          onClose={() => setCoupleSurveyDialogOpen(false)}
+          memberName={selectedBooking.member.fullname}
+          partnerName={selectedBooking.member2.fullname}
+          bookingId={selectedBooking.id}
         />
       )}
     </>
