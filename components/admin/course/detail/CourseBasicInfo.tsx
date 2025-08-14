@@ -296,16 +296,22 @@ export function CourseBasicInfo(props: CourseBasicInfoProps) {
                   </Label>
                   {props.isEditingMode ? (
                      <Select
-                        value={props.tempRank.toString()}
+                        value={
+                           props.tempRank === null
+                              ? 'null'
+                              : props.tempRank.toString()
+                        }
                         onValueChange={(value) =>
-                           props.onRankChange(Number(value))
+                           props.onRankChange(
+                              value === 'null' ? null : Number(value)
+                           )
                         }
                      >
                         <SelectTrigger className="border-gray-300 focus:border-yellow-500 focus:ring-yellow-500">
                            <SelectValue placeholder="Chọn yêu cầu membership" />
                         </SelectTrigger>
                         <SelectContent>
-                           <SelectItem value="0">
+                           <SelectItem value="null">
                               <div className="flex items-center gap-2">
                                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                                  Không yêu cầu
