@@ -87,12 +87,6 @@ export default function CertificateManager() {
    return (
       <div>
          <div className="flex items-center justify-between mb-4">
-            <div>
-               <h2 className="text-2xl font-bold">Quản lý chứng chỉ</h2>
-               <p className="text-muted-foreground">
-                  Quản lý và theo dõi các chứng chỉ của bạn
-               </p>
-            </div>
             <Button
                onClick={() => setShowSubmitModal(true)}
                className="flex items-center gap-2"
