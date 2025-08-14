@@ -43,6 +43,8 @@ import { UpdatePersonTypePayload } from '@/types/result-person-type';
 import EditResultPersonTypeModal from './edit-result-person-type';
 
 import '@/styles/tiptap.css';
+import { Category } from '@/types/category';
+import { getCategoryData } from '@/services/categoryService';
 
 interface PersonalityComparisonProps {
    initialPersonTypeId: string;
@@ -67,11 +69,11 @@ export default function PersonalityComparison({
    const [searchTerm, setSearchTerm] = useState('');
    const [selectedCategory, setSelectedCategory] = useState<string>('all');
    const [currentPersonType, setCurrentPersonType] = useState<any>(null);
-
-   const [editingComparison, setEditingComparison] =
-      useState<ResultPersonType | null>(null);
+   const [editingComparison, setEditingComparison] = useState<ResultPersonType | null>(null);
    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
    const [isSaving, setIsSaving] = useState(false);
+
+   const [categoriesAll, setCategoriesAll] = useState<Category[]>([]);
 
    const [formValues, setFormValues] = useState<UpdatePersonTypePayload>({
       id: '',
@@ -89,7 +91,6 @@ export default function PersonalityComparison({
    const [selectedComparison, setSelectedComparison] =
       useState<ResultPersonType | null>(null);
 
-   console.log(selectedComparison);
 
    const handleEdit = (comparison: ResultPersonType) => {
       setEditingComparison(comparison);
@@ -167,6 +168,31 @@ export default function PersonalityComparison({
       setViewMode('list');
       setSelectedComparison(null);
    };
+   useEffect(() => {
+      const fetchCategories = async () => {
+         startLoading();
+         setErrorMessage('');
+         try {
+            const data = await getCategoryData();
+
+            if (data === null) {
+               setErrorMessage('Không thể tải danh mục.');
+               setCategoriesAll([]);
+            } else {
+               const filtered = data.filter((category) => category.status === 1);
+               setCategoriesAll(filtered);
+            }
+         } catch (err) {
+            setErrorMessage('Lỗi không xác định khi tải danh mục.');
+            setCategoriesAll([]);
+         } finally {
+            stopLoading();
+         }
+      };
+
+      fetchCategories();
+   }, []);
+
 
    // Filter and search functionality
    useEffect(() => {
@@ -507,126 +533,61 @@ export default function PersonalityComparison({
                {(selectedComparison.detail ||
                   selectedComparison.strongPoints ||
                   selectedComparison.weaknesses) && (
-                  <Card className="border border-gray-200 shadow-sm rounded-xl">
-                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                           <Heart className="w-5 h-5 text-red-500" />
-                           Chi Tiết Tương Thích
-                        </CardTitle>
-                     </CardHeader>
-                     <CardContent className="space-y-6">
-                        {selectedComparison.detail && (
-                           <section>
-                              <h4 className="font-semibold text-gray-900 mb-2">
-                                 Phân tích chi tiết
-                              </h4>
-                              <div
-                                 className="prose max-w-none text-gray-700"
-                                 dangerouslySetInnerHTML={{
-                                    __html: selectedComparison.detail,
-                                 }}
-                              />
-                           </section>
-                        )}
+                     <Card className="border border-gray-200 shadow-sm rounded-xl">
+                        <CardHeader>
+                           <CardTitle className="flex items-center gap-2 text-lg">
+                              <Heart className="w-5 h-5 text-red-500" />
+                              Chi Tiết Tương Thích
+                           </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                           {selectedComparison.detail && (
+                              <section>
+                                 <h4 className="font-semibold text-gray-900 mb-2">
+                                    Phân tích chi tiết
+                                 </h4>
+                                 <div
+                                    className="prose max-w-none text-gray-700"
+                                    dangerouslySetInnerHTML={{
+                                       __html: selectedComparison.detail,
+                                    }}
+                                 />
+                              </section>
+                           )}
 
-                        {selectedComparison.strongPoints && (
-                           <section>
-                              <h4 className="font-semibold text-green-700 mb-2">
-                                 Điểm mạnh
-                              </h4>
-                              <div
-                                 className="prose max-w-none text-green-700"
-                                 dangerouslySetInnerHTML={{
-                                    __html: selectedComparison.strongPoints,
-                                 }}
-                              />
-                           </section>
-                        )}
+                           {selectedComparison.strongPoints && (
+                              <section>
+                                 <h4 className="font-semibold text-green-700 mb-2">
+                                    Điểm mạnh
+                                 </h4>
+                                 <div
+                                    className="prose max-w-none text-green-700"
+                                    dangerouslySetInnerHTML={{
+                                       __html: selectedComparison.strongPoints,
+                                    }}
+                                 />
+                              </section>
+                           )}
 
-                        {selectedComparison.weaknesses && (
-                           <section>
-                              <h4 className="font-semibold text-red-700 mb-2">
-                                 Điểm yếu
-                              </h4>
-                              <div
-                                 className="prose max-w-none text-red-700"
-                                 dangerouslySetInnerHTML={{
-                                    __html: selectedComparison.weaknesses,
-                                 }}
-                              />
-                           </section>
-                        )}
-                     </CardContent>
-                  </Card>
-               )}
+                           {selectedComparison.weaknesses && (
+                              <section>
+                                 <h4 className="font-semibold text-red-700 mb-2">
+                                    Điểm yếu
+                                 </h4>
+                                 <div
+                                    className="prose max-w-none text-red-700"
+                                    dangerouslySetInnerHTML={{
+                                       __html: selectedComparison.weaknesses,
+                                    }}
+                                 />
+                              </section>
+                           )}
+                        </CardContent>
+                     </Card>
+                  )}
 
-               {/* Metadata */}
-               <Card className="bg-white border border-gray-200 shadow-sm rounded-xl">
-                  <CardContent className="pt-6">
-                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
-                        {[
-                           {
-                              icon: <Info className="w-4 h-4 text-gray-600" />,
-                              label: 'ID Kết quả',
-                              value: selectedComparison.id.slice(-8),
-                              mono: true,
-                           },
-                           {
-                              icon: <Users className="w-4 h-4 text-gray-600" />,
-                              label: 'Khảo sát',
-                              value: selectedComparison.surveyId,
-                           },
-                           {
-                              icon: (
-                                 <Calendar className="w-4 h-4 text-gray-600" />
-                              ),
-                              label: 'Ngày tạo',
-                              value: new Date(
-                                 selectedComparison.createAt
-                              ).toLocaleDateString('vi-VN'),
-                           },
-                           {
-                              icon: (
-                                 <CheckCircle className="w-4 h-4 text-gray-600" />
-                              ),
-                              label: 'Trạng thái',
-                              value: (
-                                 <Badge
-                                    variant={
-                                       selectedComparison.status === 1
-                                          ? 'default'
-                                          : 'secondary'
-                                    }
-                                    className="mt-1"
-                                 >
-                                    {selectedComparison.status === 1
-                                       ? 'Hoạt động'
-                                       : 'Không hoạt động'}
-                                 </Badge>
-                              ),
-                           },
-                        ].map((item, idx) => (
-                           <div key={idx} className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                                 {item.icon}
-                              </div>
-                              <div>
-                                 <p className="font-medium text-gray-900">
-                                    {item.label}
-                                 </p>
-                                 <p
-                                    className={`text-gray-600 text-xs ${
-                                       item.mono ? 'font-mono' : ''
-                                    }`}
-                                 >
-                                    {item.value}
-                                 </p>
-                              </div>
-                           </div>
-                        ))}
-                     </div>
-                  </CardContent>
-               </Card>
+
+
             </div>
          </div>
       );
@@ -744,11 +705,11 @@ export default function PersonalityComparison({
                      <div className="text-xl font-bold text-gray-900">
                         {data.length > 0
                            ? Math.round(
-                                data.reduce(
-                                   (sum, item) => sum + item.compatibility,
-                                   0
-                                ) / data.length
-                             )
+                              data.reduce(
+                                 (sum, item) => sum + item.compatibility,
+                                 0
+                              ) / data.length
+                           )
                            : 0}
                         %
                      </div>
@@ -918,6 +879,7 @@ export default function PersonalityComparison({
             onSubmit={handleModalSubmit}
             isSaving={isSaving}
             formValues={formValues}
+            categories={categoriesAll}
             onChange={handleFormChange}
          />
       </div>
