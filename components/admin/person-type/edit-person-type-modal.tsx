@@ -30,7 +30,6 @@ export function EditPersonalityModal({
 }: EditPersonalityModalProps) {
    const [formData, setFormData] = useState<Partial<PersonType>>({});
    const [isSubmitting, setIsSubmitting] = useState(false);
-   console.log(categories);
    useEffect(() => {
       if (personType) {
          setFormData(personType);

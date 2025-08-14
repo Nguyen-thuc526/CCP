@@ -9,14 +9,21 @@ export const categoryService = {
       return response.data;
    },
 };
-export const getCategoryData = async (): Promise<Category[]> => {
-   const response = await axiosInstance.get<CategoryResponse>('/api/Category');
-   const { success, data, error } = response.data;
 
-   if (success) {
-      return data;
-   } else {
-      throw new Error(error || 'Failed to fetch categories');
+export const getCategoryData = async (): Promise<Category[] | null> => {
+   try {
+      const response = await axiosInstance.get<CategoryResponse>('/api/Category');
+      const { success, data, error } = response.data;
+
+      if (success) {
+         return data;
+      } else {
+         console.error('Error fetching categories:', error);
+         return null;
+      }
+   } catch (err) {
+      console.error('Network or server error fetching categories:', err);
+      return null;
    }
 };
 export const createCategory = async (name: string): Promise<Category> => {

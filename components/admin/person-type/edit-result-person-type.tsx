@@ -15,6 +15,8 @@ import { Slider } from '@/components/ui/slider';
 import { TiptapEditor } from './tiptap-editor';
 import { useUploadImage } from '@/hooks/upload-image';
 import { UpdatePersonTypePayload } from '@/types/result-person-type';
+import { Category } from '@/types/category';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EditResultPersonTypeModalProps {
    open: boolean;
@@ -22,6 +24,7 @@ interface EditResultPersonTypeModalProps {
    onSubmit: (data: UpdatePersonTypePayload) => void;
    isSaving: boolean;
    formValues: UpdatePersonTypePayload;
+   categories: Category[]; // Assuming categories is an array of strings
    onChange: (
       field: keyof UpdatePersonTypePayload,
       value: string | number
@@ -34,6 +37,7 @@ export default function EditResultPersonTypeModal({
    onSubmit,
    isSaving,
    formValues,
+   categories,
    onChange,
 }: EditResultPersonTypeModalProps) {
    const {
@@ -41,7 +45,7 @@ export default function EditResultPersonTypeModal({
       loading: uploading,
       error: uploadError,
    } = useUploadImage();
-
+   console.log(categories);
    return (
       <Dialog open={open} onOpenChange={onClose}>
          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -89,7 +93,24 @@ export default function EditResultPersonTypeModal({
                      placeholder="Nhập điểm yếu..."
                   />
                </div>
-
+               <div className="grid gap-2">
+                  <Label>Danh mục</Label>
+                  <Select
+                     value={formValues.categoryId || ''}
+                     onValueChange={(value) => onChange('categoryId', value)}
+                  >
+                     <SelectTrigger className="w-full">
+                        <SelectValue placeholder="-- Chọn danh mục --" />
+                     </SelectTrigger>
+                     <SelectContent>
+                        {categories.map((cat) => (
+                           <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                           </SelectItem>
+                        ))}
+                     </SelectContent>
+                  </Select>
+               </div>
                {/* Hình ảnh */}
                <div className="grid gap-2">
                   <Label>Hình ảnh</Label>

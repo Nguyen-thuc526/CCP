@@ -8,6 +8,7 @@ export interface Category {
    id: string;
    name: string;
    subCategories: SubCategory[];
+   status: number; 
    // Add other category fields as needed
 }
 
