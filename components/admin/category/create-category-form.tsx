@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { useToast, ToastType } from '@/hooks/useToast';
 import { createCategory } from '@/services/categoryService';
 import { useState } from 'react';
+import type { Category } from '@/types/category';
 
 interface Props {
-   onCreated: () => void;
+   onCreated: (newCategory: Category) => void;
    onClose: () => void;
    categories: { name: string }[];
 }
@@ -34,9 +35,8 @@ export default function CreateCategoryForm({
          );
       }
 
-      const isDuplicate = categories.some(
-         (category) =>
-            category.name.trim().toLowerCase() === trimmedName.toLowerCase()
+      const isDuplicate = (categories ?? []).some((category) =>
+         category?.name?.trim().toLowerCase() === trimmedName.toLowerCase()
       );
 
       if (isDuplicate) {
@@ -45,11 +45,12 @@ export default function CreateCategoryForm({
 
       setLoading(true);
       try {
-         await createCategory(trimmedName);
+         const newCategory = await createCategory(trimmedName); // ✅ trả về object Category
          showToast('Tạo danh mục thành công', ToastType.Success);
          setName('');
-         onCreated();
+         onCreated(newCategory); // ✅ trả về category mới để setState ngay
       } catch (error) {
+         console.error(error);
          showToast('Tạo danh mục thất bại', ToastType.Error);
       } finally {
          setLoading(false);

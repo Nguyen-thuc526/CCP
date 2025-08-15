@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
    createSubCategory,
    getCategoryData,
@@ -33,15 +33,14 @@ export default function CategoryManagement() {
    const [searchTerm, setSearchTerm] = useState('');
    const [statusFilter, setStatusFilter] = useState<number>(-1);
    const [dialogOpen, setDialogOpen] = useState(false);
-   const [editingCategory, setEditingCategory] = useState<Category | null>(
-      null
-   );
+   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
    const [creatingSubCategoryFor, setCreatingSubCategoryFor] =
       useState<Category | null>(null);
    const [editingSubCategory, setEditingSubCategory] = useState<{
       categoryId: string;
       subCategory: SubCategory;
    } | null>(null);
+
    const { showToast } = useToast();
    const {
       loading,
@@ -52,10 +51,20 @@ export default function CategoryManagement() {
       renderStatus,
    } = useErrorLoadingWithUI();
 
+
+
+   // ✅ Fetch all categories
    const fetchCategories = () => {
       startLoading();
       getCategoryData()
-         .then(setCategories)
+         .then((data) => {
+            setCategories(
+               (data || []).map((cat) => ({
+                  ...cat,
+                  subCategories: cat.subCategories || [],
+               }))
+            );
+         })
          .catch((err) => {
             console.error(err);
             setErrorMessage('Không thể tải danh mục');
@@ -67,28 +76,85 @@ export default function CategoryManagement() {
       fetchCategories();
    }, []);
 
-   const handleCategoryCreated = () => {
-      fetchCategories();
+   // ✅ Hàm xử lý tạo sub-category và cập nhật state ngay lập tức
+   const handleCreateSubCategory = async (categoryId: string, name: string) => {
+      try {
+         const newSub = await createSubCategory({
+            name,
+            categoryId,
+         });
+
+         if (!newSub?.id) {
+            // ✅ Nếu API không trả về đủ data → gọi get all
+            const allCats = await getCategoryData(); // có thể trả về null
+            if (!Array.isArray(allCats)) {
+               showToast('Không thể tải danh mục sau khi tạo', ToastType.Error);
+               return;
+            }
+
+            const updatedCat = allCats.find((c) => c.id === categoryId);
+            if (!updatedCat) {
+               showToast('Không tìm thấy danh mục sau khi tạo', ToastType.Error);
+               return;
+            }
+
+            setCategories((prev) =>
+               prev.map((cat) =>
+                  cat.id === updatedCat.id ? updatedCat : cat
+               )
+            );
+         } else {
+            // ✅ Cập nhật state ngay
+            setCategories((prev) =>
+               prev.map((cat) =>
+                  cat.id === categoryId
+                     ? {
+                        ...cat,
+                        subCategories: [
+                           ...(cat.subCategories || []),
+                           { ...newSub, name, status: 1 },
+                        ],
+                     }
+                     : cat
+               )
+            );
+         }
+
+         showToast('Tạo chủ đề con thành công', ToastType.Success);
+         setCreatingSubCategoryFor(null);
+      } catch (error) {
+         console.error(error);
+         showToast('Tạo chủ đề con thất bại', ToastType.Error);
+      }
+   };
+
+
+   // ✅ Create category
+   const handleCategoryCreated = (newCategory: Category) => {
+      setCategories((prev) => [
+         ...prev,
+         { ...newCategory, subCategories: newCategory.subCategories || [] },
+      ]);
       setDialogOpen(false);
    };
 
+   // ✅ Hide category
    const handleCategoryHidden = async (categoryId: string) => {
-      const category = categories.find((cat) => cat.id === categoryId);
-      if (!category) return;
-
-      const updatedCategory = { ...category, status: 0 };
-
       try {
-         await updateCategory(updatedCategory);
-         fetchCategories();
+         await updateCategory({ id: categoryId, status: 0 });
+         setCategories((prev) =>
+            prev.map((cat) =>
+               cat.id === categoryId ? { ...cat, status: 0 } : cat
+            )
+         );
          showToast('Ẩn danh mục thành công', ToastType.Success);
       } catch (err) {
          console.error('Ẩn danh mục thất bại', err);
-         setErrorMessage('Ẩn danh mục thất bại');
          showToast('Ẩn danh mục thất bại', ToastType.Error);
       }
    };
 
+   // ✅ Hide sub-category
    const handleSubCategoryHidden = async (
       categoryId: string,
       subCategory: SubCategory
@@ -99,7 +165,18 @@ export default function CategoryManagement() {
             status: 0,
             categoryId,
          });
-         fetchCategories();
+         setCategories((prev) =>
+            prev.map((cat) =>
+               cat.id === categoryId
+                  ? {
+                     ...cat,
+                     subCategories: cat.subCategories.map((sc) =>
+                        sc.id === subCategory.id ? { ...sc, status: 0 } : sc
+                     ),
+                  }
+                  : cat
+            )
+         );
          showToast('Ẩn chủ đề con thành công', ToastType.Success);
       } catch (error) {
          console.error(error);
@@ -107,32 +184,34 @@ export default function CategoryManagement() {
       }
    };
 
-   const filteredCategories = categories.filter((category) => {
-      const matchesSearch = category.name
-         .toLowerCase()
-         .includes(searchTerm.toLowerCase());
-      const matchesStatus =
-         statusFilter === -1 || category.status === statusFilter;
-      return matchesSearch && matchesStatus;
-   });
+   // ✅ Filter categories
+   const filteredCategories = useMemo(() => {
+      return categories.filter((category) => {
+         const matchesSearch = category.name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+         const matchesStatus =
+            statusFilter === -1 || category.status === statusFilter;
+         return matchesSearch && matchesStatus;
+      });
+   }, [categories, searchTerm, statusFilter]);
 
    return (
       <div className="space-y-6">
+         {/* Header */}
          <div className="flex items-center justify-between">
             <div>
                <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   Quản lý các Danh mục
                </h1>
                <p className="text-gray-600">
-                  Quản lý hệ thống danh mục và danh mục con dùng cho các dịch
-                  vụ, bài kiểm tra và nội dung tư vấn.
+                  Quản lý hệ thống danh mục và danh mục con dùng cho các dịch vụ, bài
+                  kiểm tra và nội dung tư vấn.
                </p>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                <DialogTrigger asChild>
-                  <Button onClick={() => setDialogOpen(true)}>
-                     Tạo danh mục
-                  </Button>
+                  <Button onClick={() => setDialogOpen(true)}>Tạo danh mục</Button>
                </DialogTrigger>
                <DialogContent>
                   <DialogHeader>
@@ -163,16 +242,12 @@ export default function CategoryManagement() {
                <CategoryList
                   categories={filteredCategories}
                   onCategoryUpdated={(categoryId) => {
-                     const category = categories.find(
-                        (c) => c.id === categoryId
-                     );
+                     const category = categories.find((c) => c.id === categoryId);
                      if (category) setEditingCategory(category);
                   }}
                   onCategoryHidden={handleCategoryHidden}
                   onSubCategoryAdded={(categoryId) => {
-                     const category = categories.find(
-                        (c) => c.id === categoryId
-                     );
+                     const category = categories.find((c) => c.id === categoryId);
                      if (category) setCreatingSubCategoryFor(category);
                   }}
                   onSubCategoryUpdated={(categoryId, subCategory) => {
@@ -183,7 +258,7 @@ export default function CategoryManagement() {
             </>
          )}
 
-         {/* ✅ Dialog chỉnh sửa danh mục */}
+         {/* Edit category dialog */}
          {editingCategory && (
             <Dialog open onOpenChange={() => setEditingCategory(null)}>
                <DialogContent>
@@ -199,18 +274,18 @@ export default function CategoryManagement() {
                               id: editingCategory.id,
                               ...updates,
                            });
-                           fetchCategories();
-                           showToast(
-                              'Cập nhật danh mục thành công',
-                              ToastType.Success
+                           setCategories((prev) =>
+                              prev.map((cat) =>
+                                 cat.id === editingCategory.id
+                                    ? { ...cat, ...updates }
+                                    : cat
+                              )
                            );
+                           showToast('Cập nhật danh mục thành công', ToastType.Success);
                            setEditingCategory(null);
-                        } catch (err: any) {
+                        } catch (err) {
                            console.error(err);
-                           showToast(
-                              'Cập nhật danh mục thất bại',
-                              ToastType.Error
-                           );
+                           showToast('Cập nhật danh mục thất bại', ToastType.Error);
                         }
                      }}
                   />
@@ -218,7 +293,7 @@ export default function CategoryManagement() {
             </Dialog>
          )}
 
-         {/* ✅ Dialog tạo sub-category */}
+         {/* Add sub-category dialog */}
          {creatingSubCategoryFor && (
             <Dialog open onOpenChange={() => setCreatingSubCategoryFor(null)}>
                <DialogContent>
@@ -227,31 +302,18 @@ export default function CategoryManagement() {
                   </DialogHeader>
                   <AddSubCategoryForm
                      onClose={() => setCreatingSubCategoryFor(null)}
-                     onSubmit={async (name: string) => {
-                        try {
-                           await createSubCategory({
-                              name,
-                              categoryId: creatingSubCategoryFor.id,
-                           });
-
-                           fetchCategories();
-                           showToast(
-                              'Tạo chủ đề con thành công',
-                              ToastType.Success
-                           );
-                           setCreatingSubCategoryFor(null);
-                        } catch (error) {
-                           console.error(error);
-                           showToast(
-                              'Tạo chủ đề con thất bại',
-                              ToastType.Error
-                           );
+                     onSubmit={(name) => {
+                        if (creatingSubCategoryFor) {
+                           handleCreateSubCategory(creatingSubCategoryFor.id, name);
                         }
                      }}
                   />
+
                </DialogContent>
             </Dialog>
          )}
+
+         {/* Edit sub-category dialog */}
          {editingSubCategory && (
             <Dialog open onOpenChange={() => setEditingSubCategory(null)}>
                <DialogContent>
@@ -268,11 +330,24 @@ export default function CategoryManagement() {
                               ...updates,
                               categoryId: editingSubCategory.categoryId,
                            });
+                           setCategories((prev) =>
+                              prev.map((cat) =>
+                                 cat.id === editingSubCategory.categoryId
+                                    ? {
+                                       ...cat,
+                                       subCategories: cat.subCategories.map((sc) =>
+                                          sc.id === editingSubCategory.subCategory.id
+                                             ? { ...sc, ...updates }
+                                             : sc
+                                       ),
+                                    }
+                                    : cat
+                              )
+                           );
                            showToast(
                               'Cập nhật chủ đề con thành công',
                               ToastType.Success
                            );
-                           fetchCategories();
                            setEditingSubCategory(null);
                         } catch (error) {
                            console.error(error);
