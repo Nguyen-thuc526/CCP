@@ -94,32 +94,38 @@ const handleLogin = async (
   }
 };
 
-   const handleRegister = async (
-      values: RegisterFormData,
-      setSubmitting: (isSubmitting: boolean) => void
-   ) => {
-      try {
-         const response = await authService.register(values);
-         if (response.success) {
-            showToast(
-               'Đăng ký thành công! Vui lòng đăng nhập.',
-               ToastType.Success
-            );
-            setIsRegistering(false);
-         } else {
-            showToast('Đăng ký thất bại. Vui lòng thử lại.', ToastType.Error);
-         }
-         setSubmitting(false);
-      } catch (error) {
-         console.error('Register error:', error);
-         showToast(
-            'Đăng ký thất bại. Vui lòng kiểm tra thông tin.',
-            ToastType.Error
-         );
-         setSubmitting(false);
-      }
-   };
+  const handleRegister = async (
+  values: RegisterFormData,
+  setSubmitting: (isSubmitting: boolean) => void
+) => {
+  try {
+    const response = await authService.register(values);
 
+    if (response?.success) {
+      showToast('Đăng ký thành công! Vui lòng đăng nhập.', ToastType.Success);
+      setIsRegistering(false);
+    } else {
+      // Trường hợp API trả success=false nhưng vẫn 2xx
+      const msg =
+        response?.error ||
+        'Đăng ký thất bại. Vui lòng thử lại.';
+      showToast(msg, ToastType.Error);
+    }
+  } catch (error: any) {
+    // ✅ Bắt riêng lỗi 400: Email đã tồn tại
+    if (error?.response?.status === 400) {
+      showToast('Email đã tồn tại.', ToastType.Error);
+    } else {
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Đăng ký thất bại. Vui lòng kiểm tra thông tin.';
+      showToast(msg, ToastType.Error);
+    }
+  } finally {
+    setSubmitting(false);
+  }
+};
    return (
       <Card className="w-full max-w-md shadow-xl rounded-2xl border">
          <CardHeader className="space-y-2 text-center">

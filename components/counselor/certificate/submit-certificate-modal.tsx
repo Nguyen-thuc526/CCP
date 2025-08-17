@@ -46,7 +46,7 @@ export default function SubmitCertificateModal({
    onClose,
    onSuccess,
 }: SubmitCertificateModalProps) {
-   const { uploadImage, image, loading } = useUploadImage();
+   const { uploadImage, loading } = useUploadImage();
    const [categories, setCategories] = useState<Category[]>([]);
    const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>(
       []
@@ -173,7 +173,7 @@ export default function SubmitCertificateModal({
             }, 2000);
          } else {
             showToast(
-               response.message || 'Nộp chứng chỉ thất bại.',
+               response.error || 'Nộp chứng chỉ thất bại.',
                ToastType.Error
             );
          }

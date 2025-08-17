@@ -3,14 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-   Clock,
-   Calendar,
-   Eye,
-   Trash2,
-   AlertCircle,
-   ChevronRight,
-} from 'lucide-react';
+import { Clock, Calendar, Eye, Trash2, AlertCircle, ChevronRight } from 'lucide-react';
 import CertificateDetailModal from './certificate-detail-modal';
 import type { Certification } from '@/types/certification';
 
@@ -116,75 +109,71 @@ export default function PendingCertificates({
                </CardContent>
             </Card>
          ) : (
-            <div className="space-y-4">
+            // <CHANGE> Changed from vertical list to grid layout like approved certificates
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                {certifications.map((cert) => (
                   <Card key={cert.id} className="overflow-hidden">
-                     <div className="flex flex-col md:flex-row">
-                        <div className="md:w-48 aspect-video md:aspect-square relative">
-                           <img
-                              src={cert.image || '/placeholder.svg'}
-                              alt={cert.name}
-                              className="w-full h-full object-cover"
-                           />
-                           <div className="absolute top-2 right-2">
-                              <Badge variant="secondary">
-                                 <AlertCircle className="w-3 h-3 mr-1" />
-                                 Chờ xử lý
-                              </Badge>
-                           </div>
-                        </div>
-
-                        <div className="flex-1">
-                           <CardHeader className="pb-3">
-                              <div className="flex items-start justify-between">
-                                 <CardTitle className="text-lg leading-tight">
-                                    {cert.name}
-                                 </CardTitle>
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                 <Calendar className="w-4 h-4" />
-                                 Nộp ngày{' '}
-                                 {new Date(cert.time || '').toLocaleDateString(
-                                    'vi-VN'
-                                 )}
-                              </div>
-                           </CardHeader>
-
-                           <CardContent className="space-y-3">
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                 {cert.description}
-                              </p>
-                              <div className="border-t pt-3">
-                                 <h4 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                                    Danh mục
-                                 </h4>
-                                 {renderCategories(cert.categories)}
-                              </div>
-                              <div className="text-sm flex items-center gap-2 text-yellow-600">
-                                 <AlertCircle className="w-4 h-4" />
-                                 <span>Đang chờ trong hàng đợi xử lý</span>
-                              </div>
-                              <div className="flex gap-2 pt-2">
-                                 <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleViewDetail(cert)}
-                                 >
-                                    <Eye className="w-3 h-3 mr-1" />
-                                    Xem chi tiết
-                                 </Button>
-                                 <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="text-red-600 hover:text-red-700"
-                                 >
-                                    <Trash2 className="w-3 h-3 mr-1" />
-                                    Hủy
-                                 </Button>
-                              </div>
-                           </CardContent>
+                     <div className="aspect-video relative">
+                        <img
+                           src={cert.image || '/placeholder.svg'}
+                           alt={cert.name}
+                           className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-2 right-2">
+                           <Badge className="bg-yellow-500 hover:bg-yellow-600">
+                              <Clock className="w-3 h-3 mr-1" />
+                              Chờ duyệt
+                           </Badge>
                         </div>
                      </div>
+
+                     <CardHeader className="pb-3">
+                        <CardTitle className="text-lg leading-tight">
+                           {cert.name}
+                        </CardTitle>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                           <Calendar className="w-4 h-4" />
+                           Nộp ngày{' '}
+                           {cert.time
+                              ? new Date(cert.time).toLocaleDateString('vi-VN')
+                              : 'Chưa có thời gian'}
+                        </div>
+                     </CardHeader>
+
+                     <CardContent className="space-y-3">
+                        <p className="text-sm text-muted-foreground line-clamp-3">
+                           {cert.description}
+                        </p>
+                        <div className="border-t pt-3">
+                           <h4 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                              Danh mục
+                           </h4>
+                           {renderCategories(cert.categories)}
+                        </div>
+                        <div className="text-sm flex items-center gap-2 text-yellow-600 bg-yellow-50 p-2 rounded">
+                           <AlertCircle className="w-4 h-4" />
+                           <span>Đang chờ xử lý</span>
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                           <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => handleViewDetail(cert)}
+                           >
+                              <Eye className="w-3 h-3 mr-1" />
+                              Xem chi tiết
+                           </Button>
+                           <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 text-red-600 hover:text-red-700"
+                           >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Hủy
+                           </Button>
+                        </div>
+                     </CardContent>
                   </Card>
                ))}
             </div>

@@ -1,7 +1,7 @@
 export interface SubCategory {
    id: string;
    name: string;
-   // Add other subcategory fields as needed
+  status?: string | number;
 }
 
 export interface Category {

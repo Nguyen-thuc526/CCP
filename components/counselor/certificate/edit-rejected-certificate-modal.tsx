@@ -53,7 +53,7 @@ export default function EditRejectedCertificateModal({
    certificate,
    onSuccess,
 }: EditRejectedCertificateModalProps) {
-   const { uploadImage, image, loading } = useUploadImage();
+   const { uploadImage, loading } = useUploadImage();
    const [categories, setCategories] = useState<Category[]>([]);
    const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>(
       []
