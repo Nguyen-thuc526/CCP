@@ -131,10 +131,6 @@ export default function RejectedCertificates({ certifications, onEditSuccess }: 
                     <Edit className="w-3 h-3 mr-1" />
                     Chỉnh sửa
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1 text-red-600 hover:text-red-700 bg-transparent">
-                    <Trash2 className="w-3 h-3 mr-1" />
-                    Xóa
-                  </Button>
                 </div>
               </CardContent>
             </Card>

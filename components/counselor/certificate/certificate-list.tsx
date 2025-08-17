@@ -134,10 +134,7 @@ export default function CertificateList({ certifications }: CertificateListProps
                     <Eye className="w-3 h-3 mr-1" />
                     Xem chi tiết
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
-                    <Download className="w-3 h-3 mr-1" />
-                    Tải về
-                  </Button>
+                 
                 </div>
               </CardContent>
             </Card>
