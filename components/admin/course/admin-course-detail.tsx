@@ -91,6 +91,10 @@ export function AdminCourseDetail({ courseId }: AdminCourseDetailProps) {
    const [isEditingCategories, setIsEditingCategories] = useState(false);
    const [isEditingContent, setIsEditingContent] = useState(false);
 
+  const sortChaptersByCreatedAt = (chs: Chapter[]) =>
+   [...chs].sort(
+     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
    // Temp states for basic info & pricing
    const [tempTitle, setTempTitle] = useState('');
    const [tempDescription, setTempDescription] = useState('');
@@ -180,6 +184,7 @@ export function AdminCourseDetail({ courseId }: AdminCourseDetailProps) {
                   readTime: '',
                   uploadProgress: undefined,
                   quiz: [],
+                  createdAt: chap.createAt || new Date().toISOString(),
                })) ?? [],
             enrollments: 0,
             thumbnail:
@@ -188,8 +193,9 @@ export function AdminCourseDetail({ courseId }: AdminCourseDetailProps) {
             rank: response.rank ?? 1,
          };
 
-         setCourse(transformed);
-         resetTempStates(transformed);
+     transformed.chapters = sortChaptersByCreatedAt(transformed.chapters); // ✅ sort cũ → mới
+     setCourse(transformed);
+     resetTempStates(transformed); // ✅ temp cũng theo thứ tự đã sort
       } catch (err) {
          setError('Không thể tải chi tiết khóa học.');
          showToast('Lỗi khi tải dữ liệu.', ToastType.Error);
@@ -293,7 +299,9 @@ export function AdminCourseDetail({ courseId }: AdminCourseDetailProps) {
    const handleSaveContent = async () => {
       if (!course) return;
       setIsEditingContent(false);
-      setCourse({ ...course, chapters: tempChapters });
+        setCourse({ ...course, chapters: [...tempChapters].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+   )}); 
       showToast('Nội dung khóa học đã được cập nhật.', ToastType.Success);
    };
 

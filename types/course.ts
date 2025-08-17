@@ -143,6 +143,7 @@ export interface Chapter {
    duration?: string;
    uploadProgress?: number;
    quiz?: Question[];
+   createdAt: string;
 }
 
 export interface CourseContentTabProps {

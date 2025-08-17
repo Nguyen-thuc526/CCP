@@ -44,48 +44,55 @@ export function LoginForm() {
       confirmPassword: '',
    };
 
-   const handleLogin = async (
-      values: LoginFormData,
-      setSubmitting: (isSubmitting: boolean) => void
-   ) => {
-      try {
-         let response;
+const handleLogin = async (
+  values: LoginFormData,
+  setSubmitting: (isSubmitting: boolean) => void
+) => {
+  try {
+    let response;
 
-         if (role === Role.Admin) {
-            response = await authService.loginAdmin(values);
-         } else {
-            response = await authService.login(values);
-         }
+    if (role === Role.Admin) {
+      response = await authService.loginAdmin(values);
+    } else {
+      response = await authService.login(values);
+    }
 
-         const { token, role: userRole } = response;
+    const { token, role: userRole } = response;
 
-         if (token && userRole) {
-            storage.setToken(token);
-            dispatch(login({ token, role: userRole }));
-            showToast('Đăng nhập thành công!', ToastType.Success);
+    if (token && userRole) {
+      storage.setToken(token);
+      dispatch(login({ token, role: userRole }));
+      showToast('Đăng nhập thành công!', ToastType.Success);
 
-            if (userRole === Role.Admin) {
-               router.push('/admin/dashboard');
-            } else {
-               router.push('/counselor/dashboard');
-            }
-         } else {
-            throw new Error('Invalid response data');
-         }
-
-         setSubmitting(false);
-      } catch (error: any) {
-         let errorMessage =
-            'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.';
-         if (error.message === 'Invalid role in token') {
-            errorMessage = 'Vai trò không hợp lệ.';
-         } else if (error.message === 'Invalid token format in response') {
-            errorMessage = 'Không nhận được token hợp lệ từ server.';
-         }
-         showToast(errorMessage, ToastType.Error);
-         setSubmitting(false);
+      if (userRole === Role.Admin) {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/counselor/dashboard');
       }
-   };
+    } else {
+      throw new Error('Invalid response data');
+    }
+  } catch (error: any) {
+    // ✅ Ưu tiên 401: sai tài khoản hoặc mật khẩu
+    if (error?.response?.status === 401) {
+      showToast('Sai tài khoản hoặc mật khẩu.', ToastType.Error);
+    } else {
+      let errorMessage =
+        'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.';
+      if (error?.message === 'Invalid role in token') {
+        errorMessage = 'Vai trò không hợp lệ.';
+      } else if (
+        error?.message === 'Invalid token format in response' ||
+        error?.message === 'Invalid token format'
+      ) {
+        errorMessage = 'Không nhận được token hợp lệ từ server.';
+      }
+      showToast(errorMessage, ToastType.Error);
+    }
+  } finally {
+    setSubmitting(false);
+  }
+};
 
    const handleRegister = async (
       values: RegisterFormData,

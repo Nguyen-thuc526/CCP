@@ -59,7 +59,11 @@ export function CourseContentTab(props: CourseContentTabProps) {
       },
       [expandedChapters]
    );
-
+   const sortChaptersByCreatedAt = (chs: Chapter[]) =>
+      [...chs].sort(
+         (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
    const toggleQuestionExpansion = useCallback(
       (questionId: string) => {
          const newExpanded = new Set(expandedQuestions);
@@ -532,12 +536,19 @@ export function CourseContentTab(props: CourseContentTabProps) {
       newDetails.set(chapterId, newDetail);
       setChapterDetails(newDetails);
 
+      const createdAtFromApi =
+         (created.data as any)?.createAt ||
+         (created.data as any)?.createdAt ||
+         new Date().toISOString();
       const chapterToAdd: Chapter = {
          id: chapterId,
          ...chapterData,
+         createdAt: createdAtFromApi, // ✅ gán thời gian tạo
       };
-
-      const newTempChapters = [...props.tempChapters, chapterToAdd];
+      const newTempChapters = sortChaptersByCreatedAt([
+         ...props.tempChapters,
+         chapterToAdd,
+      ]); // ✅ sort cũ → mới
       props.setTempChapters(newTempChapters);
       showToast('Chương mới đã được thêm.', ToastType.Success);
 
