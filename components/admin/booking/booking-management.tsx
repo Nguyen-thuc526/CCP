@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/pagination';
 import { getBookings } from '@/services/adminService';
 import { updateBookingStatus } from '@/services/bookingService';
-import type { BookingAdmin, BookingPagingResponse } from '@/types/booking';
+import type { BookingAdmin } from '@/types/booking';
 import type { BookingStatus } from '@/utils/enum';
 import { useToast, ToastType } from '@/hooks/useToast';
 import { BookingFilters } from './booking-filter';
@@ -22,23 +22,17 @@ import { BookingDetailsModal } from './booking-details-modal';
 const PAGE_SIZE = 10;
 
 export default function BookingManagement() {
-   const [bookings, setBookings] = useState<BookingAdmin[]>([]);
+   const [allBookings, setAllBookings] = useState<BookingAdmin[]>([]);
    const [total, setTotal] = useState(0);
    const [currentPage, setCurrentPage] = useState(1);
    const [loading, setLoading] = useState(false);
 
    const [searchQuery, setSearchQuery] = useState('');
-   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>(
-      'all'
-   );
-   const [typeFilter, setTypeFilter] = useState<
-      'all' | 'individual' | 'couple'
-   >('all');
+   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('all');
+   const [typeFilter, setTypeFilter] = useState<'all' | 'individual' | 'couple'>('all');
 
    // Modal states
-   const [selectedBooking, setSelectedBooking] = useState<BookingAdmin | null>(
-      null
-   );
+   const [selectedBooking, setSelectedBooking] = useState<BookingAdmin | null>(null);
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [isUpdating, setIsUpdating] = useState(false);
 
@@ -48,13 +42,16 @@ export default function BookingManagement() {
    const fetchBookings = async () => {
       setLoading(true);
       try {
-         const response: BookingPagingResponse = await getBookings({
-            PageNumber: currentPage,
-            PageSize: PAGE_SIZE,
+         const response = await getBookings({
+            PageNumber: 1,
+            PageSize: 99999, // ✅ lấy hết từ BE
             Status: statusFilter === 'all' ? undefined : statusFilter,
          });
-         setBookings(Array.isArray(response.items) ? response.items : []);
-         setTotal(response.totalCount ?? 0);
+
+         const data = Array.isArray(response.items) ? response.items : [];
+         setAllBookings(data);
+         setTotal(data.length);
+         setCurrentPage(1); // reset về trang đầu khi đổi filter
       } catch (error) {
          console.error('Lỗi khi tải booking:', error);
          showToast('Tải danh sách booking thất bại', ToastType.Error);
@@ -65,7 +62,7 @@ export default function BookingManagement() {
 
    useEffect(() => {
       fetchBookings();
-   }, [currentPage, statusFilter]);
+   }, [statusFilter]);
 
    const handleClearFilters = () => {
       setSearchQuery('');
@@ -78,23 +75,13 @@ export default function BookingManagement() {
       setIsModalOpen(true);
    };
 
-   const updateBookingStatusLocally = (
-      bookingId: string,
-      newStatus: number
-   ) => {
-      setBookings((prevBookings) =>
-         prevBookings.map((booking) =>
-            booking.id === bookingId
-               ? { ...booking, status: newStatus }
-               : booking
-         )
+   const updateBookingStatusLocally = (bookingId: string, newStatus: number) => {
+      setAllBookings((prev) =>
+         prev.map((b) => (b.id === bookingId ? { ...b, status: newStatus } : b))
       );
 
-      // Also update selected booking if it's the same one
       if (selectedBooking?.id === bookingId) {
-         setSelectedBooking((prev) =>
-            prev ? { ...prev, status: newStatus } : null
-         );
+         setSelectedBooking((prev) => (prev ? { ...prev, status: newStatus } : null));
       }
    };
 
@@ -108,7 +95,6 @@ export default function BookingManagement() {
             status: newStatus,
          });
 
-         // Update status locally instead of refetching
          updateBookingStatusLocally(selectedBooking.id, newStatus);
 
          showToast(`${actionName} booking thành công`, ToastType.Success);
@@ -125,20 +111,15 @@ export default function BookingManagement() {
 
    const handleRefund = () => handleStatusUpdate(6, 'Hoàn tiền');
    const handleReject = () => handleStatusUpdate(7, 'Từ chối');
-   const handleComplete = () => handleStatusUpdate(7, 'Hỗ trợ hoàn tất');
+   const handleComplete = () => handleStatusUpdate(8, 'Hỗ trợ hoàn tất'); // sửa 8 thay vì 7 nếu BE quy định
 
-   const filteredBookings = bookings.filter((booking) => {
+   // ✅ filter trên toàn bộ dữ liệu
+   const filteredBookings = allBookings.filter((booking) => {
       const matchesSearch =
          searchQuery === '' ||
-         booking.member.fullname
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-         booking.counselor.fullname
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-         booking.member2?.fullname
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase());
+         booking.member.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         booking.counselor.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         booking.member2?.fullname.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesType =
          typeFilter === 'all' ||
@@ -148,18 +129,20 @@ export default function BookingManagement() {
       return matchesSearch && matchesType;
    });
 
+   // ✅ phân trang ở FE
+   const pagedBookings = filteredBookings.slice(
+      (currentPage - 1) * PAGE_SIZE,
+      currentPage * PAGE_SIZE
+   );
+
    return (
       <div className="space-y-6">
          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-               Quản lý Booking
-            </h1>
-            <p className="text-gray-600">
-               Quản lý và theo dõi tất cả các lịch hẹn tư vấn
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý Booking</h1>
+            <p className="text-gray-600">Quản lý và theo dõi tất cả các lịch hẹn tư vấn</p>
          </div>
 
-         <BookingStats bookings={bookings} />
+         <BookingStats bookings={allBookings} />
 
          <div className="space-y-4">
             <BookingFilters
@@ -172,10 +155,11 @@ export default function BookingManagement() {
             <div className="text-sm text-muted-foreground">
                {loading
                   ? 'Đang tải dữ liệu...'
-                  : `Hiển thị ${filteredBookings.length} trong tổng ${total} booking`}
+                  : `Hiển thị ${pagedBookings.length} trong tổng ${filteredBookings.length} booking (tổng tất cả: ${total})`}
             </div>
+
             <BookingTable
-               bookings={filteredBookings}
+               bookings={pagedBookings}
                onViewDetails={handleViewDetails}
                currentPage={currentPage}
                pageSize={PAGE_SIZE}
@@ -186,14 +170,8 @@ export default function BookingManagement() {
                   <PaginationContent>
                      <PaginationItem>
                         <PaginationPrevious
-                           className={
-                              currentPage === 1
-                                 ? 'pointer-events-none opacity-50'
-                                 : ''
-                           }
-                           onClick={() =>
-                              setCurrentPage((prev) => Math.max(1, prev - 1))
-                           }
+                           className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                           onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                         />
                      </PaginationItem>
 
@@ -214,15 +192,9 @@ export default function BookingManagement() {
                      <PaginationItem>
                         <PaginationNext
                            className={
-                              currentPage === totalPages
-                                 ? 'pointer-events-none opacity-50'
-                                 : ''
+                              currentPage === totalPages ? 'pointer-events-none opacity-50' : ''
                            }
-                           onClick={() =>
-                              setCurrentPage((prev) =>
-                                 Math.min(totalPages, prev + 1)
-                              )
-                           }
+                           onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                         />
                      </PaginationItem>
                   </PaginationContent>
