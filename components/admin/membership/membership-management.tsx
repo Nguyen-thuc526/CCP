@@ -17,11 +17,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Membership } from '@/types/membership';
-import { createMembership, getAllMembership } from '@/services/membership';
+import {
+   createMembership,
+   getAllMembership,
+} from '@/services/membership';
 import { ToastType, useToast } from '@/hooks/useToast';
 import { useFormik } from 'formik';
 import { membershipSchema } from '@/lib/schemas/membershipSchema';
 import EditMembershipModal from './edit-membership-modal';
+import { getErrorMessage } from '@/utils/error-handler';
 
 export function MembershipManagement() {
    const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -31,6 +35,7 @@ export function MembershipManagement() {
    const { showToast } = useToast();
    const [editing, setEditing] = useState<Membership | null>(null);
    const [modalOpen, setModalOpen] = useState(false);
+
    const formik = useFormik({
       initialValues: {
          memberShipName: '',
@@ -49,8 +54,12 @@ export function MembershipManagement() {
             resetForm();
             const updated = await getAllMembership();
             setMembershipTiers(updated);
-         } catch (err) {
-            showToast('Tạo gói membership thất bại!', ToastType.Error);
+         } catch (err: any) {
+            const errorMessage = getErrorMessage(
+               err,
+               'Tạo gói membership thất bại!'
+            );
+            showToast(errorMessage, ToastType.Error);
          }
       },
    });
@@ -62,10 +71,15 @@ export function MembershipManagement() {
             setError(null);
          })
          .catch((err) => {
-            setError(err.message || 'Lỗi khi tải dữ liệu gói membership.');
+            const errorMessage = getErrorMessage(
+               err,
+               'Lỗi khi tải dữ liệu gói membership.'
+            );
+            setError(errorMessage);
          })
          .finally(() => setLoading(false));
    }, []);
+
    const formatCurrency = (amount: number) =>
       new Intl.NumberFormat('vi-VN', {
          style: 'currency',
@@ -94,6 +108,7 @@ export function MembershipManagement() {
          )}
       </div>
    );
+
    return (
       <div className="space-y-6">
          <div className="flex items-center justify-between">
@@ -152,11 +167,24 @@ export function MembershipManagement() {
                         <Button
                            variant="outline"
                            type="button"
-                           onClick={() => setShowCreateDialog(false)}
+                           onClick={() => {
+                              formik.resetForm();
+                              setShowCreateDialog(false);
+                           }}
                         >
                            Hủy
                         </Button>
-                        <Button type="submit">Tạo gói</Button>
+                        <Button
+                           type="submit"
+                           disabled={!formik.isValid || !formik.dirty}
+                           className={
+                              !formik.isValid || !formik.dirty
+                                 ? 'opacity-50 cursor-not-allowed'
+                                 : ''
+                           }
+                        >
+                           Tạo gói
+                        </Button>
                      </div>
                   </form>
                </DialogContent>
@@ -344,8 +372,17 @@ export function MembershipManagement() {
             onClose={() => setModalOpen(false)}
             membership={editing}
             onUpdated={async () => {
-               const updated = await getAllMembership();
-               setMembershipTiers(updated);
+               try {
+                  const updated = await getAllMembership();
+                  setMembershipTiers(updated);
+                  showToast('Cập nhật thành công!', ToastType.Success);
+               } catch (err: any) {
+                  const errorMessage = getErrorMessage(
+                     err,
+                     'Cập nhật membership thất bại!'
+                  );
+                  showToast(errorMessage, ToastType.Error);
+               }
             }}
          />
       </div>
