@@ -25,3 +25,28 @@ export interface UpdateCounselorProfileRequest {
    yearOfJob?: number;
    avatar?: string | null;
 }
+export interface MyDashboardResponse {
+  success: boolean;
+  data: MyDashboardData;
+  error: string | null;
+}
+
+export interface MyDashboardData {
+  totalIncome: number;
+  appointmentsThisWeek: number;
+  completedSessions: number;
+  averageRating: number;
+  monthlyIncome: MonthlyIncomeItem[];
+  weeklyAppointments: WeeklyAppointmentItem[];
+}
+
+export interface MonthlyIncomeItem {
+  month: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+  income: number;
+}
+
+export interface WeeklyAppointmentItem {
+  // 1 = Monday, ... 7 = Sunday (theo payload của bạn)
+  dayOfWeek: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  count: number;
+}

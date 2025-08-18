@@ -1,7 +1,24 @@
-import { Calendar, Heart, MessageSquare, TrendingUp } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+"use client";
 
-export function CounselorStats() {
+import { Calendar, Heart, MessageSquare, TrendingUp } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+type Props = {
+  totalIncome: number;
+  appointmentsThisWeek: number;
+  completedSessions: number;
+  averageRating: number;
+};
+
+const formatVND = (v: number) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(v);
+
+export function CounselorStats({
+  totalIncome,
+  appointmentsThisWeek,
+  completedSessions,
+  averageRating,
+}: Props) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
@@ -10,7 +27,7 @@ export function CounselorStats() {
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-green-600">28.5M VND</div>
+          <div className="text-2xl font-bold text-green-600">{formatVND(totalIncome)}</div>
         </CardContent>
       </Card>
 
@@ -20,8 +37,8 @@ export function CounselorStats() {
           <Calendar className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">8</div>
-          <p className="text-xs text-muted-foreground">3 hôm nay, 5 còn lại</p>
+          <div className="text-2xl font-bold">{appointmentsThisWeek}</div>
+          <p className="text-xs text-muted-foreground">Trong 7 ngày gần nhất</p>
         </CardContent>
       </Card>
 
@@ -31,8 +48,8 @@ export function CounselorStats() {
           <MessageSquare className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">289</div>
-          <p className="text-xs text-muted-foreground">+24 trong tháng này</p>
+          <div className="text-2xl font-bold">{completedSessions}</div>
+          <p className="text-xs text-muted-foreground">Tổng tích lũy</p>
         </CardContent>
       </Card>
 
@@ -42,10 +59,10 @@ export function CounselorStats() {
           <Heart className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">4.8/5</div>
-          <p className="text-xs text-muted-foreground">Dựa trên 156 đánh giá</p>
+          <div className="text-2xl font-bold">{averageRating.toFixed(1)}/5</div>
+          <p className="text-xs text-muted-foreground">Trung bình cộng</p>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
