@@ -1,4 +1,4 @@
-import { Chapter } from '@/types/course';
+import { Chapter, ChapterFormData } from '@/types/course';
 
 export const getChapterIcon = (type: string) => {
    switch (type) {
@@ -26,33 +26,25 @@ export const getChapterTypeLabel = (chapter: Chapter) => {
    }
 };
 
-export const validateChapter = (chapter: Partial<Chapter>): boolean => {
-   if (!chapter.title?.trim()) return false;
-
-   switch (chapter.type) {
-      case 'article':
-         return !!chapter.content?.trim();
-      case 'video':
-         return !!(chapter.videoFile || chapter.videoUrl || chapter.content);
-      case 'quiz':
-         return !!(chapter.quiz && chapter.quiz.length > 0);
-      default:
-         return false;
-   }
+export const validateChapter = (c: ChapterFormData) => {
+  if (!c.title?.trim()) return false;
+  if (c.type === 'video') return !!c.videoUrl && !!c.duration;
+  if (c.type === 'article') return !!c.content?.trim();
+  if (c.type === 'quiz') return true; // you validate quiz name/desc elsewhere
+  return false;
 };
 
-export const createEmptyChapter = (): Omit<Chapter, 'id'> => ({
-   title: '',
-   type: 'article',
-   content: '',
-   description: '',
-   videoFile: undefined,
-   videoUrl: undefined,
-   duration: '',
-   uploadProgress: undefined,
-   quiz: [],
+export const createEmptyChapter = (): ChapterFormData => ({
+  title: '',
+  description: '',
+  type: 'video',
+  content: '',
+  // video fields start undefined; they’ll be filled after upload
+  videoUrl: undefined,
+  duration: undefined,
+  uploadProgress: undefined,
+  quiz: [],
 });
-
 export const simulateVideoUpload = (
    file: File,
    onProgress: (progress: number) => void,

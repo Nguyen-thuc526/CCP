@@ -21,7 +21,6 @@ import { ChapterFormData, QuizBasicInfo } from '@/types/course';
 import { VideoUploader } from './VideoUploader';
 import { ArticleEditor } from './ArticleEditor';
 import { QuizCreator } from './QuizCreator';
-import { CourseService } from '@/services/courseService';
 
 interface AddChapterFormProps {
    onAddChapter: (chapter: ChapterFormData) => void;
