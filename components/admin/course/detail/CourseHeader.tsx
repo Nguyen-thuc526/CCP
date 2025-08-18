@@ -15,20 +15,23 @@ interface CourseHeaderProps {
 
 export function CourseHeader(props: CourseHeaderProps) {
    return (
-      <div className="flex items-center justify-between">
-         <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-               <Link href="/admin/managecourse">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Quay lại
-               </Link>
-            </Button>
-            <h1 className="text-3xl font-bold">
-               Chi tiết khóa học: {props.title}
-            </h1>
+      <div className="flex items-center justify-between border-b pb-4 mb-6">
+         {/* Left section */}
+         <div className="flex items-start gap-4 ">
+         
+            <div className="flex flex-col">
+               <h1 className="w-[800px] text-2xl font-bold text-gray-900 leading-tight">
+                  {props.title}
+               </h1>
+               <p className="text-sm text-muted-foreground">
+                  Chi tiết khóa học
+               </p>
+            </div>
          </div>
+
+         {/* Right section */}
          <div className="flex items-center gap-2">
-            <Label htmlFor="course-status-toggle">
+            <Label htmlFor="course-status-toggle" className="text-sm font-medium">
                {props.status === 'public' ? 'Công khai' : 'Ẩn'}
             </Label>
             <Switch
@@ -40,5 +43,6 @@ export function CourseHeader(props: CourseHeaderProps) {
             />
          </div>
       </div>
+
    );
 }

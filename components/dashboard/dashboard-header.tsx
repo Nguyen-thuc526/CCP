@@ -76,6 +76,7 @@ export function DashboardHeader() {
     counselors: 'Chuyên viên tư vấn',
     booking: 'Quản lý Booking',
     withdraw: 'Rút tiền',
+    blog: 'Quản lý Blog',
   };
 
   const segments = pathname.split('/').filter(Boolean);
