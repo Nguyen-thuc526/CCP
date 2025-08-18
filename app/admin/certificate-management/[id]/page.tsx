@@ -136,7 +136,7 @@ export default function CertificateDetailPage() {
       setIsProcessing(true);
       try {
          await rejectCertificationById(certificate.id, rejectReason);
-         showToast('Chứng chỉ đã bị từ chối!', ToastType.Info);
+         showToast('Chứng chỉ đã bị từ chối!', ToastType.Error);
 
          // Refresh data
          const updated = await getCertificationById(certificate.id);

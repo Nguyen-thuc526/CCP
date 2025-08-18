@@ -66,9 +66,9 @@ export function BookingFilters({
                   <SelectItem value={BookingStatus.Finish.toString()}>
                      Đã kết thúc
                   </SelectItem>
-                  <SelectItem value={BookingStatus.Reschedule.toString()}>
+                  {/* <SelectItem value={BookingStatus.Reschedule.toString()}>
                      Đề xuất lịch mới
-                  </SelectItem>
+                  </SelectItem> */}
                   <SelectItem value={BookingStatus.MemberCancel.toString()}>
                      Thành viên hủy
                   </SelectItem>
