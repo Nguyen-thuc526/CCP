@@ -28,7 +28,6 @@ export enum CategoryStatus {
 export enum BookingStatus {
    Confirm = 1, // Xác nhận lịch
    Finish = 2, // Đã kết thúc
-   Reschedule = 3, // Đề xuất lịch mới
    MemberCancel = 4, // Thành viên hủy
    Report = 5, // Báo cáo
    Refund = 6, // Hoàn tiền
@@ -71,23 +70,19 @@ export enum MembershipStatus {
 }
 
 export enum SurveyStatus {
-<<<<<<< HEAD
-  Inactive = 0,
-  Active = 1,
-}
-export enum DepositStatus {
-  TopUp = 0,
-  WithdrawRequestPending = 1,
-  Approved = 2,
-  Rejected = 3,
-=======
    Inactive = 0,
    Active = 1,
+}
+
+export enum DepositStatus {
+   TopUp = 0,
+   WithdrawRequestPending = 1,
+   Approved = 2,
+   Rejected = 3,
 }
 
 export enum WithdrawStatus {
    PendingWithdrawal = 1,
    Approved = 2,
    Rejected = 3,
->>>>>>> c82cf247b0197f3174a5256ec47b043fa21f1c2b
 }

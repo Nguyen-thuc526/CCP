@@ -1,10 +1,17 @@
 'use client';
 
-import React from 'react';
+import type React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Video, X, Calendar, MessageSquare, Users, User } from 'lucide-react';
+import {
+   Video,
+   X,
+   MessageSquare,
+   Users,
+   User,
+   CheckCircle,
+} from 'lucide-react';
 import Link from 'next/link';
 import { BookingStatus } from '@/utils/enum';
 
@@ -24,6 +31,11 @@ interface AppointmentSidebarProps {
    isCouple: boolean;
    status: BookingStatus;
    hasNotes: boolean;
+   /**
+    * Indicates if this is a customer report case (customer reported counselor)
+    * When true with Report status, shows refund message instead of view report button
+    */
+   isReport?: boolean;
    onOpenNoteDialog: () => void;
    onOpenCancelDialog: () => void;
 }
@@ -35,6 +47,7 @@ const AppointmentSidebar: React.FC<AppointmentSidebarProps> = ({
    isCouple,
    status,
    hasNotes,
+   isReport = false,
    onOpenNoteDialog,
    onOpenCancelDialog,
 }) => {
@@ -125,37 +138,29 @@ const AppointmentSidebar: React.FC<AppointmentSidebarProps> = ({
                   </>
                )}
 
-               {status === BookingStatus.Reschedule && (
-                  <Button
-                     variant="outline"
-                     onClick={() => {
-                        console.log('Xử lý đề xuất lịch mới');
-                     }}
-                     className="w-full"
-                  >
-                     <Calendar className="mr-2 h-4 w-4" />
-                     Xác nhận lịch mới
-                  </Button>
+               {status === BookingStatus.MemberCancel && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                     <div className="flex items-center gap-2 text-green-700">
+                        <CheckCircle className="h-5 w-5" />
+                        <span className="font-medium">
+                           Đã hoàn 50% tiền về ví của bạn
+                        </span>
+                     </div>
+                  </div>
                )}
 
-               {(status === BookingStatus.Confirm ||
-                  status === BookingStatus.Finish ||
-                  status === BookingStatus.Complete) && (
-                  <Button
-                     variant="outline"
-                     onClick={onOpenNoteDialog}
-                     className="w-full"
-                  >
-                     <MessageSquare className="mr-2 h-4 w-4" />
-                     {status === BookingStatus.Complete && hasNotes
-                        ? 'Xem ghi chú'
-                        : hasNotes
-                          ? 'Xem/Sửa ghi chú'
-                          : 'Thêm ghi chú'}
-                  </Button>
+               {status === BookingStatus.Report && isReport && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                     <div className="flex items-center gap-2 text-green-700">
+                        <CheckCircle className="h-5 w-5" />
+                        <span className="font-medium">
+                           Hoàn tiền về khách hàng
+                        </span>
+                     </div>
+                  </div>
                )}
 
-               {status === BookingStatus.Report && (
+               {status === BookingStatus.Report && !isReport && (
                   <Button
                      variant="outline"
                      onClick={() => {
@@ -169,15 +174,35 @@ const AppointmentSidebar: React.FC<AppointmentSidebarProps> = ({
                )}
 
                {status === BookingStatus.Refund && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                     <div className="flex items-center gap-2 text-green-700">
+                        <CheckCircle className="h-5 w-5" />
+                        <span className="font-medium">
+                           Đã hoàn tiền về ví của khách hàng
+                        </span>
+                     </div>
+                  </div>
+               )}
+
+               {status === BookingStatus.Finish && (
                   <Button
                      variant="outline"
-                     onClick={() => {
-                        console.log('Xem chi tiết hoàn tiền');
-                     }}
-                     className="w-full"
+                     onClick={onOpenNoteDialog}
+                     className="w-full bg-transparent"
                   >
                      <MessageSquare className="mr-2 h-4 w-4" />
-                     Xem hoàn tiền
+                     {hasNotes ? 'Xem/Sửa ghi chú' : 'Thêm ghi chú'}
+                  </Button>
+               )}
+
+               {status === BookingStatus.Complete && (
+                  <Button
+                     variant="outline"
+                     onClick={onOpenNoteDialog}
+                     className="w-full bg-transparent"
+                  >
+                     <MessageSquare className="mr-2 h-4 w-4" />
+                     Xem/Sửa ghi chú
                   </Button>
                )}
             </CardContent>
