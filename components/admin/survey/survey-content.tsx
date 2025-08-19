@@ -101,7 +101,7 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
       setQuestions((prevQuestions) =>
          prevQuestions.map((question) =>
             question.surveyId === updatedQuestion.surveyId &&
-            question.description === editingQuestion?.description
+               question.description === editingQuestion?.description
                ? updatedQuestion
                : question
          )
@@ -377,21 +377,29 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
                   <Card className="border border-gray-200">
                      <CardHeader>
                         <div className="flex items-center justify-between">
-                           <div>
+                           <div className="flex flex-col gap-2">
+                              {/* Title */}
                               <CardTitle className="text-2xl text-gray-900">
                                  {survey.name}
                               </CardTitle>
-                              <CardDescription className="text-base mt-1">
+
+                              {/* Description */}
+                              <CardDescription className="text-base">
                                  {survey.description}
                               </CardDescription>
-                           </div>
-                           <div className="flex items-center gap-4">
-                              <Badge variant="secondary" className="px-3 py-1">
-                                 Khảo sát{' '}
-                                 {survey.status === 1
-                                    ? 'Hoạt động'
-                                    : 'Không hoạt động'}
+
+                              {/* Status badge */}
+                              <Badge
+                                 variant="secondary"
+                                 className="w-fit px-3 py-1 text-sm font-normal max-w-[250px] truncate"
+                                 title={survey.status === 1 ? 'Hoạt động' : 'Không hoạt động'}
+                              >
+                                 Khảo sát {survey.status === 1 ? 'Hoạt động' : 'Không hoạt động'}
                               </Badge>
+                           </div>
+
+                           {/* Actions */}
+                           <div className="flex items-center gap-4">
                               <Button onClick={() => setIsAddingQuestion(true)}>
                                  <Plus className="w-4 h-4 mr-2" />
                                  Thêm Câu Hỏi
@@ -399,6 +407,7 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
                            </div>
                         </div>
                      </CardHeader>
+
                   </Card>
 
                   {/* Questions List */}

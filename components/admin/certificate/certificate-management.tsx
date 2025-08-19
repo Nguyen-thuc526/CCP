@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { Search, Filter, Eye, Clock, CheckCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -231,9 +230,7 @@ export default function CertificatesPage() {
                         <Separator />
 
                         <div className="flex justify-between items-center">
-                           <span className="text-sm text-muted-foreground">
-                              ID: {certificate.id.slice(-8)}
-                           </span>
+                           
                            <Button
                               size="sm"
                               variant="outline"
