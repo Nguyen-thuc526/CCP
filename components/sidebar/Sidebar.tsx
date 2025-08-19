@@ -157,11 +157,11 @@ export function Sidebar() {
                icon: <Calendar className="h-5 w-5" />,
                title: 'Lịch hẹn',
             },
-            {
-               href: '/counselor/consultations',
-               icon: <MessageSquare className="h-5 w-5" />,
-               title: 'Hồ sơ tư vấn',
-            },
+            // {
+            //    href: '/counselor/consultations',
+            //    icon: <MessageSquare className="h-5 w-5" />,
+            //    title: 'Hồ sơ tư vấn',
+            // },
             {
                href: '/counselor/certificates',
                icon: <FilePlus className="h-5 w-5" />,
@@ -204,7 +204,7 @@ export function Sidebar() {
 
 const handleLogout = () => {
   storage.removeToken();
-  deleteCookie('role'); // 👈 thêm
+  deleteCookie('role'); 
   dispatch(logout());
   router.push('/login');
 };
