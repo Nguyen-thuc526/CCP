@@ -1,7 +1,6 @@
 import { DashboardOverview } from '@/components/dashboard/dashboard-overview';
 import { DashboardStats } from '@/components/dashboard/dashboard-stats';
-import { RecentAppointments } from '@/components/dashboard/recent-appointments';
-import { UpcomingTasks } from '@/components/dashboard/upcoming-tasks';
+
 
 export default function AdminDashboardPage() {
    return (

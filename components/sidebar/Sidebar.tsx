@@ -1,5 +1,5 @@
 'use client';
-
+import { deleteCookie } from '@/utils/cookies';
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -202,12 +202,12 @@ export function Sidebar() {
       setOpenGroups((prev) => ({ ...prev, [title]: !prev[title] }));
    };
 
-   const handleLogout = () => {
-      storage.removeToken();
-      dispatch(logout());
-      router.push('/login');
-   };
-
+const handleLogout = () => {
+  storage.removeToken();
+  deleteCookie('role'); // 👈 thêm
+  dispatch(logout());
+  router.push('/login');
+};
    const toggleSidebar = () => {
       setCollapsed((prev) => {
          const newState = !prev;
