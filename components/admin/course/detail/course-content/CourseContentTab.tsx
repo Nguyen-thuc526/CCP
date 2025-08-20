@@ -363,52 +363,58 @@ export function CourseContentTab(props: CourseContentTabProps) {
       [showToast, setChapterDetails]
    );
 
-   const deleteQuestion = useCallback(
-      async (questionId: string, chapterId?: string) => {
-         try {
-            const response = await CourseService.deleteQuestion(questionId);
+const deleteQuestion = useCallback(
+  async (questionId: string, chapterId?: string) => {
+    try {
+      const response = await CourseService.deleteQuestion(questionId);
 
-            if (response?.success) {
-               showToast('Câu hỏi đã được xóa.', ToastType.Success);
+      if (response?.success) {
+        showToast('Câu hỏi đã được xóa.', ToastType.Success);
 
-               if (chapterId) {
-                  const updatedDetail =
-                     await CourseService.getChapterDetail(chapterId);
-                  setChapterDetails((prev) =>
-                     new Map(prev).set(chapterId, updatedDetail)
-                  );
-               }
-
-               return true;
+        if (chapterId) {
+          // ✅ cập nhật UI ngay
+          setChapterDetails(prev => {
+            const map = new Map(prev);
+            const detail = map.get(chapterId);
+            if (detail?.quiz?.questions) {
+              map.set(chapterId, {
+                ...detail,
+                quiz: {
+                  ...detail.quiz,
+                  questions: detail.quiz.questions.filter((q: any) => q.id !== questionId),
+                },
+              });
             }
+            return map;
+          });
 
-            showToast('Không thể xóa câu hỏi.', ToastType.Error);
+        // đồng bộ lại với server (không chặn UI)
+          CourseService.getChapterDetail(chapterId).then(updated =>
+            setChapterDetails(prev => new Map(prev).set(chapterId, updated))
+          );
+        }
 
-            if (chapterId) {
-               const updatedDetail =
-                  await CourseService.getChapterDetail(chapterId);
-               setChapterDetails((prev) =>
-                  new Map(prev).set(chapterId, updatedDetail)
-               );
-            }
+        return true;
+      }
 
-            return false;
-         } catch (error) {
-            showToast('Lỗi khi xóa câu hỏi.', ToastType.Error);
+      showToast('Không thể xóa câu hỏi.', ToastType.Error);
+      if (chapterId) {
+        const updatedDetail = await CourseService.getChapterDetail(chapterId);
+        setChapterDetails(prev => new Map(prev).set(chapterId, updatedDetail));
+      }
+      return false;
+    } catch (error) {
+      showToast('Lỗi khi xóa câu hỏi.', ToastType.Error);
+      if (chapterId) {
+        const updatedDetail = await CourseService.getChapterDetail(chapterId);
+        setChapterDetails(prev => new Map(prev).set(chapterId, updatedDetail));
+      }
+      return false;
+    }
+  },
+  [showToast]
+);
 
-            if (chapterId) {
-               const updatedDetail =
-                  await CourseService.getChapterDetail(chapterId);
-               setChapterDetails((prev) =>
-                  new Map(prev).set(chapterId, updatedDetail)
-               );
-            }
-
-            return false;
-         }
-      },
-      [showToast, setChapterDetails]
-   );
 
    const updateLecture = useCallback(
       async (
@@ -773,9 +779,9 @@ export function CourseContentTab(props: CourseContentTabProps) {
                onUpdateQuestion={(questionId, questionData, chapterId) =>
                   updateQuestion(questionId, questionData, chapterId)
                }
-               onDeleteQuestion={(questionId) =>
-                  deleteQuestion(questionId, editingChapterId || undefined)
-               }
+onDeleteQuestion={(questionId, chapterId) =>
+    deleteQuestion(questionId, chapterId)
+  }
                onCreateQuestions={createQuizQuestions}
                onRefreshCourse={props.onRefreshCourse}
                onLoadChapterDetail={loadChapterDetail}

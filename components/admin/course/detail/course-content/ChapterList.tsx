@@ -39,7 +39,11 @@ interface ChapterListProps {
       questionData: any,
       chapterId: string
    ) => Promise<boolean>;
-   onDeleteQuestion?: (questionId: string) => Promise<boolean>;
+   onDeleteQuestion?: (
+      questionId: string,
+      chapterId: string
+   ) => Promise<boolean>;
+
    onCreateQuestions?: (
       chapterId: string,
       questions: any[]
@@ -128,8 +132,6 @@ export function ChapterList({
                            onChapterChange={onChapterChange}
                            videoInputRef={editingVideoInputRef}
                            detail={detail}
-                           onUpdateQuestion={onUpdateQuestion}
-                           onDeleteQuestion={onDeleteQuestion}
                         />
                      </div>
                   </div>
@@ -213,7 +215,7 @@ export function ChapterList({
                               ...chapter,
                               duration:
                                  chapter.duration ||
-                                 detail?.video?.timeVideo ||
+                                 (detail as any)?.video?.timeVideo ||
                                  'Chưa có thời lượng',
                            })}
                         </div>
@@ -308,21 +310,24 @@ export function ChapterList({
                                                       onUpdateQuestion={
                                                          onUpdateQuestion
                                                       }
-                                                      chapterId={chapter.id}
-                                                      onDeleteQuestion={
-                                                         onDeleteQuestion
-                                                      }
+                                                      onDeleteQuestion={async (
+                                                         questionId: string
+                                                      ) => {
+                                                         if (onDeleteQuestion)
+                                                            return onDeleteQuestion(
+                                                               questionId,
+                                                               chapter.id
+                                                            );
+                                                         return false;
+                                                      }}
                                                       onCreateQuestions={async (
                                                          questions: any[]
                                                       ) => {
-                                                         if (
-                                                            onCreateQuestions
-                                                         ) {
-                                                            return await onCreateQuestions(
+                                                         if (onCreateQuestions)
+                                                            return onCreateQuestions(
                                                                chapter.id,
                                                                questions
                                                             );
-                                                         }
                                                          return false;
                                                       }}
                                                       isEditMode={true}
@@ -389,7 +394,6 @@ export function ChapterList({
                                                                            )
                                                                         }
                                                                         className="p-1"
-                                                                        A
                                                                      >
                                                                         {expandedQuestions.has(
                                                                            question.id

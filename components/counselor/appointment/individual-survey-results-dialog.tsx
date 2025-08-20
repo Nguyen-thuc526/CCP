@@ -166,59 +166,78 @@ export function IndividualSurveyResultsDialog({
     }
   }
 
-  useEffect(() => {
-    let cancelled = false
-    async function fetchAll() {
-      if (!isOpen) return
-      setLoading(true)
-      setError(null)
-      try {
-        const pairs = await Promise.all(
-          SURVEY_IDS.map(async (sid) => {
-            const res = await bookingService.personTypeBeforeBooking({ memberId, surveyId: sid, bookingId })
-            const items = normalizePersonTypeResponses(sid, res?.data)
-            items.sort((a, b) => new Date(b.createAt).getTime() - new Date(a.createAt).getTime())
+useEffect(() => {
+  let cancelled = false
 
-            // enrich each item with get-by-name (best-effort)
-            await Promise.all(
-              items.map(async (it) => {
-                if (!it.result) return
-                try {
-                  const r = await bookingService.getPersonTypeByName({ name: it.result, surveyId: sid })
-                  const d = r?.data as any
-                  if (d) {
-                    it.typeDetail = {
-                      name: d.name ?? d.result ?? it.result,
-                      description: d.description ?? null,
-                      detail: d.detail ?? null,
-                      image: d.image ?? null,
-                      scores: d.scores ?? {},
-                    }
+  async function fetchAll() {
+    if (!isOpen) return
+    setLoading(true)
+    setError(null)
+
+    try {
+      const pairs = await Promise.all(
+        SURVEY_IDS.map(async (sid) => {
+          // ✅ Safe fetch: coi 404/204/400 là không có dữ liệu
+          const safeFetch = async () => {
+            try {
+              const res = await bookingService.personTypeBeforeBooking({ memberId, surveyId: sid, bookingId })
+              return res?.data
+            } catch (e: any) {
+              const code = e?.response?.status
+              if (code === 404 || code === 204 || code === 400) return null
+              throw e // lỗi thật sự
+            }
+          }
+
+          const raw = await safeFetch()
+          const items = normalizePersonTypeResponses(sid, raw)
+          items.sort((a, b) => new Date(b.createAt).getTime() - new Date(a.createAt).getTime())
+
+          // enrich best-effort (đã có try/catch bên trong)
+          await Promise.all(
+            items.map(async (it) => {
+              if (!it.result) return
+              try {
+                const r = await bookingService.getPersonTypeByName({ name: it.result, surveyId: sid })
+                const d = r?.data as any
+                if (d) {
+                  it.typeDetail = {
+                    name: d.name ?? d.result ?? it.result,
+                    description: d.description ?? null,
+                    detail: d.detail ?? null,
+                    image: d.image ?? null,
+                    scores: d.scores ?? {},
                   }
-                } catch {}
-              }),
-            )
+                }
+              } catch {}
+            })
+          )
 
-            return [sid, items] as const
-          }),
-        )
+          return [sid, items] as const
+        })
+      )
 
-        if (!cancelled) {
-          const grouped: Partial<Record<SurveyId, SurveyResult[]>> = {}
-          pairs.forEach(([sid, items]) => (grouped[sid] = items))
-          setResultsBySurvey(grouped)
-        }
-      } catch (e: any) {
-        if (!cancelled) setError(e?.message || "Không thể tải kết quả khảo sát")
-      } finally {
-        if (!cancelled) setLoading(false)
+      if (!cancelled) {
+        const grouped: Partial<Record<SurveyId, SurveyResult[]>> = {}
+        pairs.forEach(([sid, items]) => (grouped[sid] = items))
+        setResultsBySurvey(grouped)
       }
+    } catch (e: any) {
+      if (!cancelled) {
+        // Chỉ lỗi thật sự mới hiển thị
+        setError("Không thể tải kết quả khảo sát")
+      }
+    } finally {
+      if (!cancelled) setLoading(false)
     }
-    fetchAll()
-    return () => {
-      cancelled = true
-    }
-  }, [isOpen, memberId, bookingId])
+  }
+
+  fetchAll()
+  return () => {
+    cancelled = true
+  }
+}, [isOpen, memberId, bookingId])
+
 
   const resultsByDate = useMemo(() => {
     const dateGroups: Record<string, SurveyResult[]> = {}

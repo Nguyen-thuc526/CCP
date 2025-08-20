@@ -184,28 +184,59 @@ export function CoupleSurveyResultsDialog({
     }
   }
 
-  useEffect(() => {
-    let cancelled = false
-    async function fetchCoupleData() {
-      if (!isOpen) return
-      setLoading(true)
-      setError(null)
-      try {
-        const response = await bookingService.getCoupleByBooking(bookingId)
-        if (!cancelled && response.data) {
-          setCoupleData(response.data)
-        }
-      } catch (e: any) {
-        if (!cancelled) setError(e?.message || "Không thể tải kết quả khảo sát cặp đôi")
-      } finally {
-        if (!cancelled) setLoading(false)
+ useEffect(() => {
+  let cancelled = false
+
+  async function fetchCoupleData() {
+    if (!isOpen) return
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await bookingService.getCoupleByBooking(bookingId)
+      if (cancelled) return
+
+      const data = response?.data
+
+      // Nếu API trả về rỗng/không có kết quả -> coi là empty state, KHÔNG set error
+      const noResult =
+        !data ||
+        (
+          !data.mbti &&
+          !data.disc &&
+          !data.loveLanguage &&
+          !data.bigFive &&
+          !data.mbtiDetail
+        )
+
+      if (noResult) {
+        setCoupleData(null)
+        setError(null)
+      } else {
+        setCoupleData(data)
       }
+    } catch (e: any) {
+      if (cancelled) return
+      const code = e?.response?.status
+      // Những lỗi "không có dữ liệu" coi như empty state
+      if (code === 404 || code === 204 || code === 400) {
+        setCoupleData(null)
+        setError(null)
+      } else {
+        // Chỉ những lỗi thật sự (network, 5xx...) mới hiển thị
+        setError("Không thể tải kết quả khảo sát cặp đôi")
+      }
+    } finally {
+      if (!cancelled) setLoading(false)
     }
-    fetchCoupleData()
-    return () => {
-      cancelled = true
-    }
-  }, [isOpen, bookingId])
+  }
+
+  fetchCoupleData()
+  return () => {
+    cancelled = true
+  }
+}, [isOpen, bookingId])
+
 
   const renderScoreChart = (scores: Record<string, number>) => {
     const maxScore = Math.max(1, ...Object.values(scores))
@@ -489,16 +520,6 @@ export function CoupleSurveyResultsDialog({
         <Separator className="my-6" />
 
         <div className="flex items-center justify-between gap-4">
-          {loading ? (
-            <div className="text-sm text-gray-500 flex items-center gap-2">
-              <BrainIcon className="h-4 w-4 animate-pulse" /> Đang tải kết quả...
-            </div>
-          ) : error ? (
-            <div className="text-sm text-red-600">{error}</div>
-          ) : !coupleData ? (
-            <div className="text-sm text-gray-500">Không có dữ liệu khảo sát.</div>
-          ) : null}
-
           <div className="flex items-center gap-2">
             <UIButton variant="outline" onClick={onClose}>
               Đóng
