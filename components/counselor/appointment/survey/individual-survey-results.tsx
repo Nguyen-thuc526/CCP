@@ -1,5 +1,4 @@
 "use client"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button as UIButton } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge as UIBadge } from "@/components/ui/badge"
@@ -7,8 +6,6 @@ import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
 import {
   BrainIcon,
-  Heart,
-  Target,
   User,
   BarChart3,
   TrendingUp,
@@ -18,20 +15,21 @@ import {
   Download,
   ChevronDown,
   ChevronUp,
+  ArrowLeft,
 } from "lucide-react"
 import { format as formatFn } from "date-fns"
 import { vi as viLocale } from "date-fns/locale"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { bookingService } from "@/services/bookingService"
-
-// libs for PDF
-import jsPDF from "jspdf"
+import Link from "next/link"
 import html2canvas from "html2canvas"
+import jsPDF from "jspdf"
+import { surveyConfig } from "@/app/config/surveyConfig"
+
 
 const SURVEY_IDS = ["SV001", "SV002", "SV003", "SV004"] as const
 export type SurveyId = (typeof SURVEY_IDS)[number]
 
-// Detail returned by get-by-name
 interface PersonTypeDetail {
   name: string
   description: string | null
@@ -47,23 +45,13 @@ interface SurveyResult {
   rawScores?: string
   scores: Record<string, number>
   createAt: string
-  // enriched by get-by-name
   typeDetail?: PersonTypeDetail
 }
 
-interface IndividualSurveyResultsDialogProps {
-  isOpen: boolean
-  onClose: () => void
+interface IndividualSurveyResultsProps {
   memberName: string
   memberId: string
   bookingId: string
-}
-
-const surveyConfig: Record<SurveyId, { name: string; icon: any; color: string; description: string }> = {
-  SV001: { name: "MBTI", icon: BrainIcon, color: "blue", description: "Chỉ số tính cách Myers-Briggs" },
-  SV002: { name: "DISC", icon: Target, color: "green", description: "Phong cách hành vi và giao tiếp" },
-  SV003: { name: "Love Languages", icon: Heart, color: "pink", description: "Ngôn ngữ tình yêu" },
-  SV004: { name: "Big Five", icon: BarChart3, color: "purple", description: "Năm yếu tố tính cách lớn" },
 }
 
 function formatDate(dateString: string) {
@@ -115,18 +103,11 @@ function normalizePersonTypeResponses(surveyId: SurveyId, apiData: any): SurveyR
   })
 }
 
-export function IndividualSurveyResultsDialog({
-  isOpen,
-  onClose,
-  memberName,
-  memberId,
-  bookingId,
-}: IndividualSurveyResultsDialogProps) {
+export function IndividualSurveyResults({ memberName, memberId, bookingId }: IndividualSurveyResultsProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [resultsBySurvey, setResultsBySurvey] = useState<Partial<Record<SurveyId, SurveyResult[]>>>({})
 
-  // UI state for expand detail per card (keyed by `${surveyId}-${createAt}`)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
 
   const exportRef = useRef<HTMLDivElement | null>(null)
@@ -166,78 +147,73 @@ export function IndividualSurveyResultsDialog({
     }
   }
 
-useEffect(() => {
-  let cancelled = false
+  useEffect(() => {
+    let cancelled = false
 
-  async function fetchAll() {
-    if (!isOpen) return
-    setLoading(true)
-    setError(null)
+    async function fetchAll() {
+      setLoading(true)
+      setError(null)
 
-    try {
-      const pairs = await Promise.all(
-        SURVEY_IDS.map(async (sid) => {
-          // ✅ Safe fetch: coi 404/204/400 là không có dữ liệu
-          const safeFetch = async () => {
-            try {
-              const res = await bookingService.personTypeBeforeBooking({ memberId, surveyId: sid, bookingId })
-              return res?.data
-            } catch (e: any) {
-              const code = e?.response?.status
-              if (code === 404 || code === 204 || code === 400) return null
-              throw e // lỗi thật sự
-            }
-          }
-
-          const raw = await safeFetch()
-          const items = normalizePersonTypeResponses(sid, raw)
-          items.sort((a, b) => new Date(b.createAt).getTime() - new Date(a.createAt).getTime())
-
-          // enrich best-effort (đã có try/catch bên trong)
-          await Promise.all(
-            items.map(async (it) => {
-              if (!it.result) return
+      try {
+        const pairs = await Promise.all(
+          SURVEY_IDS.map(async (sid) => {
+            const safeFetch = async () => {
               try {
-                const r = await bookingService.getPersonTypeByName({ name: it.result, surveyId: sid })
-                const d = r?.data as any
-                if (d) {
-                  it.typeDetail = {
-                    name: d.name ?? d.result ?? it.result,
-                    description: d.description ?? null,
-                    detail: d.detail ?? null,
-                    image: d.image ?? null,
-                    scores: d.scores ?? {},
+                const res = await bookingService.personTypeBeforeBooking({ memberId, surveyId: sid, bookingId })
+                return res?.data
+              } catch (e: any) {
+                const code = e?.response?.status
+                if (code === 404 || code === 204 || code === 400) return null
+                throw e
+              }
+            }
+
+            const raw = await safeFetch()
+            const items = normalizePersonTypeResponses(sid, raw)
+            items.sort((a, b) => new Date(b.createAt).getTime() - new Date(a.createAt).getTime())
+
+            await Promise.all(
+              items.map(async (it) => {
+                if (!it.result) return
+                try {
+                  const r = await bookingService.getPersonTypeByName({ name: it.result, surveyId: sid })
+                  const d = r?.data as any
+                  if (d) {
+                    it.typeDetail = {
+                      name: d.name ?? d.result ?? it.result,
+                      description: d.description ?? null,
+                      detail: d.detail ?? null,
+                      image: d.image ?? null,
+                      scores: d.scores ?? {},
+                    }
                   }
-                }
-              } catch {}
-            })
-          )
+                } catch {}
+              }),
+            )
 
-          return [sid, items] as const
-        })
-      )
+            return [sid, items] as const
+          }),
+        )
 
-      if (!cancelled) {
-        const grouped: Partial<Record<SurveyId, SurveyResult[]>> = {}
-        pairs.forEach(([sid, items]) => (grouped[sid] = items))
-        setResultsBySurvey(grouped)
+        if (!cancelled) {
+          const grouped: Partial<Record<SurveyId, SurveyResult[]>> = {}
+          pairs.forEach(([sid, items]) => (grouped[sid] = items))
+          setResultsBySurvey(grouped)
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setError("Không thể tải kết quả khảo sát")
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
       }
-    } catch (e: any) {
-      if (!cancelled) {
-        // Chỉ lỗi thật sự mới hiển thị
-        setError("Không thể tải kết quả khảo sát")
-      }
-    } finally {
-      if (!cancelled) setLoading(false)
     }
-  }
 
-  fetchAll()
-  return () => {
-    cancelled = true
-  }
-}, [isOpen, memberId, bookingId])
-
+    fetchAll()
+    return () => {
+      cancelled = true
+    }
+  }, [memberId, bookingId])
 
   const resultsByDate = useMemo(() => {
     const dateGroups: Record<string, SurveyResult[]> = {}
@@ -385,112 +361,113 @@ useEffect(() => {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
-        {/* exportable region */}
-        <div ref={exportRef} className="space-y-6">
-          <DialogHeader className="pb-4">
-            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-              <User className="h-6 w-6 text-blue-600" />
-              Kết quả khảo sát cá nhân
-            </DialogTitle>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <User className="h-4 w-4" />
-              <span>{memberName}</span>
-              <UIBadge variant="outline" className="ml-2">
-                Cá nhân
-              </UIBadge>
-            </div>
-          </DialogHeader>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <UIButton variant="ghost" size="sm" asChild>
+          <Link href="/counselor/appointments">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Quay lại
+          </Link>
+        </UIButton>
+        <div className="flex items-center gap-2">
+          <User className="h-6 w-6 text-blue-600" />
+          <h1 className="text-2xl font-bold">Kết quả khảo sát cá nhân</h1>
+        </div>
+        <UIBadge variant="outline" className="ml-2">
+          Cá nhân
+        </UIBadge>
+      </div>
 
-          <div className="space-y-6">
-            {Object.keys(latestResults).length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Star className="h-5 w-5 text-yellow-600" />
-                  <h3 className="text-lg font-semibold">Kết quả mới nhất</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {SURVEY_IDS.map((sid) => {
-                    const result = latestResults[sid]
-                    if (!result) {
-                      const config = surveyConfig[sid]
-                      const Icon = config.icon
-                      return (
-                        <Card key={sid} className="opacity-50">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-sm flex items-center gap-2">
-                              <Icon className={`h-4 w-4 text-${config.color}-600`} />
-                              {config.name}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="text-center py-4">
-                              <Info className="h-6 w-6 text-gray-400 mx-auto mb-1" />
-                              <p className="text-gray-500 text-xs">Chưa có kết quả</p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )
-                    }
-                    return renderCompactSurveyCard(result, true)
-                  })}
-                </div>
+      <div className="flex items-center gap-2 text-sm text-gray-600">
+        <User className="h-4 w-4" />
+        <span>{memberName}</span>
+      </div>
+
+      <div ref={exportRef} className="space-y-6">
+        <div className="space-y-6">
+          {Object.keys(latestResults).length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Star className="h-5 w-5 text-yellow-600" />
+                <h3 className="text-lg font-semibold">Kết quả mới nhất</h3>
               </div>
-            )}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {SURVEY_IDS.map((sid) => {
+                  const result = latestResults[sid]
+                  if (!result) {
+                    const config = surveyConfig[sid]
+                    const Icon = config.icon
+                    return (
+                      <Card key={sid} className="opacity-50">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <Icon className={`h-4 w-4 text-${config.color}-600`} />
+                            {config.name}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-center py-4">
+                            <Info className="h-6 w-6 text-gray-400 mx-auto mb-1" />
+                            <p className="text-gray-500 text-xs">Chưa có kết quả</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  }
+                  return renderCompactSurveyCard(result, true)
+                })}
+              </div>
+            </div>
+          )}
 
-            {resultsByDate.length > 1 && (
-              <div>
-                <Separator className="my-6" />
-                <div className="flex items-center gap-2 mb-4">
-                  <Clock className="h-5 w-5 text-gray-600" />
-                  <h3 className="text-lg font-semibold">Lịch sử khảo sát</h3>
-                </div>
+          {resultsByDate.length > 1 && (
+            <div>
+              <Separator className="my-6" />
+              <div className="flex items-center gap-2 mb-4">
+                <Clock className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-semibold">Lịch sử khảo sát</h3>
+              </div>
 
-                <div className="space-y-6">
-                  {resultsByDate.slice(1).map(({ date, results }) => (
-                    <div key={date}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <UIBadge variant="secondary" className="text-sm">
-                          {date}
-                        </UIBadge>
-                        <span className="text-sm text-gray-500">{results.length} khảo sát</span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {results.map((result) => renderCompactSurveyCard(result))}
-                      </div>
+              <div className="space-y-6">
+                {resultsByDate.slice(1).map(({ date, results }) => (
+                  <div key={date}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <UIBadge variant="secondary" className="text-sm">
+                        {date}
+                      </UIBadge>
+                      <span className="text-sm text-gray-500">{results.length} khảo sát</span>
                     </div>
-                  ))}
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {results.map((result) => renderCompactSurveyCard(result))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-        </div>
-
-        <Separator className="my-6" />
-
-        <div className="flex items-center justify-between gap-4">
-          {loading ? (
-            <div className="text-sm text-gray-500 flex items-center gap-2">
-              <BrainIcon className="h-4 w-4 animate-pulse" /> Đang tải kết quả...
             </div>
-          ) : error ? (
-            <div className="text-sm text-red-600">{error}</div>
-          ) : !hasAny ? (
-            <div className="text-sm text-gray-500">Không có dữ liệu khảo sát.</div>
-          ) : null}
-
-          <div className="flex items-center gap-2">
-            <UIButton variant="outline" onClick={onClose}>
-              Đóng
-            </UIButton>
-            <UIButton onClick={handleExportPDF} disabled={exporting}>
-              <Download className="h-4 w-4 mr-2" />
-              {exporting ? "Đang xuất..." : "Xuất PDF"}
-            </UIButton>
-          </div>
+          )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      <Separator className="my-6" />
+
+      <div className="flex items-center justify-between gap-4">
+        {loading ? (
+          <div className="text-sm text-gray-500 flex items-center gap-2">
+            <BrainIcon className="h-4 w-4 animate-pulse" /> Đang tải kết quả...
+          </div>
+        ) : error ? (
+          <div className="text-sm text-red-600">{error}</div>
+        ) : !hasAny ? (
+          <div className="text-sm text-gray-500">Không có dữ liệu khảo sát.</div>
+        ) : null}
+
+        <div className="flex items-center gap-2">
+          <UIButton onClick={handleExportPDF} disabled={exporting}>
+            <Download className="h-4 w-4 mr-2" />
+            {exporting ? "Đang xuất..." : "Xuất PDF"}
+          </UIButton>
+        </div>
+      </div>
+    </div>
   )
 }
