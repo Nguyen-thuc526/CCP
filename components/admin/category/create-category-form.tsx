@@ -35,8 +35,9 @@ export default function CreateCategoryForm({
          );
       }
 
-      const isDuplicate = (categories ?? []).some((category) =>
-         category?.name?.trim().toLowerCase() === trimmedName.toLowerCase()
+      const isDuplicate = (categories ?? []).some(
+         (category) =>
+            category?.name?.trim().toLowerCase() === trimmedName.toLowerCase()
       );
 
       if (isDuplicate) {

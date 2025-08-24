@@ -21,22 +21,17 @@ axiosInstance.interceptors.request.use(
 );
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Lấy message từ server nếu có
-    const serverMsg =
-      error?.response?.data?.error ||
-      error?.response?.data?.message ||
-      null;
+   (response) => response,
+   (error) => {
+      // Lấy message từ server nếu có
+      const serverMsg =
+         error?.response?.data?.error || error?.response?.data?.message || null;
 
-    // Chuẩn hóa message nhưng GIỮ nguyên error gốc để still có error.response
-    error.message =
-      serverMsg ||
-      error?.message ||
-      'Request failed';
+      // Chuẩn hóa message nhưng GIỮ nguyên error gốc để still có error.response
+      error.message = serverMsg || error?.message || 'Request failed';
 
-    return Promise.reject(error); // ❗ KHÔNG new Error(...) để không mất error.response
-  }
+      return Promise.reject(error); // ❗ KHÔNG new Error(...) để không mất error.response
+   }
 );
 
 export default axiosInstance;

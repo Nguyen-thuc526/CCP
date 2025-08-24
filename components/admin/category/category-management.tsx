@@ -33,7 +33,9 @@ export default function CategoryManagement() {
    const [searchTerm, setSearchTerm] = useState('');
    const [statusFilter, setStatusFilter] = useState<number>(-1);
    const [dialogOpen, setDialogOpen] = useState(false);
-   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+   const [editingCategory, setEditingCategory] = useState<Category | null>(
+      null
+   );
    const [creatingSubCategoryFor, setCreatingSubCategoryFor] =
       useState<Category | null>(null);
    const [editingSubCategory, setEditingSubCategory] = useState<{
@@ -50,8 +52,6 @@ export default function CategoryManagement() {
       setErrorMessage,
       renderStatus,
    } = useErrorLoadingWithUI();
-
-
 
    // ✅ Fetch all categories
    const fetchCategories = () => {
@@ -94,14 +94,15 @@ export default function CategoryManagement() {
 
             const updatedCat = allCats.find((c) => c.id === categoryId);
             if (!updatedCat) {
-               showToast('Không tìm thấy danh mục sau khi tạo', ToastType.Error);
+               showToast(
+                  'Không tìm thấy danh mục sau khi tạo',
+                  ToastType.Error
+               );
                return;
             }
 
             setCategories((prev) =>
-               prev.map((cat) =>
-                  cat.id === updatedCat.id ? updatedCat : cat
-               )
+               prev.map((cat) => (cat.id === updatedCat.id ? updatedCat : cat))
             );
          } else {
             // ✅ Cập nhật state ngay
@@ -109,12 +110,12 @@ export default function CategoryManagement() {
                prev.map((cat) =>
                   cat.id === categoryId
                      ? {
-                        ...cat,
-                        subCategories: [
-                           ...(cat.subCategories || []),
-                           { ...newSub, name, status: 1 },
-                        ],
-                     }
+                          ...cat,
+                          subCategories: [
+                             ...(cat.subCategories || []),
+                             { ...newSub, name, status: 1 },
+                          ],
+                       }
                      : cat
                )
             );
@@ -127,7 +128,6 @@ export default function CategoryManagement() {
          showToast('Tạo chủ đề con thất bại', ToastType.Error);
       }
    };
-
 
    // ✅ Create category
    const handleCategoryCreated = (newCategory: Category) => {
@@ -169,11 +169,11 @@ export default function CategoryManagement() {
             prev.map((cat) =>
                cat.id === categoryId
                   ? {
-                     ...cat,
-                     subCategories: cat.subCategories.map((sc) =>
-                        sc.id === subCategory.id ? { ...sc, status: 0 } : sc
-                     ),
-                  }
+                       ...cat,
+                       subCategories: cat.subCategories.map((sc) =>
+                          sc.id === subCategory.id ? { ...sc, status: 0 } : sc
+                       ),
+                    }
                   : cat
             )
          );
@@ -205,13 +205,15 @@ export default function CategoryManagement() {
                   Quản lý các Danh mục
                </h1>
                <p className="text-gray-600">
-                  Quản lý hệ thống danh mục và danh mục con dùng cho các dịch vụ, bài
-                  kiểm tra và nội dung tư vấn.
+                  Quản lý hệ thống danh mục và danh mục con dùng cho các dịch
+                  vụ, bài kiểm tra và nội dung tư vấn.
                </p>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                <DialogTrigger asChild>
-                  <Button onClick={() => setDialogOpen(true)}>Tạo danh mục</Button>
+                  <Button onClick={() => setDialogOpen(true)}>
+                     Tạo danh mục
+                  </Button>
                </DialogTrigger>
                <DialogContent>
                   <DialogHeader>
@@ -242,12 +244,16 @@ export default function CategoryManagement() {
                <CategoryList
                   categories={filteredCategories}
                   onCategoryUpdated={(categoryId) => {
-                     const category = categories.find((c) => c.id === categoryId);
+                     const category = categories.find(
+                        (c) => c.id === categoryId
+                     );
                      if (category) setEditingCategory(category);
                   }}
                   onCategoryHidden={handleCategoryHidden}
                   onSubCategoryAdded={(categoryId) => {
-                     const category = categories.find((c) => c.id === categoryId);
+                     const category = categories.find(
+                        (c) => c.id === categoryId
+                     );
                      if (category) setCreatingSubCategoryFor(category);
                   }}
                   onSubCategoryUpdated={(categoryId, subCategory) => {
@@ -281,11 +287,17 @@ export default function CategoryManagement() {
                                     : cat
                               )
                            );
-                           showToast('Cập nhật danh mục thành công', ToastType.Success);
+                           showToast(
+                              'Cập nhật danh mục thành công',
+                              ToastType.Success
+                           );
                            setEditingCategory(null);
                         } catch (err) {
                            console.error(err);
-                           showToast('Cập nhật danh mục thất bại', ToastType.Error);
+                           showToast(
+                              'Cập nhật danh mục thất bại',
+                              ToastType.Error
+                           );
                         }
                      }}
                   />
@@ -304,11 +316,13 @@ export default function CategoryManagement() {
                      onClose={() => setCreatingSubCategoryFor(null)}
                      onSubmit={(name) => {
                         if (creatingSubCategoryFor) {
-                           handleCreateSubCategory(creatingSubCategoryFor.id, name);
+                           handleCreateSubCategory(
+                              creatingSubCategoryFor.id,
+                              name
+                           );
                         }
                      }}
                   />
-
                </DialogContent>
             </Dialog>
          )}
@@ -334,13 +348,15 @@ export default function CategoryManagement() {
                               prev.map((cat) =>
                                  cat.id === editingSubCategory.categoryId
                                     ? {
-                                       ...cat,
-                                       subCategories: cat.subCategories.map((sc) =>
-                                          sc.id === editingSubCategory.subCategory.id
-                                             ? { ...sc, ...updates }
-                                             : sc
-                                       ),
-                                    }
+                                         ...cat,
+                                         subCategories: cat.subCategories.map(
+                                            (sc) =>
+                                               sc.id ===
+                                               editingSubCategory.subCategory.id
+                                                  ? { ...sc, ...updates }
+                                                  : sc
+                                         ),
+                                      }
                                     : cat
                               )
                            );

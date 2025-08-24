@@ -1,7 +1,6 @@
 import { DashboardOverview } from '@/components/dashboard/dashboard-overview';
 import { DashboardStats } from '@/components/dashboard/dashboard-stats';
 
-
 export default function AdminDashboardPage() {
    return (
       <div className="space-y-6">

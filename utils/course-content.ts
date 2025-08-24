@@ -27,23 +27,23 @@ export const getChapterTypeLabel = (chapter: Chapter) => {
 };
 
 export const validateChapter = (c: ChapterFormData) => {
-  if (!c.title?.trim()) return false;
-  if (c.type === 'video') return !!c.videoUrl && !!c.duration;
-  if (c.type === 'article') return !!c.content?.trim();
-  if (c.type === 'quiz') return true; // you validate quiz name/desc elsewhere
-  return false;
+   if (!c.title?.trim()) return false;
+   if (c.type === 'video') return !!c.videoUrl && !!c.duration;
+   if (c.type === 'article') return !!c.content?.trim();
+   if (c.type === 'quiz') return true; // you validate quiz name/desc elsewhere
+   return false;
 };
 
 export const createEmptyChapter = (): ChapterFormData => ({
-  title: '',
-  description: '',
-  type: 'video',
-  content: '',
-  // video fields start undefined; they’ll be filled after upload
-  videoUrl: undefined,
-  duration: undefined,
-  uploadProgress: undefined,
-  quiz: [],
+   title: '',
+   description: '',
+   type: 'video',
+   content: '',
+   // video fields start undefined; they’ll be filled after upload
+   videoUrl: undefined,
+   duration: undefined,
+   uploadProgress: undefined,
+   quiz: [],
 });
 export const simulateVideoUpload = (
    file: File,

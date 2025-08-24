@@ -437,8 +437,6 @@ export function SlotDetailDialog({
                                  </div>
                               </div>
 
-
-
                               <Separator />
 
                               <div className="flex justify-end gap-3 pt-2">

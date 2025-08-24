@@ -69,7 +69,8 @@ export default function PersonalityComparison({
    const [searchTerm, setSearchTerm] = useState('');
    const [selectedCategory, setSelectedCategory] = useState<string>('all');
    const [currentPersonType, setCurrentPersonType] = useState<any>(null);
-   const [editingComparison, setEditingComparison] = useState<ResultPersonType | null>(null);
+   const [editingComparison, setEditingComparison] =
+      useState<ResultPersonType | null>(null);
    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
    const [isSaving, setIsSaving] = useState(false);
 
@@ -90,7 +91,6 @@ export default function PersonalityComparison({
    const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
    const [selectedComparison, setSelectedComparison] =
       useState<ResultPersonType | null>(null);
-
 
    const handleEdit = (comparison: ResultPersonType) => {
       setEditingComparison(comparison);
@@ -179,7 +179,9 @@ export default function PersonalityComparison({
                setErrorMessage('Không thể tải danh mục.');
                setCategoriesAll([]);
             } else {
-               const filtered = data.filter((category) => category.status === 1);
+               const filtered = data.filter(
+                  (category) => category.status === 1
+               );
                setCategoriesAll(filtered);
             }
          } catch (err) {
@@ -192,7 +194,6 @@ export default function PersonalityComparison({
 
       fetchCategories();
    }, []);
-
 
    // Filter and search functionality
    useEffect(() => {
@@ -533,61 +534,58 @@ export default function PersonalityComparison({
                {(selectedComparison.detail ||
                   selectedComparison.strongPoints ||
                   selectedComparison.weaknesses) && (
-                     <Card className="border border-gray-200 shadow-sm rounded-xl">
-                        <CardHeader>
-                           <CardTitle className="flex items-center gap-2 text-lg">
-                              <Heart className="w-5 h-5 text-red-500" />
-                              Chi Tiết Tương Thích
-                           </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                           {selectedComparison.detail && (
-                              <section>
-                                 <h4 className="font-semibold text-gray-900 mb-2">
-                                    Phân tích chi tiết
-                                 </h4>
-                                 <div
-                                    className="prose max-w-none text-gray-700"
-                                    dangerouslySetInnerHTML={{
-                                       __html: selectedComparison.detail,
-                                    }}
-                                 />
-                              </section>
-                           )}
+                  <Card className="border border-gray-200 shadow-sm rounded-xl">
+                     <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                           <Heart className="w-5 h-5 text-red-500" />
+                           Chi Tiết Tương Thích
+                        </CardTitle>
+                     </CardHeader>
+                     <CardContent className="space-y-6">
+                        {selectedComparison.detail && (
+                           <section>
+                              <h4 className="font-semibold text-gray-900 mb-2">
+                                 Phân tích chi tiết
+                              </h4>
+                              <div
+                                 className="prose max-w-none text-gray-700"
+                                 dangerouslySetInnerHTML={{
+                                    __html: selectedComparison.detail,
+                                 }}
+                              />
+                           </section>
+                        )}
 
-                           {selectedComparison.strongPoints && (
-                              <section>
-                                 <h4 className="font-semibold text-green-700 mb-2">
-                                    Điểm mạnh
-                                 </h4>
-                                 <div
-                                    className="prose max-w-none text-green-700"
-                                    dangerouslySetInnerHTML={{
-                                       __html: selectedComparison.strongPoints,
-                                    }}
-                                 />
-                              </section>
-                           )}
+                        {selectedComparison.strongPoints && (
+                           <section>
+                              <h4 className="font-semibold text-green-700 mb-2">
+                                 Điểm mạnh
+                              </h4>
+                              <div
+                                 className="prose max-w-none text-green-700"
+                                 dangerouslySetInnerHTML={{
+                                    __html: selectedComparison.strongPoints,
+                                 }}
+                              />
+                           </section>
+                        )}
 
-                           {selectedComparison.weaknesses && (
-                              <section>
-                                 <h4 className="font-semibold text-red-700 mb-2">
-                                    Điểm yếu
-                                 </h4>
-                                 <div
-                                    className="prose max-w-none text-red-700"
-                                    dangerouslySetInnerHTML={{
-                                       __html: selectedComparison.weaknesses,
-                                    }}
-                                 />
-                              </section>
-                           )}
-                        </CardContent>
-                     </Card>
-                  )}
-
-
-
+                        {selectedComparison.weaknesses && (
+                           <section>
+                              <h4 className="font-semibold text-red-700 mb-2">
+                                 Điểm yếu
+                              </h4>
+                              <div
+                                 className="prose max-w-none text-red-700"
+                                 dangerouslySetInnerHTML={{
+                                    __html: selectedComparison.weaknesses,
+                                 }}
+                              />
+                           </section>
+                        )}
+                     </CardContent>
+                  </Card>
+               )}
             </div>
          </div>
       );
@@ -705,11 +703,11 @@ export default function PersonalityComparison({
                      <div className="text-xl font-bold text-gray-900">
                         {data.length > 0
                            ? Math.round(
-                              data.reduce(
-                                 (sum, item) => sum + item.compatibility,
-                                 0
-                              ) / data.length
-                           )
+                                data.reduce(
+                                   (sum, item) => sum + item.compatibility,
+                                   0
+                                ) / data.length
+                             )
                            : 0}
                         %
                      </div>

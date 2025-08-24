@@ -1,5 +1,10 @@
-import { CreateMembershipPayload, Membership, MembershipResponse, UpdateMembershipPayload } from "@/types/membership";
-import axiosInstance from "./axiosInstance";
+import {
+   CreateMembershipPayload,
+   Membership,
+   MembershipResponse,
+   UpdateMembershipPayload,
+} from '@/types/membership';
+import axiosInstance from './axiosInstance';
 
 export const getAllMembership = async (): Promise<Membership[]> => {
    try {

@@ -159,22 +159,22 @@ export interface CourseContentTabProps {
 }
 
 export interface ChapterFormData {
-  title: string;
-  description?: string;
+   title: string;
+   description?: string;
 
-  // One of these 3:
-  type: 'video' | 'article' | 'quiz';
+   // One of these 3:
+   type: 'video' | 'article' | 'quiz';
 
-  // General field you already use to store article body or video url
-  content: string;
+   // General field you already use to store article body or video url
+   content: string;
 
-  // Video-only data (OPTIONAL so article/quiz chapters still type-check)
-  videoUrl?: string;       // used by <VideoUploader>
-  duration?: string;       // "HH:MM:SS" in your code
-  uploadProgress?: number; // shown while uploading
+   // Video-only data (OPTIONAL so article/quiz chapters still type-check)
+   videoUrl?: string; // used by <VideoUploader>
+   duration?: string; // "HH:MM:SS" in your code
+   uploadProgress?: number; // shown while uploading
 
-  // Quiz-only
-  quiz?: any[]; // or your QuizQuestion[] if you have it
+   // Quiz-only
+   quiz?: any[]; // or your QuizQuestion[] if you have it
 }
 export interface QuizBasicInfo {
    name: string;

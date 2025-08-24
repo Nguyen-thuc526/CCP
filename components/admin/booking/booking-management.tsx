@@ -28,11 +28,17 @@ export default function BookingManagement() {
    const [loading, setLoading] = useState(false);
 
    const [searchQuery, setSearchQuery] = useState('');
-   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('all');
-   const [typeFilter, setTypeFilter] = useState<'all' | 'individual' | 'couple'>('all');
+   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>(
+      'all'
+   );
+   const [typeFilter, setTypeFilter] = useState<
+      'all' | 'individual' | 'couple'
+   >('all');
 
    // Modal states
-   const [selectedBooking, setSelectedBooking] = useState<BookingAdmin | null>(null);
+   const [selectedBooking, setSelectedBooking] = useState<BookingAdmin | null>(
+      null
+   );
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [isUpdating, setIsUpdating] = useState(false);
 
@@ -75,13 +81,18 @@ export default function BookingManagement() {
       setIsModalOpen(true);
    };
 
-   const updateBookingStatusLocally = (bookingId: string, newStatus: number) => {
+   const updateBookingStatusLocally = (
+      bookingId: string,
+      newStatus: number
+   ) => {
       setAllBookings((prev) =>
          prev.map((b) => (b.id === bookingId ? { ...b, status: newStatus } : b))
       );
 
       if (selectedBooking?.id === bookingId) {
-         setSelectedBooking((prev) => (prev ? { ...prev, status: newStatus } : null));
+         setSelectedBooking((prev) =>
+            prev ? { ...prev, status: newStatus } : null
+         );
       }
    };
 
@@ -117,9 +128,15 @@ export default function BookingManagement() {
    const filteredBookings = allBookings.filter((booking) => {
       const matchesSearch =
          searchQuery === '' ||
-         booking.member.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         booking.counselor.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         booking.member2?.fullname.toLowerCase().includes(searchQuery.toLowerCase());
+         booking.member.fullname
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+         booking.counselor.fullname
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+         booking.member2?.fullname
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
 
       const matchesType =
          typeFilter === 'all' ||
@@ -138,8 +155,12 @@ export default function BookingManagement() {
    return (
       <div className="space-y-6">
          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý Booking</h1>
-            <p className="text-gray-600">Quản lý và theo dõi tất cả các lịch hẹn tư vấn</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+               Quản lý Booking
+            </h1>
+            <p className="text-gray-600">
+               Quản lý và theo dõi tất cả các lịch hẹn tư vấn
+            </p>
          </div>
 
          <BookingStats bookings={allBookings} />
@@ -170,8 +191,14 @@ export default function BookingManagement() {
                   <PaginationContent>
                      <PaginationItem>
                         <PaginationPrevious
-                           className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-                           onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                           className={
+                              currentPage === 1
+                                 ? 'pointer-events-none opacity-50'
+                                 : ''
+                           }
+                           onClick={() =>
+                              setCurrentPage((prev) => Math.max(1, prev - 1))
+                           }
                         />
                      </PaginationItem>
 
@@ -192,9 +219,15 @@ export default function BookingManagement() {
                      <PaginationItem>
                         <PaginationNext
                            className={
-                              currentPage === totalPages ? 'pointer-events-none opacity-50' : ''
+                              currentPage === totalPages
+                                 ? 'pointer-events-none opacity-50'
+                                 : ''
                            }
-                           onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                           onClick={() =>
+                              setCurrentPage((prev) =>
+                                 Math.min(totalPages, prev + 1)
+                              )
+                           }
                         />
                      </PaginationItem>
                   </PaginationContent>
