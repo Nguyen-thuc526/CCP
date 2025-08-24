@@ -16,7 +16,13 @@ import { TiptapEditor } from './tiptap-editor';
 import { useUploadImage } from '@/hooks/upload-image';
 import { UpdatePersonTypePayload } from '@/types/result-person-type';
 import { Category } from '@/types/category';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+   Select,
+   SelectContent,
+   SelectItem,
+   SelectTrigger,
+   SelectValue,
+} from '@/components/ui/select';
 
 interface EditResultPersonTypeModalProps {
    open: boolean;

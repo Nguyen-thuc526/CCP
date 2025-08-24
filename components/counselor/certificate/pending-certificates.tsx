@@ -3,7 +3,14 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Calendar, Eye, Trash2, AlertCircle, ChevronRight } from 'lucide-react';
+import {
+   Clock,
+   Calendar,
+   Eye,
+   Trash2,
+   AlertCircle,
+   ChevronRight,
+} from 'lucide-react';
 import CertificateDetailModal from './certificate-detail-modal';
 import type { Certification } from '@/types/certification';
 

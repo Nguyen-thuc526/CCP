@@ -202,12 +202,12 @@ export function Sidebar() {
       setOpenGroups((prev) => ({ ...prev, [title]: !prev[title] }));
    };
 
-const handleLogout = () => {
-  storage.removeToken();
-  deleteCookie('role'); 
-  dispatch(logout());
-  router.push('/login');
-};
+   const handleLogout = () => {
+      storage.removeToken();
+      deleteCookie('role');
+      dispatch(logout());
+      router.push('/login');
+   };
    const toggleSidebar = () => {
       setCollapsed((prev) => {
          const newState = !prev;

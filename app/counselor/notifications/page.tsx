@@ -1,5 +1,4 @@
-import { NotificationList } from "@/components/counselor/notification/notification-list";
-
+import { NotificationList } from '@/components/counselor/notification/notification-list';
 
 export default function NotificationsPage() {
    return (

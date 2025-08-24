@@ -12,7 +12,8 @@ export const categoryService = {
 
 export const getCategoryData = async (): Promise<Category[] | null> => {
    try {
-      const response = await axiosInstance.get<CategoryResponse>('/api/Category');
+      const response =
+         await axiosInstance.get<CategoryResponse>('/api/Category');
       const { success, data, error } = response.data;
 
       if (success) {

@@ -230,7 +230,6 @@ export default function CertificatesPage() {
                         <Separator />
 
                         <div className="flex justify-between items-center">
-                           
                            <Button
                               size="sm"
                               variant="outline"

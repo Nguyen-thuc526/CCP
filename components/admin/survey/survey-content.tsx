@@ -101,7 +101,7 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
       setQuestions((prevQuestions) =>
          prevQuestions.map((question) =>
             question.surveyId === updatedQuestion.surveyId &&
-               question.description === editingQuestion?.description
+            question.description === editingQuestion?.description
                ? updatedQuestion
                : question
          )
@@ -392,9 +392,16 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
                               <Badge
                                  variant="secondary"
                                  className="w-fit px-3 py-1 text-sm font-normal max-w-[250px] truncate"
-                                 title={survey.status === 1 ? 'Hoạt động' : 'Không hoạt động'}
+                                 title={
+                                    survey.status === 1
+                                       ? 'Hoạt động'
+                                       : 'Không hoạt động'
+                                 }
                               >
-                                 Khảo sát {survey.status === 1 ? 'Hoạt động' : 'Không hoạt động'}
+                                 Khảo sát{' '}
+                                 {survey.status === 1
+                                    ? 'Hoạt động'
+                                    : 'Không hoạt động'}
                               </Badge>
                            </div>
 
@@ -407,7 +414,6 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
                            </div>
                         </div>
                      </CardHeader>
-
                   </Card>
 
                   {/* Questions List */}
