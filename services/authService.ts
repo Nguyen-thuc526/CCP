@@ -2,6 +2,7 @@ import axiosInstance from './axiosInstance';
 import { LoginFormData, RegisterFormData } from '@/lib/validationSchemas';
 import { getRoleFromToken, getNameFromToken } from '@/utils/tokenUtils';
 import { Role } from '@/utils/enum';
+import { ChangePasswordPayload } from '@/types/auth';
 
 export const authService = {
    async loginAdmin(
@@ -43,4 +44,8 @@ export const authService = {
       );
       return response.data;
    },
+       async changePassword(data: ChangePasswordPayload) {
+    const response = await axiosInstance.put('api/Account/change-password', data);
+    return response.data;
+  },
 };
