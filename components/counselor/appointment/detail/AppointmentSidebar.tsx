@@ -25,7 +25,7 @@ interface AppointmentSidebarProps {
   isCouple: boolean
   status: BookingStatus
   hasNotes: boolean
-  timeStart: string // Added timeStart prop for timing logic
+  timeStart: string
   /**
    * Indicates if this is a customer report case (customer reported counselor)
    * When true with Report status, shows refund message instead of view report button
@@ -42,66 +42,47 @@ const AppointmentSidebar: React.FC<AppointmentSidebarProps> = ({
   isCouple,
   status,
   hasNotes,
-  timeStart, // Added timeStart parameter
+  timeStart,
   isReport = false,
   onOpenNoteDialog,
   onOpenCancelDialog,
 }) => {
-  const memberName = member2 ? `${member.fullname} & ${member2.fullname}` : member.fullname
-
   const [timeUntilStart, setTimeUntilStart] = useState<number>(0)
-  const [canJoin, setCanJoin] = useState<boolean>(false)
-  const [timeDisplay, setTimeDisplay] = useState<string>("")
+  const [canJoin, setCanJoin] = useState(false)
 
   useEffect(() => {
-    if (status !== BookingStatus.Confirm) return
-
-    const updateTimer = () => {
+    const calculateTimeUntilStart = () => {
       const now = new Date().getTime()
-      const startTime = new Date(timeStart).getTime()
-      const fiveMinutesEarly = startTime - 5 * 60 * 1000 // 5 minutes before start time
-      const timeDiff = startTime - now
-
-      if (now >= fiveMinutesEarly) {
-        // Can join (5 minutes early or after start time)
-        setCanJoin(true)
-        if (timeDiff > 0) {
-          // Still before start time, show countdown
-          const minutes = Math.floor(timeDiff / (1000 * 60))
-          const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000)
-          setTimeDisplay(`Bắt đầu sau ${minutes}:${seconds.toString().padStart(2, "0")}`)
-        } else {
-          // Past start time
-          setTimeDisplay("Đã đến giờ tư vấn")
-        }
-      } else {
-        // Too early to join
-        setCanJoin(false)
-        const timeUntilEarly = fiveMinutesEarly - now
-        const hours = Math.floor(timeUntilEarly / (1000 * 60 * 60))
-        const minutes = Math.floor((timeUntilEarly % (1000 * 60 * 60)) / (1000 * 60))
-        const seconds = Math.floor((timeUntilEarly % (1000 * 60)) / 1000)
-
-        if (hours > 0) {
-          setTimeDisplay(
-            `Có thể tham gia sau ${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
-          )
-        } else {
-          setTimeDisplay(`Có thể tham gia sau ${minutes}:${seconds.toString().padStart(2, "0")}`)
-        }
-      }
+      const appointmentTime = new Date(timeStart).getTime()
+      const timeDiff = appointmentTime - now
+      const fiveMinutesInMs = 5 * 60 * 1000 // 5 minutes in milliseconds
 
       setTimeUntilStart(timeDiff)
+      setCanJoin(timeDiff <= fiveMinutesInMs)
     }
 
-    // Update immediately
-    updateTimer()
+    calculateTimeUntilStart()
 
-    // Update every second
-    const interval = setInterval(updateTimer, 1000)
+    const interval = setInterval(calculateTimeUntilStart, 1000)
 
     return () => clearInterval(interval)
-  }, [timeStart, status])
+  }, [timeStart])
+
+  const formatCountdown = (milliseconds: number) => {
+    if (milliseconds <= 0) return "Có thể tham gia"
+
+    const totalSeconds = Math.floor(milliseconds / 1000)
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+    }
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`
+  }
+
+  const memberName = member2 ? `${member.fullname} & ${member2.fullname}` : member.fullname
 
   return (
     <div className="space-y-6">
@@ -143,15 +124,6 @@ const AppointmentSidebar: React.FC<AppointmentSidebarProps> = ({
         <CardContent className="space-y-3">
           {status === BookingStatus.Confirm && (
             <>
-              {timeDisplay && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex items-center gap-2 text-blue-700">
-                    <Clock className="h-4 w-4" />
-                    <span className="text-sm font-medium">{timeDisplay}</span>
-                  </div>
-                </div>
-              )}
-
               {canJoin ? (
                 <Button size="sm" className="bg-green-600 hover:bg-green-700 w-full" asChild>
                   <Link href={`/counselor/appointments/call/${appointmentId}`}>
@@ -161,11 +133,10 @@ const AppointmentSidebar: React.FC<AppointmentSidebarProps> = ({
                 </Button>
               ) : (
                 <Button size="sm" className="bg-gray-400 cursor-not-allowed w-full" disabled>
-                  <Video className="mr-2 h-4 w-4" />
-                  Chưa thể tham gia
+                  <Clock className="mr-2 h-4 w-4" />
+                  {formatCountdown(timeUntilStart)}
                 </Button>
               )}
-
               <Button variant="destructive" onClick={onOpenCancelDialog} className="w-full">
                 <X className="mr-2 h-4 w-4" />
                 Hủy lịch hẹn
