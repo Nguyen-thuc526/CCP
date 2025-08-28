@@ -23,7 +23,7 @@ export default function WithdrawManagement() {
    const [activeTab, setActiveTab] = useState<string>(
       WithdrawStatus.PendingWithdrawal.toString()
    );
-
+   console.log(withdraws);
    const getTabInfo = (status: WithdrawStatus) => {
       switch (status) {
          case WithdrawStatus.PendingWithdrawal:
