@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { WithdrawStatus } from '@/utils/enum';
-import { Clock, Check, X, RefreshCw } from 'lucide-react';
+import { Clock, Check, X, RefreshCw, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { WithdrawItem } from './withdraw-item';
 import { Withdraw } from '@/types/withdraw';
 import { useWithdrawStore } from '@/hooks/use-withdraw-store';
@@ -20,10 +21,12 @@ export default function WithdrawManagement() {
       fetchWithdrawsByStatus,
       updateStatus,
    } = useWithdrawStore();
+
    const [activeTab, setActiveTab] = useState<string>(
       WithdrawStatus.PendingWithdrawal.toString()
    );
-   console.log(withdraws);
+   const [searchTerm, setSearchTerm] = useState<string>("");
+
    const getTabInfo = (status: WithdrawStatus) => {
       switch (status) {
          case WithdrawStatus.PendingWithdrawal:
@@ -80,7 +83,12 @@ export default function WithdrawManagement() {
          );
       }
 
-      if (items.length === 0) {
+      // ✅ Lọc danh sách theo searchTerm (theo mã đơn hàng / id)
+      const filteredItems = items.filter((withdraw: Withdraw) =>
+         withdraw.id.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      if (filteredItems.length === 0) {
          return (
             <Card>
                <CardContent className="flex flex-col items-center justify-center py-12">
@@ -90,7 +98,9 @@ export default function WithdrawManagement() {
                         Không có yêu cầu rút tiền
                      </h3>
                      <p className="text-sm">
-                        Chưa có yêu cầu rút tiền nào trong trạng thái này.
+                        {searchTerm
+                           ? "Không tìm thấy mã đơn hàng phù hợp."
+                           : "Chưa có yêu cầu rút tiền nào trong trạng thái này."}
                      </p>
                   </div>
                </CardContent>
@@ -100,7 +110,7 @@ export default function WithdrawManagement() {
 
       return (
          <div className="space-y-4">
-            {items.map((withdraw: Withdraw) => (
+            {filteredItems.map((withdraw: Withdraw) => (
                <WithdrawItem
                   key={withdraw.id}
                   withdraw={withdraw}
@@ -129,6 +139,18 @@ export default function WithdrawManagement() {
             </Button>
          </div>
 
+         {/* ✅ Ô search */}
+         <div className="relative w-full md:w-1/3">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+            <Input
+               type="text"
+               placeholder="Tìm theo mã đơn hàng..."
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+               className="pl-8"
+            />
+         </div>
+
          <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
@@ -153,8 +175,8 @@ export default function WithdrawManagement() {
                                  tabInfo.color === 'text-yellow-600'
                                     ? 'bg-yellow-600'
                                     : tabInfo.color === 'text-green-600'
-                                      ? 'bg-green-600'
-                                      : 'bg-red-600'
+                                    ? 'bg-green-600'
+                                    : 'bg-red-600'
                               } text-white`}
                            >
                               {tabInfo.count}

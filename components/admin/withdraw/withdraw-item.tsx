@@ -103,7 +103,7 @@ export function WithdrawItem({
          <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
                <CardTitle className="text-lg">
-                  #{withdraw.id.slice(-8)}
+                  Mã đơn hàng #{withdraw.id.slice(-8)}
                </CardTitle>
                {getStatusBadge(withdraw.status)}
             </div>
