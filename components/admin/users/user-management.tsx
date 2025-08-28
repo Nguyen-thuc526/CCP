@@ -79,8 +79,13 @@ export function MemberManagement() {
          );
       }
 
+      // ✅ Sort by fullname (A-Z)
+      filtered = filtered.sort((a, b) =>
+         a.fullname.localeCompare(b.fullname, 'vi', { sensitivity: 'base' })
+      );
+
       setFilteredMembers(filtered);
-      setPage(1); // reset về trang đầu khi filter/search thay đổi
+      setPage(1);
    }, [rawMembers, searchTerm, statusFilter]);
 
    const handleStatusChange = async (memberId: string, newStatus: number) => {
