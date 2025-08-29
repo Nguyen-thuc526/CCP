@@ -35,6 +35,7 @@ import { RootState } from '@/store/store';
 import { logout } from '@/store/slices/authReducer';
 import { Role } from '@/utils/enum';
 import { storage } from '@/utils/storage';
+import Image from 'next/image';
 
 interface SidebarLink {
    href: string;
@@ -258,9 +259,15 @@ export function Sidebar() {
          >
             <Link
                href={dashboardLink}
-               className="flex items-center gap-2 font-semibold"
+               className="flex items-center font-semibold"
             >
-               <Heart className="h-6 w-6 text-rose-500" />
+               <Image
+                  src="/8a04fc98-ebcd-4818-b662-748a85fb6a92.png"
+                  alt="Logo"
+                  width={24}
+                  height={24}
+                  className="h-14 w-14 object-contain"
+               />
                {!collapsed && <span className="text-lg">{title}</span>}
             </Link>
          </div>
