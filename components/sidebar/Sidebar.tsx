@@ -1,13 +1,12 @@
 'use client';
 import { deleteCookie } from '@/utils/cookies';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
    ChevronDown,
    ChevronLeft,
    ChevronRight,
-   Heart,
    LayoutDashboard,
    User,
    Users2,
@@ -19,13 +18,14 @@ import {
    ClipboardList,
    Package,
    Calendar,
-   MessageSquare,
    Wallet,
    FilePlus,
    UserCircle,
    LogOut,
    Brain,
    Banknote,
+   Menu,
+   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -42,15 +42,12 @@ interface SidebarLink {
    title: string;
    icon: React.ReactNode;
 }
-
 interface SidebarGroup {
    title: string;
    icon: React.ReactNode;
    children: SidebarLink[];
 }
-
 type SidebarItem = SidebarLink | SidebarGroup;
-
 function isGroup(item: SidebarItem): item is SidebarGroup {
    return (item as SidebarGroup).children !== undefined;
 }
@@ -61,7 +58,8 @@ export function Sidebar() {
    const role = useSelector((state: RootState) => state.auth.role);
    const router = useRouter();
 
-   const [collapsed, setCollapsed] = useState(false);
+   const [collapsed, setCollapsed] = useState(false); // giữ nguyên cho desktop
+   const [mobileOpen, setMobileOpen] = useState(false); // thêm cho mobile
 
    const adminLinks: SidebarItem[] = [
       {
@@ -158,11 +156,6 @@ export function Sidebar() {
                icon: <Calendar className="h-5 w-5" />,
                title: 'Lịch hẹn',
             },
-            // {
-            //    href: '/counselor/consultations',
-            //    icon: <MessageSquare className="h-5 w-5" />,
-            //    title: 'Hồ sơ tư vấn',
-            // },
             {
                href: '/counselor/certificates',
                icon: <FilePlus className="h-5 w-5" />,
@@ -188,7 +181,6 @@ export function Sidebar() {
       role === Role.Admin ? '/admin/dashboard' : '/counselor/dashboard';
    const title = role === Role.Admin ? 'CCP Admin' : 'CCP Tư vấn viên';
 
-   // ✅ Initialize all groups as open
    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
       links.reduce(
          (acc, item) => {
@@ -198,10 +190,8 @@ export function Sidebar() {
          {} as Record<string, boolean>
       )
    );
-
-   const toggleGroup = (title: string) => {
-      setOpenGroups((prev) => ({ ...prev, [title]: !prev[title] }));
-   };
+   const toggleGroup = (t: string) =>
+      setOpenGroups((p) => ({ ...p, [t]: !p[t] }));
 
    const handleLogout = () => {
       storage.removeToken();
@@ -217,44 +207,27 @@ export function Sidebar() {
                (item) =>
                   isGroup(item) &&
                   item.children.some((child) => child.href === pathname)
-            );
-            if (activeGroup) {
-               setOpenGroups((prevGroups) => ({
-                  ...prevGroups,
-                  [activeGroup.title]: true,
-               }));
-            }
+            ) as SidebarGroup | undefined;
+            if (activeGroup)
+               setOpenGroups((pg) => ({ ...pg, [activeGroup.title]: true }));
          }
          return newState;
       });
    };
 
-   return (
-      <div
-         className={cn(
-            'h-screen sticky top-0 flex flex-col border-r bg-white dark:bg-gray-950 transition-all duration-300',
-            collapsed ? 'w-20' : 'w-64'
-         )}
-      >
-         {/* Nút toggle */}
-         <Button
-            variant="ghost"
-            size="icon"
-            className="absolute -right-3 top-20 z-10 h-6 w-6 rounded-full border bg-background"
-            onClick={toggleSidebar}
-         >
-            {collapsed ? (
-               <ChevronRight className="h-3 w-3" />
-            ) : (
-               <ChevronLeft className="h-3 w-3" />
-            )}
-         </Button>
+   // auto close drawer khi đổi route
+   useEffect(() => {
+      setMobileOpen(false);
+   }, [pathname]);
 
+   // Phần inner tái sử dụng cho desktop + mobile
+   const SidebarInner = (forceExpanded = false) => (
+      <>
          {/* Logo */}
          <div
             className={cn(
                'flex h-14 items-center border-b px-4',
-               collapsed && 'justify-center'
+               collapsed && !forceExpanded && 'justify-center'
             )}
          >
             <Link
@@ -266,10 +239,22 @@ export function Sidebar() {
                   alt="Logo"
                   width={24}
                   height={24}
-                  className="h-14 w-14 object-contain"
+                  className="h-7 w-7 object-contain mr-2"
                />
-               {!collapsed && <span className="text-lg">{title}</span>}
+               {(!collapsed || forceExpanded) && (
+                  <span className="text-base">{title}</span>
+               )}
             </Link>
+            {/* nút đóng cho mobile */}
+            {forceExpanded && (
+               <button
+                  className="ml-auto grid place-items-center rounded-md p-2 hover:bg-muted"
+                  onClick={() => setMobileOpen(false)}
+                  aria-label="Đóng menu"
+               >
+                  <X className="h-5 w-5" />
+               </button>
+            )}
          </div>
 
          {/* Menu */}
@@ -282,14 +267,18 @@ export function Sidebar() {
                            onClick={() => toggleGroup(item.title)}
                            className={cn(
                               'flex items-center gap-3 px-3 py-2 w-full text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800',
-                              collapsed ? 'justify-center' : 'justify-between'
+                              collapsed && !forceExpanded
+                                 ? 'justify-center'
+                                 : 'justify-between'
                            )}
                         >
                            <div className="flex items-center gap-3">
                               {item.icon}
-                              {!collapsed && <span>{item.title}</span>}
+                              {(!collapsed || forceExpanded) && (
+                                 <span>{item.title}</span>
+                              )}
                            </div>
-                           {!collapsed && (
+                           {(!collapsed || forceExpanded) && (
                               <ChevronDown
                                  className={cn(
                                     'h-4 w-4 transition',
@@ -299,25 +288,26 @@ export function Sidebar() {
                            )}
                         </button>
 
-                        {!collapsed && openGroups[item.title] && (
-                           <div className="ml-6 mt-1 space-y-1">
-                              {item.children.map((link) => (
-                                 <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className={cn(
-                                       'flex items-center gap-3 px-3 py-2 text-sm rounded-md',
-                                       pathname === link.href
-                                          ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
-                                          : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                    )}
-                                 >
-                                    {link.icon}
-                                    <span>{link.title}</span>
-                                 </Link>
-                              ))}
-                           </div>
-                        )}
+                        {(!collapsed || forceExpanded) &&
+                           openGroups[item.title] && (
+                              <div className="ml-6 mt-1 space-y-1">
+                                 {item.children.map((link) => (
+                                    <Link
+                                       key={link.href}
+                                       href={link.href}
+                                       className={cn(
+                                          'flex items-center gap-3 px-3 py-2 text-sm rounded-md',
+                                          pathname === link.href
+                                             ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                                             : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                       )}
+                                    >
+                                       {link.icon}
+                                       <span>{link.title}</span>
+                                    </Link>
+                                 ))}
+                              </div>
+                           )}
                      </div>
                   ) : (
                      <Link
@@ -325,15 +315,19 @@ export function Sidebar() {
                         href={item.href}
                         className={cn(
                            'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800',
-                           collapsed ? 'justify-center' : '',
+                           collapsed && !forceExpanded ? 'justify-center' : '',
                            pathname === item.href
                               ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50'
                               : 'text-gray-500 dark:text-gray-400'
                         )}
-                        title={collapsed ? item.title : undefined}
+                        title={
+                           collapsed && !forceExpanded ? item.title : undefined
+                        }
                      >
                         {item.icon}
-                        {!collapsed && <span>{item.title}</span>}
+                        {(!collapsed || forceExpanded) && (
+                           <span>{item.title}</span>
+                        )}
                      </Link>
                   )
                )}
@@ -346,14 +340,87 @@ export function Sidebar() {
                variant="outline"
                className={cn(
                   'w-full flex items-center',
-                  collapsed ? 'justify-center' : 'justify-start'
+                  collapsed && !forceExpanded
+                     ? 'justify-center'
+                     : 'justify-start'
                )}
                onClick={handleLogout}
             >
-               <LogOut className={cn('h-4 w-4', collapsed ? '' : 'mr-2')} />
-               {!collapsed && <span>Đăng xuất</span>}
+               <LogOut
+                  className={cn(
+                     'h-4 w-4',
+                     collapsed && !forceExpanded ? '' : 'mr-2'
+                  )}
+               />
+               {(!collapsed || forceExpanded) && <span>Đăng xuất</span>}
             </Button>
          </div>
-      </div>
+      </>
+   );
+
+   return (
+      <>
+         {/* Nút mở menu cho mobile */}
+         <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden fixed left-3 top-3 z-50 rounded-full border bg-background shadow"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Mở menu"
+         >
+            <Menu className="h-5 w-5" />
+         </Button>
+
+         {/* DESKTOP: ẨN TRÊN MOBILE  */}
+         <div
+            className={cn(
+               'hidden lg:flex h-screen sticky top-0 flex-col border-r bg-white dark:bg-gray-950 transition-all duration-300',
+               collapsed ? 'w-20' : 'w-64'
+            )}
+         >
+            {/* nút thu gọn như cũ */}
+            <Button
+               variant="ghost"
+               size="icon"
+               className="absolute -right-3 top-20 z-10 h-6 w-6 rounded-full border bg-background"
+               onClick={toggleSidebar}
+               aria-label="Thu gọn/mở rộng"
+            >
+               {collapsed ? (
+                  <ChevronRight className="h-3 w-3" />
+               ) : (
+                  <ChevronLeft className="h-3 w-3" />
+               )}
+            </Button>
+
+            {/* --- giữ nguyên phần nội dung sidebar (logo, menu, logout) --- */}
+            {SidebarInner()}
+         </div>
+
+         {/* MOBILE: CHỈ HIỆN TRÊN MOBILE */}
+         {/* overlay */}
+         <div
+            className={cn(
+               'lg:hidden fixed inset-0 z-40 bg-black/30 transition-opacity',
+               mobileOpen
+                  ? 'opacity-100 pointer-events-auto'
+                  : 'opacity-0 pointer-events-none'
+            )}
+            onClick={() => setMobileOpen(false)}
+         />
+         {/* panel */}
+         <aside
+            className={cn(
+               'lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-950 border-r shadow-xl',
+               'transform transition-transform duration-300',
+               mobileOpen ? 'translate-x-0' : '-translate-x-full'
+            )}
+            aria-hidden={!mobileOpen}
+         >
+            {SidebarInner(
+               true /* forceExpanded: luôn hiện text/nhóm trên mobile */
+            )}
+         </aside>
+      </>
    );
 }
