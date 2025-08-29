@@ -64,7 +64,7 @@ export function BookingFilters({
                      Xác nhận lịch
                   </SelectItem>
                   <SelectItem value={BookingStatus.Finish.toString()}>
-                     Đã kết thúc
+                     Đã hoàn thành
                   </SelectItem>
                   <SelectItem value={BookingStatus.MemberCancel.toString()}>
                      Thành viên hủy
@@ -76,7 +76,7 @@ export function BookingFilters({
                      Hoàn tiền
                   </SelectItem>
                   <SelectItem value={BookingStatus.Complete.toString()}>
-                     Hoàn thành
+                     Đã kết thúc
                   </SelectItem>
                </SelectContent>
             </Select>

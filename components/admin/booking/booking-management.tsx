@@ -123,7 +123,7 @@ export default function BookingManagement() {
 
    const handleRefund = () => handleStatusUpdate(6, 'Hoàn tiền');
    const handleReject = () => handleStatusUpdate(7, 'Từ chối');
-   const handleComplete = () => handleStatusUpdate(8, 'Hỗ trợ hoàn tất'); // sửa 8 thay vì 7 nếu BE quy định
+   const handleComplete = () => handleStatusUpdate(7, 'Hỗ trợ hoàn tất');
 
    // ✅ filter trên toàn bộ dữ liệu
    // ✅ filter + sort theo time mới nhất trước

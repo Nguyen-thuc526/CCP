@@ -122,6 +122,14 @@ export interface PersonTypeByNameRequest {
    name: string;
    surveyId: string;
 }
+export type ReportMetadata = 1 | 2 | 3 | 4;
+
+export interface UpdateReportMetadataRequest {
+  bookingId: string;
+  reportMetadata: ReportMetadata; // chỉ nhận 1 | 2 | 3 | 4
+}
+
+export type UpdateReportMetadataResponse = ApiResponse<null>;
 export type CoupleByBookingResponse = ApiResponse<Record<string, any>>;
 // nếu có schema trả về sau này, chỉ cần đổi Record<string, any> thành interface cụ thể
 export type PersonTypeBeforeBookingResponse = ApiResponse<PersonTypeItem[]>;
