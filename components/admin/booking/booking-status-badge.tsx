@@ -16,15 +16,9 @@ export function BookingStatusBadge({ status }: BookingStatusBadgeProps) {
             };
          case BookingStatus.Finish:
             return {
-               label: 'Đã kết thúc',
+               label: 'Đã hoàn thành',
                variant: 'default' as const,
                className: 'bg-green-100 text-green-800 hover:bg-green-100',
-            };
-         case BookingStatus.Reschedule:
-            return {
-               label: 'Đề xuất lịch mới',
-               variant: 'outline' as const,
-               className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
             };
          case BookingStatus.MemberCancel:
             return {
@@ -46,7 +40,7 @@ export function BookingStatusBadge({ status }: BookingStatusBadgeProps) {
             };
          case BookingStatus.Complete:
             return {
-               label: 'Hoàn thành',
+               label: 'Đã hoàn thành',
                variant: 'default' as const,
                className: 'bg-green-50 text-green-700 hover:bg-green-50',
             };

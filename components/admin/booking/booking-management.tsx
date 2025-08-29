@@ -18,7 +18,6 @@ import { BookingFilters } from './booking-filter';
 import { BookingStats } from './booking-stat';
 import { BookingTable } from './booking-table';
 import { BookingDetailsModal } from './booking-details-modal';
-import { rawListeners } from 'process';
 
 const PAGE_SIZE = 10;
 
@@ -125,8 +124,6 @@ export default function BookingManagement() {
    const handleReject = () => handleStatusUpdate(7, 'Từ chối');
    const handleComplete = () => handleStatusUpdate(7, 'Hỗ trợ hoàn tất');
 
-   // ✅ filter trên toàn bộ dữ liệu
-   // ✅ filter + sort theo time mới nhất trước
    const filteredBookings = allBookings
       .filter((booking) => {
          const matchesSearch =
