@@ -18,6 +18,7 @@ import { BookingFilters } from './booking-filter';
 import { BookingStats } from './booking-stat';
 import { BookingTable } from './booking-table';
 import { BookingDetailsModal } from './booking-details-modal';
+import { rawListeners } from 'process';
 
 const PAGE_SIZE = 10;
 
@@ -125,26 +126,32 @@ export default function BookingManagement() {
    const handleComplete = () => handleStatusUpdate(7, 'Hỗ trợ hoàn tất');
 
    // ✅ filter trên toàn bộ dữ liệu
-   const filteredBookings = allBookings.filter((booking) => {
-      const matchesSearch =
-         searchQuery === '' ||
-         booking.member.fullname
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-         booking.counselor.fullname
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-         booking.member2?.fullname
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase());
+   // ✅ filter + sort theo time mới nhất trước
+   const filteredBookings = allBookings
+      .filter((booking) => {
+         const matchesSearch =
+            searchQuery === '' ||
+            booking.member.fullname
+               .toLowerCase()
+               .includes(searchQuery.toLowerCase()) ||
+            booking.counselor.fullname
+               .toLowerCase()
+               .includes(searchQuery.toLowerCase()) ||
+            booking.member2?.fullname
+               .toLowerCase()
+               .includes(searchQuery.toLowerCase());
 
-      const matchesType =
-         typeFilter === 'all' ||
-         (typeFilter === 'couple' && booking.isCouple) ||
-         (typeFilter === 'individual' && !booking.isCouple);
+         const matchesType =
+            typeFilter === 'all' ||
+            (typeFilter === 'couple' && booking.isCouple) ||
+            (typeFilter === 'individual' && !booking.isCouple);
 
-      return matchesSearch && matchesType;
-   });
+         return matchesSearch && matchesType;
+      })
+      .sort(
+         (a, b) =>
+            new Date(b.timeStart).getTime() - new Date(a.timeStart).getTime()
+      );
 
    // ✅ phân trang ở FE
    const pagedBookings = filteredBookings.slice(

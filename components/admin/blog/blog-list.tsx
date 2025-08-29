@@ -36,7 +36,13 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
       try {
          setLoading(true);
          const data = await PostService.getPosts();
-         setPosts(data);
+
+         const sorted = data.sort(
+            (a, b) =>
+               new Date(b.createAt).getTime() - new Date(a.createAt).getTime()
+         );
+
+         setPosts(sorted);
       } catch (error) {
          console.error(error);
          showToast('Tải danh sách bài viết thất bại!', ToastType.Error);

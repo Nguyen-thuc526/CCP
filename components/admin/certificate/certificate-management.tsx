@@ -104,7 +104,7 @@ export default function CertificatesPage() {
    }, [certificates]);
 
    const filteredCertificates = useMemo(() => {
-      return certificates.filter((cert) => {
+      let result = certificates.filter((cert) => {
          const matchesSearch =
             cert.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             cert.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -117,6 +117,11 @@ export default function CertificatesPage() {
 
          return matchesSearch && matchesCategory;
       });
+
+      // ✅ Sort by time (mới nhất lên đầu)
+      return result.sort(
+         (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
+      );
    }, [certificates, searchTerm, selectedCategory]);
 
    const statusUI = renderStatus({

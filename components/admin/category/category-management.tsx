@@ -184,16 +184,19 @@ export default function CategoryManagement() {
       }
    };
 
-   // ✅ Filter categories
    const filteredCategories = useMemo(() => {
-      return categories.filter((category) => {
-         const matchesSearch = category.name
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase());
-         const matchesStatus =
-            statusFilter === -1 || category.status === statusFilter;
-         return matchesSearch && matchesStatus;
-      });
+      return categories
+         .filter((category) => {
+            const matchesSearch = category.name
+               .toLowerCase()
+               .includes(searchTerm.toLowerCase());
+            const matchesStatus =
+               statusFilter === -1 || category.status === statusFilter;
+            return matchesSearch && matchesStatus;
+         })
+         .sort((a, b) =>
+            a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' })
+         );
    }, [categories, searchTerm, statusFilter]);
 
    return (

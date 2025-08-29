@@ -32,7 +32,15 @@ export function useWithdrawStore() {
       setLoading((prev) => ({ ...prev, [status]: true }));
       try {
          const data = await getWithdrawByStatus(status);
-         setWithdraws((prev) => ({ ...prev, [status]: data }));
+
+         // ✅ sort ngay sau khi lấy API
+         const sorted = data.sort(
+            (a, b) =>
+               new Date(b.createDate).getTime() -
+               new Date(a.createDate).getTime()
+         );
+
+         setWithdraws((prev) => ({ ...prev, [status]: sorted }));
       } catch (error) {
          showToast('Không thể tải danh sách rút tiền', ToastType.Error);
       } finally {

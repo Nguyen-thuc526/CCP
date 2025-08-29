@@ -172,7 +172,6 @@ export default function CertificateDetailPage() {
          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                <h1 className="text-3xl font-bold mb-2">{certificate.name}</h1>
-               <p className="text-muted-foreground">ID: {certificate.id}</p>
             </div>
             <Badge
                className={`${getStatusColor(certificate.status)} flex items-center gap-2`}

@@ -71,6 +71,11 @@ export function CounselorManagement() {
          );
       }
 
+      // ✅ Sort by fullname (A-Z, có hỗ trợ tiếng Việt)
+      filtered = filtered.sort((a, b) =>
+         a.fullname.localeCompare(b.fullname, 'vi', { sensitivity: 'base' })
+      );
+
       setFilteredCounselors(filtered);
       setPage(1); // reset về trang đầu khi filter/search thay đổi
    }, [rawCounselors, searchTerm, statusFilter]);
