@@ -216,14 +216,14 @@ export default function CertificateDetailModal({
 
       setIsSaving(true);
       try {
-       const updateData = {
-  certificationId: editData.id,
-  name: editData.name?.trim(),
-  description: editData.description?.trim(),
-  image: editData.image,
-  subCategoryIds: selectedSubCategories,
-  time: new Date().toISOString(), // 🔥 thêm thời gian nộp/cập nhật
-};
+         const updateData = {
+            certificationId: editData.id,
+            name: editData.name?.trim(),
+            description: editData.description?.trim(),
+            image: editData.image,
+            subCategoryIds: selectedSubCategories,
+            time: new Date().toISOString(), // 🔥 thêm thời gian nộp/cập nhật
+         };
 
          const response =
             await certificationService.updateCertification(updateData);

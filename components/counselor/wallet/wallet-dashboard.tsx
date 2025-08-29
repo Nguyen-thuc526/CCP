@@ -12,11 +12,8 @@ import { WalletService } from "@/services/walletService";
 import { TransactionService } from "@/services/transactionService";
 
 import {
-  Transaction, // UI model
-  TransactionApiResponse, // resp bookings
-  BookingTransactionItem,
-  WithdrawListResponse, // resp withdraws
-  WithdrawItem,
+  Transaction,
+  TransactionApiResponse,
 } from "@/types/transaction";
 
 import { WalletOverview } from "./wallet-overview";
@@ -33,73 +30,69 @@ export function WalletDashboard() {
     try {
       startLoading();
 
-      // ===== Ví (gọi API counselor-wallet)
+      // ===== Ví
       const walletResponse: WalletResponse = await WalletService.getMyBalance();
-
       if (walletResponse.success && walletResponse.data) {
-        // API đã trả đúng shape: currentBalance, thisMonthIncome, pendingPayment, withdrawnTotal, pendingDeposit
         setWalletData(walletResponse.data);
       } else {
         setErrorMessage(walletResponse.error || "Không thể tải dữ liệu ví. Vui lòng thử lại.");
       }
 
-      // ===== Bookings (thu nhập - completed)
-      const transactionResponse: TransactionApiResponse = await TransactionService.getTransactions(1, 10);
-      let mappedTransactions: Transaction[] = [];
+      // ===== System transactions: render đúng theo API (7 = income, 8 = pending, 10 = failed)
+      const txResp: TransactionApiResponse = await TransactionService.getTransactions(1, 50);
+      let mapped: Transaction[] = [];
 
-      if (transactionResponse.success && transactionResponse.data) {
-        const completedBookings: Transaction[] = transactionResponse.data.items.map(
-          (item: BookingTransactionItem, index: number) => ({
-            id: item.transactionId || `booking-${index + 1}`,
-            type: "income",
-            amount: Math.abs(item.amount),
-            description: item.description || "Thu nhập từ booking",
-            date: item.createDate,
-            status: "completed",
-            clientName: item.clientName,
-          })
-        );
-        mappedTransactions = [...completedBookings];
+      if (txResp.success && txResp.data) {
+        const items = txResp.data.items || [];
+
+        const sysMapped: Transaction[] = items
+          .filter((i: any) => ["7", "8", "10"].includes(String(i.transactionType)))
+          .map((i: any) => {
+            const t = String(i.transactionType);
+
+            if (t === "7") {
+              // Thu nhập (completed)
+              return {
+                id: i.id,
+                type: "income",
+                amount: Math.abs(i.amount),
+                description: i.description, // lấy thẳng từ API
+                date: i.createDate,
+                status: "completed",
+              } as Transaction;
+            }
+
+            if (t === "8") {
+              // Rút tiền chờ xử lý
+              return {
+                id: i.id,
+                type: "pending",
+                amount: Math.abs(i.amount), // UI hiển thị dấu '-'
+                description: i.description, // lấy thẳng từ API
+                date: i.createDate,
+                status: "pending",
+              } as Transaction;
+            }
+
+            // t === "10" → rút tiền bị từ chối
+            return {
+              id: i.id,
+              type: "withdrawal",
+              amount: Math.abs(i.amount), // UI hiển thị dấu '+'
+              description: i.description, // lấy thẳng từ API
+              date: i.createDate,
+              status: "failed",
+            } as Transaction;
+          });
+
+        mapped = sysMapped;
       } else {
-        setErrorMessage(transactionResponse.error || "Không thể tải dữ liệu giao dịch. Vui lòng thử lại.");
+        setErrorMessage(txResp.error || "Không thể tải lịch sử giao dịch.");
       }
 
-      // ===== Withdraws (pending + completed)
-      const withdrawApiResponse: WithdrawListResponse = await TransactionService.getMyWithdraws();
-
-      if (withdrawApiResponse?.success && Array.isArray(withdrawApiResponse.data)) {
-        const pendingWithdrawals: Transaction[] = withdrawApiResponse.data
-          .filter((item: WithdrawItem) => item.status === 1)
-          .map((item: WithdrawItem) => ({
-            id: `withdraw-${item.id}`,
-            type: "pending",
-            amount: item.total,
-            description: `Yêu cầu rút tiền về ${item.bankName} (${item.stk})`,
-            date: item.createDate,
-            status: "pending",
-            clientName: item.accountName,
-          }));
-
-        const completedWithdrawals: Transaction[] = withdrawApiResponse.data
-          .filter((item: WithdrawItem) => item.status === 2)
-          .map((item: WithdrawItem) => ({
-            id: `withdraw-completed-${item.id}`,
-            type: "withdrawal",
-            amount: item.total,
-            description: `Đã rút tiền về ${item.bankName} (${item.stk})`,
-            date: item.createDate,
-            status: "completed",
-            clientName: item.accountName,
-          }));
-
-        mappedTransactions = [...mappedTransactions, ...pendingWithdrawals, ...completedWithdrawals];
-      } else {
-        setErrorMessage("Không thể tải dữ liệu rút tiền. Vui lòng thử lại.");
-      }
-
-      // Sort newest first
-      mappedTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setTransactions(mappedTransactions);
+      // Sắp xếp mới nhất trước
+      mapped.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setTransactions(mapped);
     } catch {
       setErrorMessage("Đã xảy ra lỗi khi tải dữ liệu. Vui lòng kiểm tra kết nối mạng.");
     } finally {
@@ -139,36 +132,6 @@ export function WalletDashboard() {
               <Skeleton className="h-10 w-32" />
               <Skeleton className="h-10 w-36" />
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-6 w-36" />
-              <div className="flex gap-2">
-                <Skeleton className="h-10 w-48" />
-                <Skeleton className="h-10 w-32" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-10 w-full mb-4" />
-            {Array.from({ length: 5 }).map((_, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border rounded-lg mb-4">
-                <div className="flex items-center gap-4">
-                  <Skeleton className="h-4 w-4" />
-                  <div>
-                    <Skeleton className="h-4 w-40" />
-                    <Skeleton className="h-3 w-24 mt-2" />
-                    <Skeleton className="h-3 w-32 mt-1" />
-                  </div>
-                </div>
-                <div className="text-right">
-                  <Skeleton className="h-6 w-24" />
-                  <Skeleton className="h-4 w-16 mt-2" />
-                </div>
-              </div>
-            ))}
           </CardContent>
         </Card>
       </div>

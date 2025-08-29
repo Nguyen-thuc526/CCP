@@ -38,7 +38,6 @@ export function WalletOverview({ walletData }: { walletData: WalletData | null }
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(walletData.thisMonthIncome)}</div>
-            <p className="text-xs text-muted-foreground">+12.5% so với tháng trước</p>
           </CardContent>
         </Card>
 
