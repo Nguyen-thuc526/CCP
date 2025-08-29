@@ -1,5 +1,9 @@
 export interface WalletData {
-   remaining: number;
+   currentBalance: number;
+   thisMonthIncome: number;
+   pendingPayment: number;
+   withdrawnTotal: number;
+   pendingDeposit: number;
 }
 
 export interface WalletResponse {

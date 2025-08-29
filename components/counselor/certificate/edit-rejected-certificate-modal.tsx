@@ -328,9 +328,9 @@ export default function EditRejectedCertificateModal({
             name: formData.name.trim(),
             description: formData.description.trim(),
             image: formData.image,
-            subCategoryIds: selectedSubCategories, // Send only subCategory IDs
+            subCategoryIds: selectedSubCategories,
+            time: new Date().toISOString(), 
          };
-
          const response = await certificationService.updateCertification(
             submittedData as any
          );
