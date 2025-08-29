@@ -8,6 +8,7 @@ import { bookingService } from "@/services/bookingService"
 import type { SubCategory } from "@/types/certification"
 import { ToastType, useToast } from "@/hooks/useToast"
 import { BookingStatus } from "@/utils/enum"
+import { getEffectiveStatus } from "@/utils/booking-status-utils" // Added import for auto-transition logic
 import AppointmentHeader from "./AppointmentHeader"
 import AppointmentInfo from "./AppointmentInfo"
 import AppointmentSidebar from "./AppointmentSidebar"
@@ -103,6 +104,18 @@ const AppointmentDetail = memo(function AppointmentDetail({
     fetchAppointmentDetail()
   }, [appointmentId])
 
+  useEffect(() => {
+    if (appointment && appointment.status === BookingStatus.Finish) {
+      const effectiveStatus = getEffectiveStatus(appointment.status, appointment.timeEnd)
+
+      if (effectiveStatus === BookingStatus.Complete && appointment.status !== BookingStatus.Complete) {
+        // Auto-transition detected, update the appointment status
+        setAppointment((prev) => (prev ? { ...prev, status: BookingStatus.Complete } : null))
+        showToast("Lịch hẹn đã tự động chuyển sang trạng thái kết thúc sau 24 giờ.", ToastType.Info)
+      }
+    }
+  }, [appointment, showToast])
+
   const handleCancel = async (reason: string) => {
     if (!appointment) return
 
@@ -140,12 +153,14 @@ const AppointmentDetail = memo(function AppointmentDetail({
         guides: form.guides,
       })
 
+      const effectiveStatus = getEffectiveStatus(appointment.status, appointment.timeEnd)
+
       setAppointment({
         ...appointment,
         problemSummary: form.problemSummary,
         problemAnalysis: form.problemAnalysis,
         guides: form.guides,
-        status: BookingStatus.Complete,
+        status: effectiveStatus === BookingStatus.Complete ? BookingStatus.Complete : appointment.status,
       })
 
       showToast("Lưu ghi chú thành công.", ToastType.Success)
@@ -287,7 +302,12 @@ const AppointmentDetail = memo(function AppointmentDetail({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <AppointmentHeader appointmentId={appointmentId} isCouple={isCouple} status={appointment.status} />
+      <AppointmentHeader
+        appointmentId={appointmentId}
+        isCouple={isCouple}
+        status={appointment.status}
+        timeEnd={appointment.timeEnd} // Added timeEnd prop
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
@@ -316,7 +336,8 @@ const AppointmentDetail = memo(function AppointmentDetail({
             isCouple={isCouple}
             status={appointment.status}
             hasNotes={hasNotes}
-            timeStart={appointment.timeStart} // Added timeStart prop
+            timeStart={appointment.timeStart}
+            timeEnd={appointment.timeEnd} // Added timeEnd prop
             onOpenNoteDialog={handleOpenNoteDialog}
             onOpenCancelDialog={() => setShowCancelDialog(true)}
           />
