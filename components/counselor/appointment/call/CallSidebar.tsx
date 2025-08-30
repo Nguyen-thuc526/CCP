@@ -1,4 +1,5 @@
 "use client"
+
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -103,6 +104,56 @@ interface CoupleData {
   loveLanguage1Description: string | null
   bigFive1Description: string | null
   createAt: string
+
+  // compatibility details
+  mbtiDetail?: {
+    id: string
+    description: string
+    detail: string
+    compatibility: number
+    image: string
+    weaknesses: string
+    strongPoints: string
+    category: { name: string }
+    personType: { name: string; description: string }
+    personType2: { name: string; description: string }
+  }
+  discDetail?: {
+    id: string
+    description: string
+    detail: string
+    compatibility: number
+    image: string
+    weaknesses: string
+    strongPoints: string
+    category: { name: string }
+    personType: { name: string; description: string }
+    personType2: { name: string; description: string }
+  }
+  loveLanguageDetail?: {
+    id: string
+    description: string
+    detail: string
+    compatibility: number
+    image: string
+    weaknesses: string
+    strongPoints: string
+    category: { name: string }
+    personType: { name: string; description: string }
+    personType2: { name: string; description: string }
+  }
+  bigFiveDetail?: {
+    id: string
+    description: string
+    detail: string
+    compatibility: number
+    image: string
+    weaknesses: string
+    strongPoints: string
+    category: { name: string }
+    personType: { name: string; description: string }
+    personType2: { name: string; description: string }
+  }
 }
 
 const SURVEY_IDS = ["SV001", "SV002", "SV003", "SV004"] as const
@@ -125,9 +176,7 @@ const MBTI_TRAITS = {
 }
 
 function formatDate(dateString: string) {
-  return formatFn(new Date(dateString), "dd/MM/yyyy HH:mm", {
-    locale: viLocale,
-  })
+  return formatFn(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: viLocale })
 }
 
 function parseScores(description: string | null | undefined): Record<string, number> {
@@ -149,22 +198,14 @@ export default function CallSidebar({
   bookingId,
   loading = false,
 }: CallSidebarProps) {
-  const [noteForm, setNoteForm] = useState<NoteForm>({
-    problemSummary: "",
-    problemAnalysis: "",
-    guides: "",
-  })
-  const [formErrors, setFormErrors] = useState<FormErrors>({
-    problemSummary: "",
-    guides: "",
-  })
+  const [noteForm, setNoteForm] = useState<NoteForm>({ problemSummary: "", problemAnalysis: "", guides: "" })
+  const [formErrors, setFormErrors] = useState<FormErrors>({ problemSummary: "", guides: "" })
   const [isSending, setIsSending] = useState(false)
   const [collapsedSections, setCollapsedSections] = useState({
     problemSummary: false,
     problemAnalysis: false,
     guides: false,
   })
-  const [sendingStates, setSendingStates] = useState<Record<string, boolean>>({})
   const [individualResults, setIndividualResults] = useState<Record<string, SurveyResult[]>>({})
   const [coupleData, setCoupleData] = useState<CoupleData | null>(null)
   const [loadingSurvey, setLoadingSurvey] = useState(false)
@@ -181,17 +222,10 @@ export default function CallSidebar({
 
   const handleSaveAndSend = async () => {
     const errors: FormErrors = { problemSummary: "", guides: "" }
-    if (!noteForm.problemSummary.trim()) {
-      errors.problemSummary = "Tóm tắt vấn đề là bắt buộc"
-    }
-    if (!noteForm.guides.trim()) {
-      errors.guides = "Hướng dẫn là bắt buộc"
-    }
+    if (!noteForm.problemSummary.trim()) errors.problemSummary = "Tóm tắt vấn đề là bắt buộc"
+    if (!noteForm.guides.trim()) errors.guides = "Hướng dẫn là bắt buộc"
     setFormErrors(errors)
-
-    if (errors.problemSummary || errors.guides) {
-      return
-    }
+    if (errors.problemSummary || errors.guides) return
 
     setIsSending(true)
     try {
@@ -203,10 +237,7 @@ export default function CallSidebar({
             problemAnalysis: noteForm.problemAnalysis,
             guides: noteForm.guides,
           }),
-          bookingService.updateReportMetadata({
-            bookingId,
-            reportMetadata: "1",
-          }),
+          bookingService.updateReportMetadata({ bookingId, reportMetadata: "1" }),
         ])
       } else {
         await Promise.all([
@@ -216,20 +247,11 @@ export default function CallSidebar({
             problemAnalysis: noteForm.problemAnalysis,
             guides: noteForm.guides,
           }),
-          bookingService.updateReportMetadata({
-            bookingId,
-            reportMetadata: "3",
-          }),
-          bookingService.updateReportMetadata({
-            bookingId,
-            reportMetadata: "4",
-          }),
+          bookingService.updateReportMetadata({ bookingId, reportMetadata: "3" }),
+          bookingService.updateReportMetadata({ bookingId, reportMetadata: "4" }),
         ])
       }
-
       onSaveNotes(noteForm)
-
-      showToast("Đã lưu ghi chú và gửi báo cáo thành công", ToastType.Success)
     } catch (error) {
       showToast("Có lỗi xảy ra khi lưu và gửi", ToastType.Error)
     } finally {
@@ -238,20 +260,15 @@ export default function CallSidebar({
   }
 
   const toggleSection = (section: keyof typeof collapsedSections) => {
-    setCollapsedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }))
+    setCollapsedSections((prev) => ({ ...prev, [section]: !prev[section] }))
   }
 
   const loadSurveyResults = async () => {
     if (!bookingInfo) return
-
     setLoadingSurvey(true)
     try {
       if (bookingInfo.type === "individual") {
         const results: Record<string, SurveyResult[]> = {}
-
         for (const surveyId of SURVEY_IDS) {
           try {
             const response = await bookingService.personTypeBeforeBooking({
@@ -259,7 +276,6 @@ export default function CallSidebar({
               surveyId,
               bookingId,
             })
-
             if (response?.data) {
               const data = Array.isArray(response.data) ? response.data : [response.data]
               const sortedResults = data
@@ -275,20 +291,17 @@ export default function CallSidebar({
                 )
               results[surveyId] = sortedResults
             }
-          } catch (error) {
-            console.log(`No data for survey ${surveyId}`)
+          } catch {
+            // ignore missing data
           }
         }
-
         setIndividualResults(results)
       } else {
         try {
           const response = await bookingService.getCoupleByBooking(bookingId)
-          if (response?.data) {
-            setCoupleData(response.data)
-          }
-        } catch (error) {
-          console.log("No couple data found")
+          if (response?.data) setCoupleData(response.data)
+        } catch {
+          // ignore missing data
         }
       }
     } catch (error) {
@@ -312,7 +325,6 @@ export default function CallSidebar({
           const leftScore = scores[pair.left] || 0
           const rightScore = scores[pair.right] || 0
           const total = leftScore + rightScore
-
           if (total === 0) return null
 
           const leftPercentage = Math.round((leftScore / total) * 100)
@@ -347,10 +359,7 @@ export default function CallSidebar({
   }
 
   const renderScoreChart = (scores: Record<string, number>, surveyId?: string) => {
-    if (surveyId === "SV001") {
-      return renderMBTIChart(scores)
-    }
-
+    if (surveyId === "SV001") return renderMBTIChart(scores)
     const maxScore = Math.max(1, ...Object.values(scores))
     return (
       <div className="space-y-2">
@@ -369,7 +378,6 @@ export default function CallSidebar({
 
   const renderIndividualSurvey = (surveyId: string, results: SurveyResult[]) => {
     if (!results || results.length === 0) return null
-
     const config = surveyConfig[surveyId as keyof typeof surveyConfig]
     const Icon = config.icon
     const latestResult = results[0]
@@ -412,6 +420,118 @@ export default function CallSidebar({
     )
   }
 
+  const renderCompatibilityCard = (data: CoupleData) => {
+    const blocks = [
+      { key: "mbti", title: "MBTI", icon: BrainIcon, color: "blue", detail: data.mbtiDetail },
+      { key: "disc", title: "DISC", icon: Target, color: "green", detail: data.discDetail },
+      {
+        key: "loveLanguage",
+        title: "Love Language",
+        icon: Heart,
+        color: "pink",
+        detail: data.loveLanguageDetail,
+      },
+      { key: "bigFive", title: "Big Five", icon: BarChart3, color: "purple", detail: data.bigFiveDetail },
+    ].filter((b) => b.detail)
+
+    if (blocks.length === 0) return null
+
+    return (
+      <div className="space-y-4">
+        {blocks.map(({ key, title, icon: Icon, color, detail }: any) => (
+          <Card key={key} className="border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Icon className={`h-4 w-4 text-${color}-600`} />
+                {title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div
+                className={`flex items-center justify-between p-3 bg-${color}-50 rounded-lg border border-${color}-100`}
+              >
+                <div className="flex items-center gap-3">
+                  {detail.image && (
+                    <img
+                      src={detail.image || "/placeholder.svg"}
+                      alt="Compatibility"
+                      className="w-12 h-12 object-contain"
+                    />
+                  )}
+                  <div>
+                    <div className={`text-2xl font-bold text-${color}-900`}>{detail.compatibility}%</div>
+                    <div className={`text-xs font-medium text-${color}-700`}>Độ tương thích</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="text-xs font-semibold text-gray-900">
+                  {detail.personType?.name} & {detail.personType2?.name}
+                </div>
+                <div className="text-xs text-gray-600">{detail.category?.name}</div>
+              </div>
+
+              <div className="space-y-1">
+                <Progress value={detail.compatibility} className="h-2 rounded-full" />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>0%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+              {detail.description && (
+                <div className="p-2 bg-gray-50 rounded text-xs text-gray-700 leading-relaxed">{detail.description}</div>
+              )}
+
+              {detail.detail && (
+                <details className="group">
+                  <summary className="cursor-pointer text-xs font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                    <ChevronDown className="h-3 w-3 group-open:rotate-180 transition-transform" />
+                    Xem chi tiết
+                  </summary>
+                  <div className="mt-2 space-y-3">
+                    <div
+                      className="prose prose-xs max-w-none text-gray-700 text-xs leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: detail.detail }}
+                    />
+
+                    <div className="space-y-3">
+                      {detail.strongPoints && (
+                        <div className={`p-2 bg-green-50 rounded border border-green-100`}>
+                          <h4 className="text-xs font-semibold text-green-900 mb-1 flex items-center gap-1">
+                            <Star className="h-3 w-3" />
+                            Điểm mạnh
+                          </h4>
+                          <div
+                            className="prose prose-xs max-w-none text-green-800 text-xs"
+                            dangerouslySetInnerHTML={{ __html: detail.strongPoints }}
+                          />
+                        </div>
+                      )}
+                      {detail.weaknesses && (
+                        <div className="p-2 bg-orange-50 rounded border border-orange-100">
+                          <h4 className="text-xs font-semibold text-orange-900 mb-1 flex items-center gap-1">
+                            <Info className="h-3 w-3" />
+                            Thách thức
+                          </h4>
+                          <div
+                            className="prose prose-xs max-w-none text-orange-800 text-xs"
+                            dangerouslySetInnerHTML={{ __html: detail.weaknesses }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </details>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
+
   const renderCoupleSurvey = () => {
     if (!coupleData) return null
 
@@ -442,48 +562,48 @@ export default function CallSidebar({
     }
 
     const renderMemberData = (memberData: typeof member1Data, title: string) => (
-      <div className="space-y-4">
-        <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+      <div className="space-y-3">
+        <h4 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
           <User className="h-4 w-4 text-blue-600" />
           {title}
         </h4>
 
-        <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-3">
           {memberData.mbti && (
-            <div className="p-3 bg-blue-50 rounded-lg">
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
               <div className="flex items-center gap-2 mb-2">
                 <BrainIcon className="h-4 w-4 text-blue-600" />
-                <span className="font-semibold text-blue-900">MBTI: {memberData.mbti}</span>
+                <span className="font-semibold text-blue-900 text-sm">MBTI: {memberData.mbti}</span>
               </div>
               {Object.keys(memberData.mbtiScores).length > 0 && renderMBTIChart(memberData.mbtiScores)}
             </div>
           )}
 
           {memberData.disc && (
-            <div className="p-3 bg-green-50 rounded-lg">
+            <div className="p-3 bg-green-50 rounded-lg border border-green-100">
               <div className="flex items-center gap-2 mb-2">
                 <Target className="h-4 w-4 text-green-600" />
-                <span className="font-semibold text-green-900">DISC: {memberData.disc}</span>
+                <span className="font-semibold text-green-900 text-sm">DISC: {memberData.disc}</span>
               </div>
               {Object.keys(memberData.discScores).length > 0 && renderScoreChart(memberData.discScores)}
             </div>
           )}
 
           {memberData.loveLanguage && (
-            <div className="p-3 bg-pink-50 rounded-lg">
+            <div className="p-3 bg-pink-50 rounded-lg border border-pink-100">
               <div className="flex items-center gap-2 mb-2">
                 <Heart className="h-4 w-4 text-pink-600" />
-                <span className="font-semibold text-pink-900">Love Language: {memberData.loveLanguage}</span>
+                <span className="font-semibold text-pink-900 text-sm">Love Language: {memberData.loveLanguage}</span>
               </div>
               {Object.keys(memberData.loveLanguageScores).length > 0 && renderScoreChart(memberData.loveLanguageScores)}
             </div>
           )}
 
           {memberData.bigFive && (
-            <div className="p-3 bg-purple-50 rounded-lg">
+            <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
               <div className="flex items-center gap-2 mb-2">
                 <BarChart3 className="h-4 w-4 text-purple-600" />
-                <span className="font-semibold text-purple-900">Big Five: {memberData.bigFive}</span>
+                <span className="font-semibold text-purple-900 text-sm">Big Five: {memberData.bigFive}</span>
               </div>
               {Object.keys(memberData.bigFiveScores).length > 0 && renderScoreChart(memberData.bigFiveScores)}
             </div>
@@ -495,41 +615,38 @@ export default function CallSidebar({
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-500">Ngày tạo: {formatDate(coupleData.createAt)}</div>
+          <div className="text-xs text-gray-500">Ngày tạo: {formatDate(coupleData.createAt)}</div>
         </div>
 
-        <Tabs defaultValue="member1" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="member1">{member1Data.name}</TabsTrigger>
-            <TabsTrigger value="member2">{member2Data.name}</TabsTrigger>
-            <TabsTrigger value="both">Cả hai</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="member1" className="mt-4">
-            {renderMemberData(member1Data, member1Data.name)}
-          </TabsContent>
-
-          <TabsContent value="member2" className="mt-4">
-            {renderMemberData(member2Data, member2Data.name)}
-          </TabsContent>
-
-          <TabsContent value="both" className="mt-4">
+        <Card className="border border-blue-100">
+          <CardHeader className="bg-blue-50 py-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <UsersIcon className="h-5 w-5 text-blue-600" />
+              Kết quả khảo sát cá nhân
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
             <div className="space-y-6">
               {renderMemberData(member1Data, member1Data.name)}
-              {renderMemberData(member2Data, member2Data.name)}
+              <div className="border-t border-gray-200 pt-4">{renderMemberData(member2Data, member2Data.name)}</div>
             </div>
-          </TabsContent>
-        </Tabs>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+            <TrendingUp className="h-5 w-5 text-purple-600" />
+            <h3 className="text-base font-semibold text-gray-900">Phân tích tương thích</h3>
+          </div>
+          {renderCompatibilityCard(coupleData)}
+        </div>
       </div>
     )
   }
 
   return (
     <div
-      className={`fixed top-0 right-0 h-full bg-white border-l shadow-lg transition-all duration-300 z-50 ${
-        isOpen ? "w-96" : "w-0"
-      } overflow-hidden`}
-      style={{ top: "64px", height: "calc(100vh - 64px)" }}
+      className={`fixed top-0 right-0 h-full bg-white border-l shadow-lg transition-all duration-300 z-50 ${isOpen ? "w-96" : "w-0"} overflow-hidden`}
     >
       {/* Toggle Button */}
       <Button
@@ -583,12 +700,7 @@ export default function CallSidebar({
                 <CardContent>
                   <Textarea
                     value={noteForm.problemSummary}
-                    onChange={(e) =>
-                      setNoteForm({
-                        ...noteForm,
-                        problemSummary: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setNoteForm({ ...noteForm, problemSummary: e.target.value })}
                     placeholder="Tóm tắt ngắn gọn vấn đề chính..."
                     rows={3}
                     className={`resize-none text-sm ${formErrors.problemSummary ? "border-red-500" : ""}`}
@@ -626,12 +738,7 @@ export default function CallSidebar({
                 <CardContent>
                   <Textarea
                     value={noteForm.problemAnalysis}
-                    onChange={(e) =>
-                      setNoteForm({
-                        ...noteForm,
-                        problemAnalysis: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setNoteForm({ ...noteForm, problemAnalysis: e.target.value })}
                     placeholder="Phân tích chi tiết về nguyên nhân..."
                     rows={3}
                     className="resize-none text-sm"
@@ -663,12 +770,7 @@ export default function CallSidebar({
                 <CardContent>
                   <Textarea
                     value={noteForm.guides}
-                    onChange={(e) =>
-                      setNoteForm({
-                        ...noteForm,
-                        guides: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setNoteForm({ ...noteForm, guides: e.target.value })}
                     placeholder="Các bước tiếp theo, lời khuyên..."
                     rows={3}
                     className={`resize-none text-sm ${formErrors.guides ? "border-red-500" : ""}`}
@@ -717,21 +819,7 @@ export default function CallSidebar({
                 )}
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <UsersIcon className="h-4 w-4 text-purple-600" />
-                  <h3 className="text-base font-semibold">Kết quả khảo sát cặp đôi</h3>
-                </div>
-
-                {!coupleData ? (
-                  <div className="text-center py-8">
-                    <Info className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <div className="text-sm text-gray-500">Chưa có kết quả khảo sát cặp đôi</div>
-                  </div>
-                ) : (
-                  renderCoupleSurvey()
-                )}
-              </div>
+              renderCoupleSurvey()
             )}
           </div>
         </TabsContent>

@@ -169,19 +169,14 @@ const AppointmentSidebar: React.FC<AppointmentSidebarProps> = ({
         <CardContent className="space-y-3">
           {effectiveStatus === BookingStatus.Confirm && (
             <>
-              {canJoin ? (
+              
                 <Button size="sm" className="bg-green-600 hover:bg-green-700 w-full" asChild>
                   <Link href={`/counselor/appointments/call/${appointmentId}`}>
                     <Video className="mr-2 h-4 w-4" />
                     Tham gia
                   </Link>
                 </Button>
-              ) : (
-                <Button size="sm" disabled className="w-full bg-gray-400 hover:bg-gray-400">
-                  <Clock className="mr-2 h-4 w-4" />
-                  {timeUntilStart > 0 ? formatCountdown(timeUntilStart) : "Chuẩn bị..."}
-                </Button>
-              )}
+              
 
               <Button variant="destructive" onClick={onOpenCancelDialog} className="w-full">
                 <X className="mr-2 h-4 w-4" />

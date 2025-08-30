@@ -11,6 +11,7 @@ interface CallHeaderProps {
   onFinishClick: () => void
   onNotesClick: () => void
   isNotesOpen?: boolean
+  sidebarOpen?: boolean
 }
 
 export default function CallHeader({
@@ -20,20 +21,28 @@ export default function CallHeader({
   onFinishClick,
   onNotesClick,
   isNotesOpen = false,
+  sidebarOpen = false,
 }: CallHeaderProps) {
   return (
-    <div className="bg-white border-b shadow-sm">
+    <div className="bg-white border-b shadow-sm transition-all duration-300">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+        <div
+          className={`flex flex-col gap-3 sm:gap-4 ${
+            sidebarOpen ? "items-start" : "sm:flex-row sm:justify-between sm:items-center"
+          }`}
+        >
+          {/* Left: thông tin phòng */}
           <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
             <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0">
               <Video className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600" />
             </div>
+
             <div className="min-w-0 flex-1">
               <h1 className="text-base sm:text-xl font-bold text-gray-900 flex items-center gap-1 sm:gap-2 truncate">
                 <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
                 <span className="truncate">{roomName}</span>
               </h1>
+
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-gray-600 mt-1">
                 <div className="flex items-center gap-1">
                   <User className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
@@ -47,13 +56,17 @@ export default function CallHeader({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div
+            className={`flex flex-wrap items-center gap-2 sm:gap-3 ${
+              sidebarOpen ? "w-full justify-start mt-2" : "w-full sm:w-auto"
+            }`}
+          >
             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs sm:text-sm">
               <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full mr-1 sm:mr-2 animate-pulse" />
               Đang kết nối
             </Badge>
 
-            <div className="flex gap-1 sm:gap-2 flex-1 sm:flex-initial">
+            <div className="flex gap-1 sm:gap-2">
               <Button
                 onClick={onNotesClick}
                 variant={isNotesOpen ? "default" : "outline"}
