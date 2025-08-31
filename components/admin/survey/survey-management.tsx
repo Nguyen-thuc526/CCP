@@ -68,10 +68,8 @@ export default function SurveyManagement() {
             </p>
          </div>
 
-         {/* Loading / Error UI */}
          {renderStatus({ onRetry: refreshSurveys })}
 
-         {/* Empty State */}
          {!loading && !error && surveys.length === 0 && (
             <div className="text-center py-12">
                <p className="text-gray-500">

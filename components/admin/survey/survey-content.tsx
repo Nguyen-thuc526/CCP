@@ -384,7 +384,7 @@ export function SurveyContent({ surveys, onRefresh }: SurveyContentProps) {
                               </CardTitle>
 
                               {/* Description */}
-                              <CardDescription className="text-base">
+                              <CardDescription className="text-base w-[900px]">
                                  {survey.description}
                               </CardDescription>
 

@@ -8,65 +8,89 @@ import {
    CardTitle,
 } from '@/components/ui/card';
 import {
-   LineChart,
-   Line,
-   CartesianGrid,
+   BarChart,
+   Bar,
    XAxis,
    YAxis,
+   CartesianGrid,
    Tooltip,
    Legend,
    ResponsiveContainer,
 } from 'recharts';
-
-const fakeData = [
-   { week: 'Tuần 1', members: 200, appointments: 50, consultations: 40 },
-   { week: 'Tuần 2', members: 250, appointments: 65, consultations: 55 },
-   { week: 'Tuần 3', members: 280, appointments: 70, consultations: 60 },
-   { week: 'Tuần 4', members: 310, appointments: 90, consultations: 75 },
-];
+import { useEffect, useState } from 'react';
+import { fetchAdminOverview } from '@/services/adminService';
+import { Overview } from '@/types/dashboard';
 
 export function DashboardOverview() {
+   const [overview, setOverview] = useState<Overview | null>(null);
+   const [loading, setLoading] = useState(true);
+
+   useEffect(() => {
+      const load = async () => {
+         try {
+            const result = await fetchAdminOverview();
+            setOverview(result);
+         } catch (err) {
+            console.error('Lỗi khi tải dữ liệu tổng quan:', err);
+         } finally {
+            setLoading(false);
+         }
+      };
+
+      load();
+   }, []);
+
+   // Nếu chưa có dữ liệu
+   if (loading) return <div>Đang tải biểu đồ...</div>;
+   if (!overview) return <div>Không có dữ liệu để hiển thị</div>;
+
+   const chartData = [
+      {
+         name: 'Thành viên',
+         Tổng: overview?.totalMembers ?? 0,
+         'Trong tháng': overview?.newMembersThisMonth ?? 0,
+      },
+      {
+         name: 'Tư vấn viên',
+         Tổng: overview?.totalCounselors ?? 0,
+         'Trong tháng': overview?.newCounselorsThisMonth ?? 0,
+      },
+      {
+         name: 'Lịch hẹn',
+         Tổng: overview?.totalBookings ?? 0,
+         'Trong tháng': overview?.bookingsThisMonth ?? 0,
+      },
+      {
+         name: 'Khóa học',
+         Tổng: overview?.totalCoursesPurchased ?? 0,
+         'Trong tháng': overview?.coursesPurchasedThisMonth ?? 0,
+      },
+      {
+         name: 'Gói',
+         Tổng: overview?.totalMemberships ?? 0,
+         'Trong tháng': overview?.membershipsThisMonth ?? 0,
+      },
+   ];
+
    return (
       <Card>
          <CardHeader>
             <CardTitle>Tổng quan</CardTitle>
             <CardDescription>
-               Hoạt động của nền tảng trong tháng hiện tại
+               So sánh tổng và số lượng trong tháng hiện tại
             </CardDescription>
          </CardHeader>
-         <CardContent className="h-[300px]">
+         <CardContent className="h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
-               <LineChart
-                  data={fakeData}
-                  margin={{ top: 20, right: 20, bottom: 0, left: 0 }}
-               >
+               <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 0, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="week" />
+                  <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line
-                     type="monotone"
-                     dataKey="members"
-                     stroke="#4f46e5"
-                     strokeWidth={2}
-                     name="Thành viên"
-                  />
-                  <Line
-                     type="monotone"
-                     dataKey="appointments"
-                     stroke="#22c55e"
-                     strokeWidth={2}
-                     name="Lịch hẹn"
-                  />
-                  <Line
-                     type="monotone"
-                     dataKey="consultations"
-                     stroke="#f97316"
-                     strokeWidth={2}
-                     name="Buổi tư vấn"
-                  />
-               </LineChart>
+                  <Bar dataKey="Tổng" fill="#6366f1" />
+                  <Bar dataKey="Trong tháng" fill="#22c55e" />
+               </BarChart>
             </ResponsiveContainer>
          </CardContent>
       </Card>

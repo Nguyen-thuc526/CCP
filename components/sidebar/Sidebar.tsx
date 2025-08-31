@@ -239,7 +239,7 @@ export function Sidebar() {
                   alt="Logo"
                   width={24}
                   height={24}
-                  className="h-7 w-7 object-contain mr-2"
+                  className="h-16 w-16 object-contain mr-[-10px]"
                />
                {(!collapsed || forceExpanded) && (
                   <span className="text-base">{title}</span>
