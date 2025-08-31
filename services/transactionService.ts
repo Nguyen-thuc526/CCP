@@ -1,4 +1,4 @@
-import { TransactionApiResponse, WithdrawResponse } from '@/types/transaction';
+import { TransactionApiResponse } from '@/types/transaction';
 import axiosInstance from './axiosInstance';
 
 export const TransactionService = {
