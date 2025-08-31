@@ -41,9 +41,9 @@ export function DashboardHeader() {
          avatar: '/placeholder.svg?height=32&width=32',
          initials: (nameFromStore
             ? nameFromStore
-                 .split(' ')
-                 .map((w) => w[0])
-                 .join('')
+               .split(' ')
+               .map((w) => w[0])
+               .join('')
             : 'CS'
          )
             .slice(0, 2)
@@ -201,21 +201,22 @@ export function DashboardHeader() {
                </span>
             </Button>
 
-            {/* Toggle theme */}
+            {/* Toggle theme
             <Button variant="outline" size="icon" onClick={toggleTheme}>
                {theme === 'light' ? (
                   <Moon className="h-5 w-5" />
                ) : (
                   <Sun className="h-5 w-5" />
                )}
-            </Button>
+            </Button> */}
 
             {/* User info */}
-            <div className="flex items-center gap-2 rounded-full border border-muted px-2 py-1">
-               <Avatar className="h-8 w-8">
+            <div className="flex items-center gap-2 rounded-full border border-muted px-2 py-1 mr-4">
+               <Avatar className="h-12 w-8 flex items-center justify-center overflow-hidden rounded-full">
                   <AvatarImage
-                     src={currentUser.avatar || '/placeholder.svg'}
-                     alt={currentUser.name}
+                     src="/images.jpeg"
+                     alt={currentUser.name || 'Avatar'}
+                     className="h-7 w-6 object-cover"
                   />
                   <AvatarFallback>{currentUser.initials}</AvatarFallback>
                </Avatar>

@@ -26,7 +26,6 @@ export default function BookingManagement() {
    const [total, setTotal] = useState(0);
    const [currentPage, setCurrentPage] = useState(1);
    const [loading, setLoading] = useState(false);
-
    const [searchQuery, setSearchQuery] = useState('');
    const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>(
       'all'
@@ -50,14 +49,14 @@ export default function BookingManagement() {
       try {
          const response = await getBookings({
             PageNumber: 1,
-            PageSize: 99999, // ✅ lấy hết từ BE
+            PageSize: 99999, 
             Status: statusFilter === 'all' ? undefined : statusFilter,
          });
 
          const data = Array.isArray(response.items) ? response.items : [];
          setAllBookings(data);
          setTotal(data.length);
-         setCurrentPage(1); // reset về trang đầu khi đổi filter
+         setCurrentPage(1);
       } catch (error) {
          console.error('Lỗi khi tải booking:', error);
          showToast('Tải danh sách booking thất bại', ToastType.Error);

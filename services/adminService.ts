@@ -14,6 +14,7 @@ import {
    BookingPagingResponse,
    BookingQuery,
 } from '@/types/booking';
+import { Overview } from '@/types/dashboard';
 
 export const getMembers = async (
    params: GetMembersParams
@@ -81,4 +82,16 @@ export const getBookings = async (
       pageNumber: paging.pageNumber ?? params.PageNumber,
       pageSize: paging.pageSize ?? params.PageSize,
    };
+};
+
+
+export const fetchAdminOverview = async (): Promise<Overview> => {
+  const response = await axiosInstance.get<ApiResponse<Overview>>('/api/Dashboard/overview-booking');
+  const { success, data, error } = response.data;
+
+  if (!success) {
+    throw new Error(error || 'Không thể lấy dữ liệu tổng quan');
+  }
+
+  return data;
 };

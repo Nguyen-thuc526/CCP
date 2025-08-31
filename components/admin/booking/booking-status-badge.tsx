@@ -40,7 +40,7 @@ export function BookingStatusBadge({ status }: BookingStatusBadgeProps) {
             };
          case BookingStatus.Complete:
             return {
-               label: 'Đã hoàn thành',
+               label: 'Đã kết thúc',
                variant: 'default' as const,
                className: 'bg-green-50 text-green-700 hover:bg-green-50',
             };
