@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -42,6 +43,7 @@ const getStatusBadge = (status: string) => {
 };
 
 const getTransactionTypeLabel = (type: string, status: string) => {
+  if (type === 'withdrawal' && status === 'completed') return 'Rút tiền';
   if (status === 'failed') return 'Rút tiền (bị từ chối)';
   if (status === 'pending') return 'Rút tiền (chờ xử lý)';
   if (type === 'income') return 'Thu nhập';
@@ -61,7 +63,7 @@ export function TransactionList({ transactions }: { transactions: Transaction[] 
     } else if (tabValue === 'income') {
       filtered = filtered.filter((t) => t.type === 'income');
     } else if (tabValue === 'withdrawal') {
-      // gồm failed (và sau này nếu có completed)
+      // gồm failed và completed
       filtered = filtered.filter((t) => t.type === 'withdrawal');
     }
 
@@ -146,13 +148,13 @@ export function TransactionList({ transactions }: { transactions: Transaction[] 
                     <div className="text-right">
                       <div
                         className={`font-medium text-lg ${
-                          t.status === 'failed' ? 'text-gray-700'
+                          t.status === 'failed' ? 'text-green-600'
                             : t.type === 'income' ? 'text-green-600'
-                            : t.type === 'pending' ? 'text-orange-600'
+                            : t.type === 'pending' || t.status === 'pending' ? 'text-orange-600'
                             : 'text-red-600'
                         }`}
                       >
-                        {/* Thu nhập & rút tiền bị từ chối: '+' ; Rút tiền (chờ xử lý): '-' */}
+                        {/* Thu nhập & rút tiền bị từ chối: '+' ; Còn lại: '-' */}
                         {t.type === 'income' || t.status === 'failed' ? '+' : '-'}
                         {formatCurrency(t.amount)}
                       </div>

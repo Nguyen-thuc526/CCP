@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -38,62 +39,80 @@ export function WalletDashboard() {
         setErrorMessage(walletResponse.error || "Không thể tải dữ liệu ví. Vui lòng thử lại.");
       }
 
-      // ===== System transactions: render đúng theo API (7 = income, 8 = pending, 10 = failed)
+      // ===== Transactions: Chỉ lấy income từ SysTransaction (transactionType = 7)
       const txResp: TransactionApiResponse = await TransactionService.getTransactions(1, 50);
-      let mapped: Transaction[] = [];
-
+      let incomeMapped: Transaction[] = [];
       if (txResp.success && txResp.data) {
         const items = txResp.data.items || [];
-
-        const sysMapped: Transaction[] = items
-          .filter((i: any) => ["7", "8", "10"].includes(String(i.transactionType)))
-          .map((i: any) => {
-            const t = String(i.transactionType);
-
-            if (t === "7") {
-              // Thu nhập (completed)
-              return {
-                id: i.id,
-                type: "income",
-                amount: Math.abs(i.amount),
-                description: i.description, // lấy thẳng từ API
-                date: i.createDate,
-                status: "completed",
-              } as Transaction;
-            }
-
-            if (t === "8") {
-              // Rút tiền chờ xử lý
-              return {
-                id: i.id,
-                type: "pending",
-                amount: Math.abs(i.amount), // UI hiển thị dấu '-'
-                description: i.description, // lấy thẳng từ API
-                date: i.createDate,
-                status: "pending",
-              } as Transaction;
-            }
-
-            // t === "10" → rút tiền bị từ chối
-            return {
-              id: i.id,
-              type: "withdrawal",
-              amount: Math.abs(i.amount), // UI hiển thị dấu '+'
-              description: i.description, // lấy thẳng từ API
-              date: i.createDate,
-              status: "failed",
-            } as Transaction;
-          });
-
-        mapped = sysMapped;
+        incomeMapped = items
+          .filter((i: any) => String(i.transactionType) === "7")
+          .map((i: any) => ({
+            id: i.id,
+            type: "income",
+            amount: Math.abs(i.amount),
+            description: i.description, // lấy thẳng từ API
+            date: i.createDate,
+            status: "completed",
+          }) as Transaction);
       } else {
         setErrorMessage(txResp.error || "Không thể tải lịch sử giao dịch.");
       }
 
-      // Sắp xếp mới nhất trước
-      mapped.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setTransactions(mapped);
-    } catch {
+      // ===== Withdraws: lấy từ API riêng /api/Deposit/my-withdraws
+      const wdResp: any = await TransactionService.getMyWithdraws();
+      let withdrawMapped: Transaction[] = [];
+      if (wdResp?.success && Array.isArray(wdResp.data)) {
+        withdrawMapped = wdResp.data
+          .map((w: any) => {
+            const baseDesc = `Rút tiền về ${w.bankName} - ${w.stk} (${w.accountName})`;
+            if (Number(w.status) === 1) {
+              // 1 = yêu cầu rút tiền -> pending
+              return {
+                id: w.id,
+                type: "pending",
+                amount: Math.abs(w.total), // UI hiển thị '-'
+                description: baseDesc,
+                date: w.createDate,
+                status: "pending",
+              } as Transaction;
+            }
+            if (Number(w.status) === 2) {
+              // 2 = admin duyệt -> withdrawal completed
+              return {
+                id: w.id,
+                type: "withdrawal",
+                amount: Math.abs(w.total), // UI hiển thị '-'
+                description: baseDesc + " (đã duyệt)",
+                date: w.createDate,
+                status: "completed",
+              } as Transaction;
+            }
+            if (Number(w.status) === 3) {
+              // 3 = admin từ chối -> withdrawal failed (tiền không trừ)
+              return {
+                id: w.id,
+                type: "withdrawal",
+                amount: Math.abs(w.total), // UI hiển thị '+' theo logic TransactionList
+                description: w.cancelReason
+                  ? `${baseDesc} (bị từ chối: ${w.cancelReason})`
+                  : `${baseDesc} (bị từ chối)`,
+                date: w.createDate,
+                status: "failed",
+              } as Transaction;
+            }
+            return null;
+          })
+          .filter(Boolean) as Transaction[];
+      } else if (!wdResp?.success) {
+        setErrorMessage(wdResp?.error || "Không thể tải danh sách rút tiền.");
+      }
+
+      // ===== Merge & sort desc theo thời gian
+      const all = [...incomeMapped, ...withdrawMapped].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      setTransactions(all);
+    } catch (e) {
       setErrorMessage("Đã xảy ra lỗi khi tải dữ liệu. Vui lòng kiểm tra kết nối mạng.");
     } finally {
       stopLoading();

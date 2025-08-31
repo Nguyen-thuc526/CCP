@@ -1,4 +1,4 @@
-import { TransactionApiResponse, WithdrawResponse } from '@/types/transaction';
+import { TransactionApiResponse } from '@/types/transaction';
 import axiosInstance from './axiosInstance';
 
 export const TransactionService = {
@@ -17,7 +17,7 @@ export const TransactionService = {
       );
       return response.data;
    },
-   async getMyWithdraws(): Promise<WithdrawResponse> {
+   async getMyWithdraws(): Promise<any> {
       const response = await axiosInstance.get('/api/Deposit/my-withdraws');
       return response.data;
    },
