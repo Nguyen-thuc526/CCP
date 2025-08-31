@@ -27,11 +27,9 @@ interface AppointmentSidebarProps {
   status: BookingStatus
   hasNotes: boolean
   timeStart: string
-  timeEnd: string // Added timeEnd prop for auto-transition logic
-  /**
-   * Indicates if this is a customer report case (customer reported counselor)
-   * When true with Report status, shows refund message instead of view report button
-   */
+  timeEnd: string 
+
+
   isReport?: boolean
   onOpenNoteDialog: () => void
   onOpenCancelDialog: () => void

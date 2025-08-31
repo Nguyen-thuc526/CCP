@@ -14,6 +14,10 @@ export const WalletService = {
       const response = await axiosInstance.post('/api/Deposit/withdraw', data);
       return response.data;
    },
+    async getMyWithdraws(): Promise<any> {
+      const response = await axiosInstance.get('/api/Deposit/my-withdraws');
+      return response.data;
+   },
 };
 
 

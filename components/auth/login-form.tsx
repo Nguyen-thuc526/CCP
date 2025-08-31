@@ -34,7 +34,7 @@ import { RootState } from '@/store/store';
 
 export function LoginForm() {
    // Đổi tên state tránh trùng "role" trong Redux
-   const [selectedRole, setFormType] = useState<Role>(Role.Admin);
+   const [selectedRole, setFormType] = useState<Role>(Role.Counselor);
    const [isRegistering, setIsRegistering] = useState(false);
    const dispatch = useDispatch();
    const router = useRouter();
