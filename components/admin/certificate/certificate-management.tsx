@@ -69,6 +69,8 @@ export default function CertificatesPage() {
    const [certificates, setCertificates] = useState<Certification[]>([]);
    const [searchTerm, setSearchTerm] = useState('');
    const [selectedCategory, setSelectedCategory] = useState('all');
+   const [selectedStatus, setSelectedStatus] = useState('all');
+
    const {
       loading,
       error,
@@ -115,14 +117,17 @@ export default function CertificatesPage() {
                (cat) => cat.categoryName === selectedCategory
             );
 
-         return matchesSearch && matchesCategory;
+         const matchesStatus =
+            selectedStatus === 'all' ||
+            cert.status.toString() === selectedStatus;
+
+         return matchesSearch && matchesCategory && matchesStatus;
       });
 
-      // ✅ Sort by time (mới nhất lên đầu)
       return result.sort(
          (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
       );
-   }, [certificates, searchTerm, selectedCategory]);
+   }, [certificates, searchTerm, selectedCategory, selectedStatus]);
 
    const statusUI = renderStatus({
       onRetry: fetchData,
@@ -139,7 +144,7 @@ export default function CertificatesPage() {
             <p className="text-gray-600">Danh sách các chứng chỉ chờ duyệt</p>
          </div>
 
-         {/* Tìm kiếm & Bộ lọc */}
+         {/* Tìm kiếm và bộ lọc */}
          <div className="mb-6 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
             <div className="relative flex-1">
                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -153,10 +158,7 @@ export default function CertificatesPage() {
 
             <div className="flex items-center gap-2">
                <Filter className="h-4 w-4 text-muted-foreground" />
-               <Select
-                  value={selectedCategory}
-                  onValueChange={setSelectedCategory}
-               >
+               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="w-[200px]">
                      <SelectValue placeholder="Chọn danh mục" />
                   </SelectTrigger>
@@ -167,6 +169,27 @@ export default function CertificatesPage() {
                            {category}
                         </SelectItem>
                      ))}
+                  </SelectContent>
+               </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+               <Filter className="h-4 w-4 text-muted-foreground" />
+               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="w-[200px]">
+                     <SelectValue placeholder="Chọn trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                     <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                     <SelectItem value={CertificateStatus.Active.toString()}>
+                        Đã duyệt
+                     </SelectItem>
+                     <SelectItem value={CertificateStatus.Pending.toString()}>
+                        Chờ duyệt
+                     </SelectItem>
+                     <SelectItem value={CertificateStatus.NeedEdit.toString()}>
+                        Cần chỉnh sửa
+                     </SelectItem>
                   </SelectContent>
                </Select>
             </div>
@@ -201,7 +224,9 @@ export default function CertificatesPage() {
                            {certificate.name}
                         </CardTitle>
                         <Badge
-                           className={`${getStatusColor(certificate.status)} flex items-center gap-1`}
+                           className={`${getStatusColor(
+                              certificate.status
+                           )} flex items-center gap-1`}
                         >
                            {getStatusIcon(certificate.status)}
                            {getStatusText(certificate.status)}
@@ -210,9 +235,14 @@ export default function CertificatesPage() {
                   </CardHeader>
 
                   <CardContent className="pt-0">
-                     <CardDescription className="line-clamp-3 mb-4">
+                     <CardDescription className="line-clamp-3 mb-2">
                         {certificate.description}
                      </CardDescription>
+
+                     <div className="text-sm text-muted-foreground mb-4">
+                        Ngày tạo:{' '}
+                        {new Date(certificate.time).toLocaleDateString('vi-VN')}
+                     </div>
 
                      <div className="space-y-3">
                         <div>
@@ -255,6 +285,7 @@ export default function CertificatesPage() {
             ))}
          </div>
 
+         {/* Nếu không có chứng chỉ nào sau lọc */}
          {filteredCertificates.length === 0 && (
             <div className="text-center py-12">
                <div className="text-muted-foreground mb-4">
@@ -269,6 +300,7 @@ export default function CertificatesPage() {
                   onClick={() => {
                      setSearchTerm('');
                      setSelectedCategory('all');
+                     setSelectedStatus('all');
                   }}
                >
                   Xóa bộ lọc
