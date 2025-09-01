@@ -66,10 +66,6 @@ export function BlogViewModal({
                            <Calendar className="h-4 w-4" />
                            {new Date(post.createAt).toLocaleDateString('vi-VN')}
                         </div>
-                        <div className="flex items-center gap-1">
-                           <Eye className="h-4 w-4" />
-                           {post.views ?? 0} lượt xem
-                        </div>
                         <Badge
                            variant={post.status === 1 ? 'default' : 'secondary'}
                         >

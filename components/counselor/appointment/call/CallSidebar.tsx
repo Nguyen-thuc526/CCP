@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -192,6 +193,7 @@ function parseScores(
    });
    return obj;
 }
+
 export default function CallSidebar({
    isOpen,
    onToggle,
@@ -242,42 +244,31 @@ export default function CallSidebar({
 
       setIsSending(true);
       try {
-         if (bookingInfo?.type === 'individual') {
-            await Promise.all([
-               bookingService.updateNote({
-                  bookingId,
-                  problemSummary: noteForm.problemSummary,
-                  problemAnalysis: noteForm.problemAnalysis,
-                  guides: noteForm.guides,
-               }),
-               bookingService.updateReportMetadata({
-                  bookingId,
-                  reportMetadata: '1',
-               }),
-            ]);
-         } else {
-            await Promise.all([
-               bookingService.updateNote({
-                  bookingId,
-                  problemSummary: noteForm.problemSummary,
-                  problemAnalysis: noteForm.problemAnalysis,
-                  guides: noteForm.guides,
-               }),
-               bookingService.updateReportMetadata({
-                  bookingId,
-                  reportMetadata: '3',
-               }),
+         const metadataUpdates = [
+            bookingService.updateNote({
+               bookingId,
+               problemSummary: noteForm.problemSummary,
+               problemAnalysis: noteForm.problemAnalysis,
+               guides: noteForm.guides,
+            }),
+            bookingService.updateReportMetadata({
+               bookingId,
+               reportMetadata: bookingInfo?.type === 'individual' ? '1' : '3',
+            }),
+         ];
+
+         if (bookingInfo?.type === 'couple' && coupleData) {
+            metadataUpdates.push(
                bookingService.updateReportMetadata({
                   bookingId,
                   reportMetadata: '4',
-               }),
-            ]);
+               })
+            );
          }
 
+         await Promise.all(metadataUpdates);
          await onSaveNotes(noteForm);
-
-         // 🔒 Đóng sidebar ngay sau khi lưu & gửi thành công
-         onToggle();
+         onToggle(); // Đóng sidebar sau khi lưu thành công
       } catch (error) {
          showToast('Có lỗi xảy ra khi lưu và gửi', ToastType.Error);
       } finally {
@@ -297,13 +288,11 @@ export default function CallSidebar({
             const results: Record<string, SurveyResult[]> = {};
             for (const surveyId of SURVEY_IDS) {
                try {
-                  const response = await bookingService.personTypeBeforeBooking(
-                     {
-                        memberId: bookingInfo.memberId,
-                        surveyId,
-                        bookingId,
-                     }
-                  );
+                  const response = await bookingService.personTypeBeforeBooking({
+                     memberId: bookingInfo.memberId,
+                     surveyId,
+                     bookingId,
+                  });
                   if (response?.data) {
                      const data = Array.isArray(response.data)
                         ? response.data
@@ -313,8 +302,7 @@ export default function CallSidebar({
                            surveyId,
                            result: item.result || item.type || '',
                            description: item.description || '',
-                           scores:
-                              item.scores || parseScores(item.rawScores) || {},
+                           scores: item.scores || parseScores(item.rawScores) || {},
                            createAt: item.createAt || new Date().toISOString(),
                         }))
                         .sort(
@@ -330,12 +318,63 @@ export default function CallSidebar({
             }
             setIndividualResults(results);
          } else {
+            // Luôn gọi personTypeBeforeBooking cho cả hai thành viên nếu là couple
+            const results: Record<string, SurveyResult[]> = {};
+            for (const surveyId of SURVEY_IDS) {
+               try {
+                  const [memberResult, partnerResult] = await Promise.all([
+                     bookingService.personTypeBeforeBooking({
+                        memberId: bookingInfo.memberId,
+                        surveyId,
+                        bookingId,
+                     }),
+                     bookingInfo.partnerId
+                        ? bookingService.personTypeBeforeBooking({
+                             memberId: bookingInfo.partnerId,
+                             surveyId,
+                             bookingId,
+                          })
+                        : null,
+                  ]);
+
+                  if (memberResult?.data) {
+                     const data = Array.isArray(memberResult.data)
+                        ? memberResult.data
+                        : [memberResult.data];
+                     results[`${surveyId}_member`] = data.map((item: any) => ({
+                        surveyId,
+                        result: item.result || item.type || '',
+                        description: item.description || '',
+                        scores: item.scores || parseScores(item.rawScores) || {},
+                        createAt: item.createAt || new Date().toISOString(),
+                     }));
+                  }
+                  if (bookingInfo.partnerId && partnerResult?.data) {
+                     const data = Array.isArray(partnerResult.data)
+                        ? partnerResult.data
+                        : [partnerResult.data];
+                     results[`${surveyId}_partner`] = data.map((item: any) => ({
+                        surveyId,
+                        result: item.result || item.type || '',
+                        description: item.description || '',
+                        scores: item.scores || parseScores(item.rawScores) || {},
+                        createAt: item.createAt || new Date().toISOString(),
+                     }));
+                  }
+               } catch {
+                  // ignore missing data
+               }
+            }
+            setIndividualResults(results);
+
+            // Chỉ gọi getCoupleByBooking nếu cần kiểm tra dữ liệu cặp đôi đã tồn tại
             try {
-               const response =
-                  await bookingService.getCoupleByBooking(bookingId);
-               if (response?.data) setCoupleData(response.data);
+               const response = await bookingService.getCoupleByBooking(bookingId);
+               if (response?.data) {
+                  setCoupleData(response.data);
+               }
             } catch {
-               // ignore missing data
+               // Nếu không có dữ liệu cặp đôi, vẫn sử dụng individualResults
             }
          }
       } catch (error) {
@@ -429,7 +468,8 @@ export default function CallSidebar({
 
    const renderIndividualSurvey = (
       surveyId: string,
-      results: SurveyResult[]
+      results: SurveyResult[],
+      memberName: string
    ) => {
       if (!results || results.length === 0) return null;
       const config = surveyConfig[surveyId as keyof typeof surveyConfig];
@@ -635,11 +675,99 @@ export default function CallSidebar({
    };
 
    const renderCoupleSurvey = () => {
+      if (loadingSurvey) {
+         return (
+            <div className="text-center py-8">
+               <BrainIcon className="h-8 w-8 animate-pulse mx-auto mb-2 text-blue-600" />
+               <div className="text-sm text-gray-500">
+                  Đang tải kết quả khảo sát...
+               </div>
+            </div>
+         );
+      }
+
+      if (!coupleData && bookingInfo?.type === 'couple') {
+         return (
+            <Tabs defaultValue="member">
+               <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="member" className="flex items-center gap-2">
+                     <User className="h-4 w-4 text-blue-600" />
+                     {bookingInfo.memberName}
+                  </TabsTrigger>
+                  {bookingInfo.partnerName && (
+                     <TabsTrigger value="partner" className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-green-600" />
+                        {bookingInfo.partnerName}
+                     </TabsTrigger>
+                  )}
+               </TabsList>
+               <TabsContent value="member" className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                     <Star className="h-4 w-4 text-yellow-600" />
+                     <h3 className="text-base font-semibold">
+                        Kết quả khảo sát - {bookingInfo.memberName}
+                     </h3>
+                  </div>
+                  {Object.keys(individualResults)
+                     .filter((key) => key.endsWith('_member'))
+                     .length === 0 ? (
+                     <div className="text-center py-8">
+                        <Info className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                        <div className="text-sm text-gray-500">
+                           Chưa có kết quả khảo sát cho {bookingInfo.memberName}.
+                        </div>
+                     </div>
+                  ) : (
+                     <div className="grid grid-cols-1 gap-4">
+                        {SURVEY_IDS.map((surveyId) =>
+                           renderIndividualSurvey(
+                              surveyId,
+                              individualResults[`${surveyId}_member`] || [],
+                              bookingInfo.memberName
+                           )
+                        )}
+                     </div>
+                  )}
+               </TabsContent>
+               {bookingInfo.partnerName && (
+                  <TabsContent value="partner" className="space-y-4">
+                     <div className="flex items-center gap-2 mb-4">
+                        <Star className="h-4 w-4 text-yellow-600" />
+                        <h3 className="text-base font-semibold">
+                           Kết quả khảo sát - {bookingInfo.partnerName}
+                        </h3>
+                     </div>
+                     {Object.keys(individualResults)
+                        .filter((key) => key.endsWith('_partner'))
+                        .length === 0 ? (
+                        <div className="text-center py-8">
+                           <Info className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                           <div className="text-sm text-gray-500">
+                              Chưa có kết quả khảo sát cho {bookingInfo.partnerName}.
+                           </div>
+                        </div>
+                     ) : (
+                        <div className="grid grid-cols-1 gap-4">
+                           {SURVEY_IDS.map((surveyId) =>
+                              renderIndividualSurvey(
+                                 surveyId,
+                                 individualResults[`${surveyId}_partner`] || [],
+                                 bookingInfo.partnerName || ''
+                              )
+                           )}
+                        </div>
+                     )}
+                  </TabsContent>
+               )}
+            </Tabs>
+         );
+      }
+
       if (!coupleData) {
          return (
             <div className="text-center py-10">
                <div className="text-sm text-gray-500">
-                  Chưa có khảo sát cá nhân nào của hai bạn.
+                  Chưa có thông tin khảo sát.
                </div>
             </div>
          );
@@ -680,7 +808,6 @@ export default function CallSidebar({
                <User className="h-4 w-4 text-blue-600" />
                {title}
             </h4>
-
             <div className="space-y-3">
                {memberData.mbti && (
                   <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
@@ -694,7 +821,6 @@ export default function CallSidebar({
                         renderMBTIChart(memberData.mbtiScores)}
                   </div>
                )}
-
                {memberData.disc && (
                   <div className="p-3 bg-green-50 rounded-lg border border-green-100">
                      <div className="flex items-center gap-2 mb-2">
@@ -707,7 +833,6 @@ export default function CallSidebar({
                         renderScoreChart(memberData.discScores)}
                   </div>
                )}
-
                {memberData.loveLanguage && (
                   <div className="p-3 bg-pink-50 rounded-lg border border-pink-100">
                      <div className="flex items-center gap-2 mb-2">
@@ -720,7 +845,6 @@ export default function CallSidebar({
                         renderScoreChart(memberData.loveLanguageScores)}
                   </div>
                )}
-
                {memberData.bigFive && (
                   <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
                      <div className="flex items-center gap-2 mb-2">
@@ -987,7 +1111,6 @@ export default function CallSidebar({
                               Kết quả mới nhất - {bookingInfo.memberName}
                            </h3>
                         </div>
-
                         {Object.keys(individualResults).length === 0 ? (
                            <div className="text-center py-8">
                               <Info className="h-8 w-8 mx-auto mb-2 text-gray-400" />
@@ -1000,7 +1123,8 @@ export default function CallSidebar({
                               {SURVEY_IDS.map((surveyId) =>
                                  renderIndividualSurvey(
                                     surveyId,
-                                    individualResults[surveyId] || []
+                                    individualResults[surveyId] || [],
+                                    bookingInfo.memberName
                                  )
                               )}
                            </div>

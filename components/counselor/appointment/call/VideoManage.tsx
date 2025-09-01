@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast, ToastType } from '@/hooks/useToast';
 import CallHeader from './CallHeader';
 import CallInterface from './CallInterface';
-import CallSidebar from './CallSidebar';
+
 import FinishCallDialog from './FinishCallDialog';
+import CallSidebar from './CallSidebar';
 
 interface VideoManageProps {
   appointmentId: string;

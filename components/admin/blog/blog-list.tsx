@@ -93,9 +93,6 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
                               Ngày
                            </th>
                            <th className="h-12 px-4 text-left align-middle font-medium">
-                              Lượt xem
-                           </th>
-                           <th className="h-12 px-4 text-left align-middle font-medium">
                               Trạng thái
                            </th>
                            <th className="h-12 px-4 text-left align-middle font-medium">
