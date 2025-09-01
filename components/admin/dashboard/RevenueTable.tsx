@@ -86,9 +86,9 @@ export default function RevenueTable({ data }: RevenueTableProps) {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                      Tổng Doanh Thu
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                      Tăng Trưởng
-                  </th>
+                  </th> */}
                </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -173,7 +173,7 @@ export default function RevenueTable({ data }: RevenueTableProps) {
                            </div>
                         </td>
 
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        {/* <td className="px-6 py-4 whitespace-nowrap">
                            {index > 0 ? (
                               <div className="flex items-center">
                                  {growth >= 0 ? (
@@ -195,7 +195,7 @@ export default function RevenueTable({ data }: RevenueTableProps) {
                            ) : (
                               <span className="text-sm text-gray-500">-</span>
                            )}
-                        </td>
+                        </td> */}
                      </tr>
                   );
                })}
