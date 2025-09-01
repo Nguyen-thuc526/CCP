@@ -151,7 +151,7 @@ export default function Dashboard() {
                   </div>
                   <p className="text-3xl font-bold text-blue-600 mb-2">
                      {formatCurrency(
-                        Math.round(currentMonth.bookingRevenueThisMonth)
+                        Math.round(currentMonth.bookingRevenue)
                      )}
                   </p>
                   <p className="text-sm text-gray-600">
@@ -168,7 +168,7 @@ export default function Dashboard() {
                   </div>
                   <p className="text-3xl font-bold text-green-600 mb-2">
                      {formatCurrency(
-                        Math.round(currentMonth.courseRevenueThisMonth)
+                        Math.round(currentMonth.courseRevenue)
                      )}
                   </p>
                   <p className="text-sm text-gray-600">
@@ -185,7 +185,7 @@ export default function Dashboard() {
                   </div>
                   <p className="text-3xl font-bold text-purple-600 mb-2">
                      {formatCurrency(
-                        Math.round(currentMonth.membershipRevenueThisMonth)
+                        Math.round(currentMonth.membershipRevenue)
                      )}
                   </p>
                   <p className="text-sm text-gray-600">

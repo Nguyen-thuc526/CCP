@@ -118,6 +118,7 @@ export function DashboardHeader() {
       'survey-results': 'Kết quả khảo sát',
       certificates: 'Chứng chỉ',
       wallet: 'Ví',
+      call: 'Cuộc gọi',
    };
 
    // --- Build breadcrumb như cũ

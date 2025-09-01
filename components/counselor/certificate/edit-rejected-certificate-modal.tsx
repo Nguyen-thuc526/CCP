@@ -79,7 +79,7 @@ export default function EditRejectedCertificateModal({
    );
    const [openCategories, setOpenCategories] = useState<string[]>([]);
    const [formData, setFormData] = useState({
-      id: '',
+      certificationId: '',
       name: '',
       description: '',
       image: '',
