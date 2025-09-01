@@ -25,7 +25,7 @@ export default function WithdrawManagement() {
    const [activeTab, setActiveTab] = useState<string>(
       WithdrawStatus.PendingWithdrawal.toString()
    );
-   const [searchTerm, setSearchTerm] = useState<string>("");
+   const [searchTerm, setSearchTerm] = useState<string>('');
 
    const getTabInfo = (status: WithdrawStatus) => {
       switch (status) {
@@ -99,8 +99,8 @@ export default function WithdrawManagement() {
                      </h3>
                      <p className="text-sm">
                         {searchTerm
-                           ? "Không tìm thấy mã đơn hàng phù hợp."
-                           : "Chưa có yêu cầu rút tiền nào trong trạng thái này."}
+                           ? 'Không tìm thấy mã đơn hàng phù hợp.'
+                           : 'Chưa có yêu cầu rút tiền nào trong trạng thái này.'}
                      </p>
                   </div>
                </CardContent>
@@ -175,8 +175,8 @@ export default function WithdrawManagement() {
                                  tabInfo.color === 'text-yellow-600'
                                     ? 'bg-yellow-600'
                                     : tabInfo.color === 'text-green-600'
-                                    ? 'bg-green-600'
-                                    : 'bg-red-600'
+                                      ? 'bg-green-600'
+                                      : 'bg-red-600'
                               } text-white`}
                            >
                               {tabInfo.count}

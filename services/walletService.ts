@@ -7,7 +7,9 @@ import axiosInstance from './axiosInstance';
 
 export const WalletService = {
    async getMyBalance(): Promise<WalletResponse> {
-      const response = await axiosInstance.get('/api/Dashboard/counselor-wallet');
+      const response = await axiosInstance.get(
+         '/api/Dashboard/counselor-wallet'
+      );
       return response.data;
    },
    async withdraw(data: WithdrawRequest): Promise<WithdrawResponse> {
@@ -15,5 +17,3 @@ export const WalletService = {
       return response.data;
    },
 };
-
-

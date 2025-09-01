@@ -125,8 +125,8 @@ export interface PersonTypeByNameRequest {
 export type ReportMetadata = 1 | 2 | 3 | 4;
 
 export interface UpdateReportMetadataRequest {
-  bookingId: string;
-  reportMetadata: ReportMetadata; // chỉ nhận 1 | 2 | 3 | 4
+   bookingId: string;
+   reportMetadata: ReportMetadata; // chỉ nhận 1 | 2 | 3 | 4
 }
 
 export type UpdateReportMetadataResponse = ApiResponse<null>;

@@ -102,15 +102,15 @@ export const bookingService = {
       );
       return response.data;
    },
-    async updateReportMetadata(
-    payload: UpdateReportMetadataRequest
-  ): Promise<UpdateReportMetadataResponse> {
-    const response = await axiosInstance.put(
-      '/api/Booking/report-metadata',
-      payload
-    );
-    return response.data;
-  },
+   async updateReportMetadata(
+      payload: UpdateReportMetadataRequest
+   ): Promise<UpdateReportMetadataResponse> {
+      const response = await axiosInstance.put(
+         '/api/Booking/report-metadata',
+         payload
+      );
+      return response.data;
+   },
 };
 
 export const updateBookingStatus = async (

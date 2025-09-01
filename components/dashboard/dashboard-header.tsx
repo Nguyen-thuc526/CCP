@@ -41,9 +41,9 @@ export function DashboardHeader() {
          avatar: '/placeholder.svg?height=32&width=32',
          initials: (nameFromStore
             ? nameFromStore
-               .split(' ')
-               .map((w) => w[0])
-               .join('')
+                 .split(' ')
+                 .map((w) => w[0])
+                 .join('')
             : 'CS'
          )
             .slice(0, 2)

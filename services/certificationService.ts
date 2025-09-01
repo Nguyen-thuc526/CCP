@@ -35,7 +35,7 @@ export const certificationService = {
       name: string;
       description: string;
       image: string;
-        time: string;
+      time: string;
       subCategoryIds: string[];
    }): Promise<CertificationResponse> {
       const response = await axiosInstance.put(

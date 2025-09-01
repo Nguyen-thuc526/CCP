@@ -49,7 +49,7 @@ export default function BookingManagement() {
       try {
          const response = await getBookings({
             PageNumber: 1,
-            PageSize: 99999, 
+            PageSize: 99999,
             Status: statusFilter === 'all' ? undefined : statusFilter,
          });
 

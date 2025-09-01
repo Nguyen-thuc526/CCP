@@ -84,14 +84,15 @@ export const getBookings = async (
    };
 };
 
+export const fetchAdminOverview = async (): Promise<Overview[]> => {
+   const response = await axiosInstance.get<ApiResponse<Overview[]>>(
+      '/api/Dashboard/summary/last-3-months'
+   );
+   const { success, data, error } = response.data;
 
-export const fetchAdminOverview = async (): Promise<Overview> => {
-  const response = await axiosInstance.get<ApiResponse<Overview>>('/api/Dashboard/overview-booking');
-  const { success, data, error } = response.data;
+   if (!success) {
+      throw new Error(error || 'Không thể lấy dữ liệu tổng quan');
+   }
 
-  if (!success) {
-    throw new Error(error || 'Không thể lấy dữ liệu tổng quan');
-  }
-
-  return data;
+   return data;
 };

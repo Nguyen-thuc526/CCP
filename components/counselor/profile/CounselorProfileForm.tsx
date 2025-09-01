@@ -5,7 +5,6 @@ import { GeneralInfoTab } from './GeneralInfoTab';
 import { ScheduleTab } from './ScheduleTab';
 import { PasswordTab } from './PasswordTab';
 
-
 export function CounselorProfileForm() {
    return (
       <Tabs defaultValue="general">
