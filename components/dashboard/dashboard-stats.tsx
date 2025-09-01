@@ -1,3 +1,5 @@
+'use client';
+
 import {
    Calendar,
    Heart,
@@ -6,23 +8,45 @@ import {
    BookOpen,
    Package,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { fetchAdminOverview } from '@/services/adminService';
+import { Overview } from '@/types/dashboard';
 
 export function DashboardStats() {
+   const [overview, setOverview] = useState<Overview | null>(null);
+   const [loading, setLoading] = useState(true);
+
+   useEffect(() => {
+      const loadData = async () => {
+         try {
+            const data = await fetchAdminOverview();
+            setOverview(data);
+         } catch (error) {
+            console.error('Lỗi khi lấy dữ liệu dashboard:', error);
+         } finally {
+            setLoading(false);
+         }
+      };
+
+      loadData();
+   }, []);
+
+   if (loading) return <div>Đang tải dữ liệu...</div>;
+   if (!overview) return <div>Không có dữ liệu để hiển thị.</div>;
+
    return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
          {/* Tổng thành viên */}
          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-               <CardTitle className="text-sm font-medium">
-                  Tổng thành viên
-               </CardTitle>
+               <CardTitle className="text-sm font-medium">Tổng thành viên</CardTitle>
                <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-               <div className="text-2xl font-bold">1.248</div>
+               <div className="text-2xl font-bold">{overview.totalMembers ?? 0}</div>
                <p className="text-xs text-muted-foreground">
-                  +12% so với tháng trước
+                  +{overview.newMembersThisMonth ?? 0} trong tháng này
                </p>
             </CardContent>
          </Card>
@@ -30,15 +54,13 @@ export function DashboardStats() {
          {/* Chuyên viên tư vấn */}
          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-               <CardTitle className="text-sm font-medium">
-                  Chuyên viên tư vấn
-               </CardTitle>
+               <CardTitle className="text-sm font-medium">Chuyên viên tư vấn</CardTitle>
                <Heart className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-               <div className="text-2xl font-bold">42</div>
+               <div className="text-2xl font-bold">{overview.totalCounselors ?? 0}</div>
                <p className="text-xs text-muted-foreground">
-                  +3 mới trong tháng này
+                  +{overview.newCounselorsThisMonth ?? 0} mới trong tháng này
                </p>
             </CardContent>
          </Card>
@@ -50,9 +72,9 @@ export function DashboardStats() {
                <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-               <div className="text-2xl font-bold">324</div>
+               <div className="text-2xl font-bold">{overview.totalBookings ?? 0}</div>
                <p className="text-xs text-muted-foreground">
-                  +18% so với tuần trước
+                  +{overview.bookingsThisMonth ?? 0} trong tháng này
                </p>
             </CardContent>
          </Card>
@@ -60,16 +82,12 @@ export function DashboardStats() {
          {/* Buổi tư vấn */}
          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-               <CardTitle className="text-sm font-medium">
-                  Buổi tư vấn
-               </CardTitle>
+               <CardTitle className="text-sm font-medium">Buổi tư vấn</CardTitle>
                <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-               <div className="text-2xl font-bold">289</div>
-               <p className="text-xs text-muted-foreground">
-                  +7% so với tuần trước
-               </p>
+               <div className="text-2xl font-bold">{overview.bookingsThisMonth ?? 0}</div>
+               <p className="text-xs text-muted-foreground">Trong tháng này</p>
             </CardContent>
          </Card>
 
@@ -80,9 +98,9 @@ export function DashboardStats() {
                <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-               <div className="text-2xl font-bold">48</div>
+               <div className="text-2xl font-bold">{overview.totalCoursesPurchased ?? 0}</div>
                <p className="text-xs text-muted-foreground">
-                  +5% so với tháng trước
+                  +{overview.coursesPurchasedThisMonth ?? 0} trong tháng này
                </p>
             </CardContent>
          </Card>
@@ -90,15 +108,13 @@ export function DashboardStats() {
          {/* Gói đã đăng ký */}
          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-               <CardTitle className="text-sm font-medium">
-                  Gói đã đăng ký
-               </CardTitle>
+               <CardTitle className="text-sm font-medium">Gói đã đăng ký</CardTitle>
                <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-               <div className="text-2xl font-bold">28</div>
+               <div className="text-2xl font-bold">{overview.totalMemberships ?? 0}</div>
                <p className="text-xs text-muted-foreground">
-                  +2% so với tháng trước
+                  +{overview.membershipsThisMonth ?? 0} trong tháng này
                </p>
             </CardContent>
          </Card>

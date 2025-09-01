@@ -52,6 +52,8 @@ export function AdminCourseList() {
       useState(false);
    const { showToast } = useToast();
 
+console.log(courses);
+
    const fetchCourses = async () => {
       try {
          const response: CourseItem[] = await CourseService.getCourses();

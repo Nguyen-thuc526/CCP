@@ -32,7 +32,7 @@ import { setCookie } from '@/utils/cookies';
 import { getRoleFromToken } from '@/utils/tokenUtils';
 import { RootState } from '@/store/store';
 import { userService } from '@/services/userService';
-
+import Image from 'next/image';
 export function LoginForm() {
    const [selectedRole, setFormType] = useState<Role>(Role.Counselor);
    const [isRegistering, setIsRegistering] = useState(false);
@@ -220,9 +220,15 @@ export function LoginForm() {
 
    return (
       <Card className="w-full max-w-md shadow-xl rounded-2xl border">
-         <CardHeader className="space-y-2 text-center">
+         <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center">
-               <Heart className="h-12 w-12 text-red-500" />
+               <Image
+                  src="/8a04fc98-ebcd-4818-b662-748a85fb6a92.png"
+                  alt="Logo"
+                  width={100}
+                  height={100}
+                  className="object-contain mb-[-30px]"
+               />
             </div>
             <CardTitle className="text-2xl">CCP Platform</CardTitle>
             <CardDescription>Nền tảng dịch vụ tư vấn hôn nhân</CardDescription>
