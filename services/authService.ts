@@ -44,8 +44,11 @@ export const authService = {
       );
       return response.data;
    },
-       async changePassword(data: ChangePasswordPayload) {
-    const response = await axiosInstance.put('api/Account/change-password', data);
-    return response.data;
-  },
+   async changePassword(data: ChangePasswordPayload) {
+      const response = await axiosInstance.put(
+         'api/Account/change-password',
+         data
+      );
+      return response.data;
+   },
 };

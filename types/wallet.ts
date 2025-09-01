@@ -24,25 +24,25 @@ export interface WithdrawResponse {
    error?: string | null;
 }
 export interface WithdrawItem {
-  id: string;
-  walletId: string;
-  total: number;
-  stk: string;
-  bankName: string;
-  accountName: string;
-  createDate: string;    // ISO
-  cancelReason: string | null;
-  status: 1 | 2 | 3;     // 1: pending, 2: approved, 3: rejected
-  counselor: any | null;
+   id: string;
+   walletId: string;
+   total: number;
+   stk: string;
+   bankName: string;
+   accountName: string;
+   createDate: string; // ISO
+   cancelReason: string | null;
+   status: 1 | 2 | 3; // 1: pending, 2: approved, 3: rejected
+   counselor: any | null;
 }
 export interface WithdrawListResponse {
-  success: boolean;
-  data: WithdrawItem[];
-  error?: string | null;
+   success: boolean;
+   data: WithdrawItem[];
+   error?: string | null;
 }
 
 export interface WithdrawResponse {
-  success: boolean;
-  data?: any;
-  error?: string | null;
+   success: boolean;
+   data?: any;
+   error?: string | null;
 }

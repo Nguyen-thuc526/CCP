@@ -10,7 +10,7 @@ export interface RegisterFormData {
    confirmPassword: string;
 }
 export type ChangePasswordPayload = {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
+   currentPassword: string;
+   newPassword: string;
+   confirmPassword: string;
 };

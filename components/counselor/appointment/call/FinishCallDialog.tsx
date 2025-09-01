@@ -61,9 +61,7 @@ export default function FinishCallDialog({
                   </div>
                   <div className="flex justify-between">
                      <span>Thời gian gọi:</span>
-                     <span className="font-medium">
-                        {formatCallDuration()}
-                     </span>
+                     <span className="font-medium">{formatCallDuration()}</span>
                   </div>
                </div>
             </div>

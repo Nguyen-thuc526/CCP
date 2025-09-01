@@ -329,7 +329,7 @@ export default function EditRejectedCertificateModal({
             description: formData.description.trim(),
             image: formData.image,
             subCategoryIds: selectedSubCategories,
-            time: new Date().toISOString(), 
+            time: new Date().toISOString(),
          };
          const response = await certificationService.updateCertification(
             submittedData as any
