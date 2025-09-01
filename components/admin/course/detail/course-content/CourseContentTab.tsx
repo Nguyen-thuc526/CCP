@@ -269,9 +269,16 @@ export function CourseContentTab(props: CourseContentTabProps) {
                const questionData = {
                   quizId: quizId,
                   description: question.question,
-                  answers: question.answers.map((a) => ({
+                  answers: question.answers.map((a: any) => ({
                      text: a.text,
-                     score: a.isCorrect ? 1 : 0,
+                     score:
+                        typeof a.score === 'number'
+                           ? a.score
+                           : typeof a.points === 'number'
+                             ? a.points
+                             : a.isCorrect
+                               ? 1
+                               : 0,
                   })),
                };
 

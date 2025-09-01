@@ -20,7 +20,7 @@ export const getChapterTypeLabel = (chapter: Chapter) => {
       case 'article':
          return 'Bài viết';
       case 'quiz':
-         return `Quiz • ${chapter.quiz?.length || 0} câu hỏi`;
+         return `Quiz`;
       default:
          return 'Không xác định';
    }

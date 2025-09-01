@@ -145,12 +145,7 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
                                        'vi-VN'
                                     )}
                                  </td>
-                                 <td className="p-4 align-middle">
-                                    <div className="flex items-center gap-1">
-                                       <Eye className="h-4 w-4 text-muted-foreground" />
-                                       {post.views ?? 0}
-                                    </div>
-                                 </td>
+
                                  <td className="p-4 align-middle">
                                     <Badge
                                        variant={
