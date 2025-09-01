@@ -94,8 +94,8 @@ export default function Dashboard() {
       }).format(value);
 
    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen ">
+         <main className="">
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                <StatsCard
