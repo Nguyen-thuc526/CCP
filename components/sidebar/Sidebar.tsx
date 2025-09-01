@@ -1,6 +1,6 @@
 'use client';
 import { deleteCookie } from '@/utils/cookies';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -36,6 +36,7 @@ import { logout } from '@/store/slices/authReducer';
 import { Role } from '@/utils/enum';
 import { storage } from '@/utils/storage';
 import Image from 'next/image';
+import { userService } from '@/services/userService';
 
 interface SidebarLink {
    href: string;
@@ -58,8 +59,46 @@ export function Sidebar() {
    const role = useSelector((state: RootState) => state.auth.role);
    const router = useRouter();
 
-   const [collapsed, setCollapsed] = useState(false); // giữ nguyên cho desktop
-   const [mobileOpen, setMobileOpen] = useState(false); // thêm cho mobile
+   const [collapsed, setCollapsed] = useState(false);
+   const [mobileOpen, setMobileOpen] = useState(false);
+   const [counselorStatus, setCounselorStatus] = useState<number | null>(null);
+   const [loadingStatus, setLoadingStatus] = useState(false);
+   const [fetchError, setFetchError] = useState<string | null>(null);
+
+   useEffect(() => {
+      if (role === Role.Counselor) {
+         setLoadingStatus(true);
+         setFetchError(null);
+         userService
+            .getCounselorProfile()
+            .then((res) => {
+               const status = (res as any)?.data?.status ?? (res as any)?.status;
+               setCounselorStatus(typeof status === 'number' ? status : null);
+            })
+            .catch((err) => {
+               console.error('Failed to get counselor profile', err);
+               setFetchError('Không thể tải trạng thái hồ sơ.');
+               setCounselorStatus(null);
+            })
+            .finally(() => setLoadingStatus(false));
+      } else {
+         setCounselorStatus(null);
+         setLoadingStatus(false);
+         setFetchError(null);
+      }
+   }, [role]);
+
+   // Redirect logic for counselor status 0 (chưa duyệt)
+   useEffect(() => {
+      if (
+         role === Role.Counselor &&
+         counselorStatus === 0 &&
+         pathname?.startsWith('/counselor') &&
+         pathname !== '/counselor/certificates'
+      ) {
+         router.replace('/counselor/certificates');
+      }
+   }, [role, counselorStatus, pathname, router]);
 
    const adminLinks: SidebarItem[] = [
       {
@@ -136,7 +175,7 @@ export function Sidebar() {
       },
    ];
 
-   const counselorLinks: SidebarItem[] = [
+   const counselorLinksApproved: SidebarItem[] = [
       {
          href: '/counselor/dashboard',
          icon: <LayoutDashboard className="h-5 w-5" />,
@@ -176,34 +215,61 @@ export function Sidebar() {
       },
    ];
 
-   const links = role === Role.Admin ? adminLinks : counselorLinks;
-   const dashboardLink =
-      role === Role.Admin ? '/admin/dashboard' : '/counselor/dashboard';
+   const counselorLinksRestricted: SidebarItem[] = [
+      {
+         title: 'Tư vấn',
+         icon: <Calendar className="h-5 w-5" />,
+         children: [
+            {
+               href: '/counselor/certificates',
+               icon: <FilePlus className="h-5 w-5" />,
+               title: 'Chứng chỉ',
+            },
+         ],
+      },
+   ];
+
+   const computedLinks: SidebarItem[] = useMemo(() => {
+      if (role === Role.Admin) return adminLinks;
+      if (counselorStatus === 1) return counselorLinksApproved;
+      return counselorLinksRestricted; // status 0, null, or loading
+   }, [role, counselorStatus]);
+
+   const dashboardLink = useMemo(() => {
+      if (role === Role.Admin) return '/admin/dashboard';
+      return counselorStatus === 1 ? '/counselor/dashboard' : '/counselor/certificates';
+   }, [role, counselorStatus]);
+
    const title = role === Role.Admin ? 'CCP Admin' : 'CCP Tư vấn viên';
 
-   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
-      links.reduce(
+   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+   useEffect(() => {
+      const initial = computedLinks.reduce(
          (acc, item) => {
             if (isGroup(item)) acc[item.title] = true;
             return acc;
          },
          {} as Record<string, boolean>
-      )
-   );
+      );
+      setOpenGroups(initial);
+   }, [computedLinks]);
+
    const toggleGroup = (t: string) =>
       setOpenGroups((p) => ({ ...p, [t]: !p[t] }));
 
    const handleLogout = () => {
       storage.removeToken();
       deleteCookie('role');
+      deleteCookie('counselor_status');
       dispatch(logout());
       router.push('/login');
    };
+
    const toggleSidebar = () => {
       setCollapsed((prev) => {
          const newState = !prev;
          if (!newState) {
-            const activeGroup = links.find(
+            const activeGroup = computedLinks.find(
                (item) =>
                   isGroup(item) &&
                   item.children.some((child) => child.href === pathname)
@@ -215,15 +281,12 @@ export function Sidebar() {
       });
    };
 
-   // auto close drawer khi đổi route
    useEffect(() => {
       setMobileOpen(false);
    }, [pathname]);
 
-   // Phần inner tái sử dụng cho desktop + mobile
    const SidebarInner = (forceExpanded = false) => (
       <>
-         {/* Logo */}
          <div
             className={cn(
                'flex h-14 items-center border-b px-4',
@@ -245,7 +308,6 @@ export function Sidebar() {
                   <span className="text-base">{title}</span>
                )}
             </Link>
-            {/* nút đóng cho mobile */}
             {forceExpanded && (
                <button
                   className="ml-auto grid place-items-center rounded-md p-2 hover:bg-muted"
@@ -257,10 +319,20 @@ export function Sidebar() {
             )}
          </div>
 
-         {/* Menu */}
+         {/* Banner cho trạng thái chưa duyệt (status 0) */}
+         {role === Role.Counselor && counselorStatus === 0 && (
+            <div className="px-4 py-2 text-xs bg-amber-50 text-amber-700 border-b">
+               {loadingStatus
+                  ? 'Đang kiểm tra trạng thái hồ sơ của bạn...'
+                  : fetchError
+                    ? fetchError
+                    : 'Tài khoản chưa được duyệt. Vui lòng gửi chứng chỉ để được phê duyệt.'}
+            </div>
+         )}
+
          <ScrollArea className="flex-1">
             <nav className="grid gap-1 px-2 py-4">
-               {links.map((item) =>
+               {computedLinks.map((item) =>
                   isGroup(item) ? (
                      <div key={item.title}>
                         <button
@@ -287,7 +359,6 @@ export function Sidebar() {
                               />
                            )}
                         </button>
-
                         {(!collapsed || forceExpanded) &&
                            openGroups[item.title] && (
                               <div className="ml-6 mt-1 space-y-1">
@@ -334,7 +405,6 @@ export function Sidebar() {
             </nav>
          </ScrollArea>
 
-         {/* Đăng xuất */}
          <div className="border-t p-4">
             <Button
                variant="outline"
@@ -360,7 +430,6 @@ export function Sidebar() {
 
    return (
       <>
-         {/* Nút mở menu cho mobile */}
          <Button
             variant="ghost"
             size="icon"
@@ -371,14 +440,12 @@ export function Sidebar() {
             <Menu className="h-5 w-5" />
          </Button>
 
-         {/* DESKTOP: ẨN TRÊN MOBILE  */}
          <div
             className={cn(
                'hidden lg:flex h-screen sticky top-0 flex-col border-r bg-white dark:bg-gray-950 transition-all duration-300',
                collapsed ? 'w-20' : 'w-64'
             )}
          >
-            {/* nút thu gọn như cũ */}
             <Button
                variant="ghost"
                size="icon"
@@ -393,12 +460,9 @@ export function Sidebar() {
                )}
             </Button>
 
-            {/* --- giữ nguyên phần nội dung sidebar (logo, menu, logout) --- */}
             {SidebarInner()}
          </div>
 
-         {/* MOBILE: CHỈ HIỆN TRÊN MOBILE */}
-         {/* overlay */}
          <div
             className={cn(
                'lg:hidden fixed inset-0 z-40 bg-black/30 transition-opacity',
@@ -408,7 +472,7 @@ export function Sidebar() {
             )}
             onClick={() => setMobileOpen(false)}
          />
-         {/* panel */}
+
          <aside
             className={cn(
                'lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-950 border-r shadow-xl',
@@ -417,9 +481,7 @@ export function Sidebar() {
             )}
             aria-hidden={!mobileOpen}
          >
-            {SidebarInner(
-               true /* forceExpanded: luôn hiện text/nhóm trên mobile */
-            )}
+            {SidebarInner(true)}
          </aside>
       </>
    );

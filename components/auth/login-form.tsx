@@ -27,46 +27,82 @@ import { Role } from '@/utils/enum';
 import { authService } from '@/services/authService';
 import { useToast, ToastType } from '@/hooks/useToast';
 import { storage } from '@/utils/storage';
-import { login } from '@/store/slices/authReducer';
+import { login, logout } from '@/store/slices/authReducer';
 import { setCookie } from '@/utils/cookies';
 import { getRoleFromToken } from '@/utils/tokenUtils';
 import { RootState } from '@/store/store';
+import { userService } from '@/services/userService';
 
 export function LoginForm() {
-   // Đổi tên state tránh trùng "role" trong Redux
    const [selectedRole, setFormType] = useState<Role>(Role.Counselor);
    const [isRegistering, setIsRegistering] = useState(false);
    const dispatch = useDispatch();
    const router = useRouter();
    const { showToast } = useToast();
 
-   // Đọc trạng thái đăng nhập từ Redux để chặn vào /login khi đã đăng nhập
    const { isAuthenticated, role: roleInStore } = useSelector(
       (s: RootState) => s.auth
    );
 
-   // Nếu đã đăng nhập thì không cho ở trang login (middleware cũng đã chặn server-side)
+   // Auto redirect khi đã đăng nhập
    useEffect(() => {
-      if (isAuthenticated && roleInStore) {
-         router.replace(
-            roleInStore === Role.Admin
-               ? '/admin/dashboard'
-               : '/counselor/dashboard'
-         );
-         return;
-      }
-      // Trường hợp Redux chưa kịp khởi tạo sau reload lần đầu
-      const token = storage.getToken();
-      const parsedRole = token ? getRoleFromToken(token) : null;
-      if (token && parsedRole) {
-         router.replace(
-            parsedRole === Role.Admin
-               ? '/admin/dashboard'
-               : '/counselor/dashboard'
-         );
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, []);
+      const go = async () => {
+         if (isAuthenticated && roleInStore) {
+            if (roleInStore === Role.Admin) {
+               router.replace('/admin/dashboard');
+               return;
+            }
+            try {
+               const prof = await userService.getCounselorProfile();
+               const raw = (prof as any)?.data?.status ?? (prof as any)?.status;
+               const status = Number(raw);
+               if (status === 2) {
+                  showToast('Tài khoản của bạn đã bị khóa.', ToastType.Error);
+                  storage.removeToken();
+                  setCookie('role', '');
+                  setCookie('counselor_status', '');
+                  dispatch(logout());
+                  router.replace('/login');
+               } else {
+                  const dest = status === 1 ? '/counselor/dashboard' : '/counselor/certificates';
+                  router.replace(dest);
+               }
+            } catch {
+               router.replace('/counselor/certificates');
+            }
+            return;
+         }
+
+         const token = storage.getToken();
+         const parsedRole = token ? getRoleFromToken(token) : null;
+         if (token && parsedRole) {
+            if (parsedRole === Role.Admin) {
+               router.replace('/admin/dashboard');
+               return;
+            }
+            try {
+               const prof = await userService.getCounselorProfile();
+               const raw = (prof as any)?.data?.status ?? (prof as any)?.status;
+               const status = Number(raw);
+               if (status === 2) {
+                  showToast('Tài khoản của bạn đã bị khóa.', ToastType.Error);
+                  storage.removeToken();
+                  setCookie('role', '');
+                  setCookie('counselor_status', '');
+                  dispatch(logout());
+                  router.replace('/login');
+               } else {
+                  const dest = status === 1 ? '/counselor/dashboard' : '/counselor/certificates';
+                  router.replace(dest);
+               }
+            } catch {
+               router.replace('/counselor/certificates');
+            }
+         }
+      };
+
+      void go();
+   }, [isAuthenticated, roleInStore, dispatch, router, showToast]);
 
    const loginInitialValues: LoginFormData = { email: '', password: '' };
    const registerInitialValues: RegisterFormData = {
@@ -89,26 +125,43 @@ export function LoginForm() {
             response = await authService.login(values);
          }
 
-         // API nên trả { token, role, ... }
          const { token, role: userRole } = response;
 
          if (token && userRole) {
-            // Lưu token -> ghi nhớ đăng nhập trên client
             storage.setToken(token);
-
-            // Lưu Redux
             dispatch(login({ token, role: userRole }));
-
-            // Set cookie role cho middleware (server-edge) nhận diện
             setCookie('role', String(userRole));
 
-            showToast('Đăng nhập thành công!', ToastType.Success);
+            if (userRole === Role.Counselor) {
+               try {
+                  const prof = await userService.getCounselorProfile();
+                  const raw = (prof as any)?.data?.status ?? (prof as any)?.status;
+                  const status = Number(raw);
+                  setCookie(
+                     'counselor_status',
+                     Number.isFinite(status) ? String(status) : '0'
+                  );
 
-            // Điều hướng theo vai trò
-            if (userRole === Role.Admin) {
-               router.push('/admin/dashboard');
+                  if (status === 2) {
+                     showToast('Tài khoản của bạn đã bị khóa.', ToastType.Error);
+                     storage.removeToken();
+                     setCookie('role', '');
+                     setCookie('counselor_status', '');
+                     dispatch(logout());
+                     router.replace('/login');
+                  } else {
+                     showToast('Đăng nhập thành công!', ToastType.Success);
+                     const dest = status === 1 ? '/counselor/dashboard' : '/counselor/certificates';
+                     router.replace(dest);
+                  }
+               } catch {
+                  setCookie('counselor_status', '0');
+                  showToast('Đăng nhập thành công!', ToastType.Success);
+                  router.replace('/counselor/certificates');
+               }
             } else {
-               router.push('/counselor/dashboard');
+               showToast('Đăng nhập thành công!', ToastType.Success);
+               router.replace('/admin/dashboard');
             }
          } else {
             throw new Error('Invalid response data');
@@ -117,8 +170,7 @@ export function LoginForm() {
          if (error?.response?.status === 401) {
             showToast('Sai tài khoản hoặc mật khẩu.', ToastType.Error);
          } else {
-            let errorMessage =
-               'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.';
+            let errorMessage = 'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.';
             if (error?.message === 'Invalid role in token') {
                errorMessage = 'Vai trò không hợp lệ.';
             } else if (
@@ -191,7 +243,6 @@ export function LoginForm() {
                   </TabsTrigger>
                </TabsList>
 
-               {/* ADMIN */}
                <TabsContent value={Role.Admin.toString()}>
                   <Formik
                      initialValues={loginInitialValues}
@@ -244,7 +295,6 @@ export function LoginForm() {
                   </Formik>
                </TabsContent>
 
-               {/* COUNSELOR */}
                <TabsContent value={Role.Counselor.toString()}>
                   {isRegistering ? (
                      <Formik
@@ -404,12 +454,6 @@ export function LoginForm() {
                </TabsContent>
             </Tabs>
          </CardContent>
-
-         <CardFooter className="flex justify-center text-sm text-muted-foreground">
-            <a href="/forgot-password" className="hover:underline">
-               Quên mật khẩu?
-            </a>
-         </CardFooter>
       </Card>
    );
 }

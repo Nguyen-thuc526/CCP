@@ -1,4 +1,3 @@
-// app/login/page.tsx
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Role } from '@/utils/enum';
@@ -7,13 +6,27 @@ import { LoginForm } from '@/components/auth/login-form';
 export const dynamic = 'force-dynamic';
 
 export default async function LoginPage() {
-   // ⬇️ cookies() là Promise => cần await
    const cookieStore = await cookies();
    const roleCookie = cookieStore.get('role')?.value;
+   const counselorStatusCookie = cookieStore.get('counselor_status')?.value;
 
    if (roleCookie) {
       const r = Number(roleCookie);
-      redirect(r === Role.Admin ? '/admin/dashboard' : '/counselor/dashboard');
+      if (r === Role.Admin) {
+         redirect('/admin/dashboard');
+      } else if (r === Role.Counselor) {
+         const status = Number(counselorStatusCookie);
+         if (status === 2) {
+            // Counselor bị block: xóa cookie và redirect về login
+            cookieStore.set('role', '');
+            cookieStore.set('counselor_status', '');
+            redirect('/login');
+         } else if (status === 0) {
+            redirect('/counselor/certificates');
+         } else {
+            redirect('/counselor/dashboard');
+         }
+      }
    }
 
    return (
