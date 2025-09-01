@@ -60,7 +60,6 @@ export function DashboardHeader() {
 
    const fetchSummary = async () => {
       try {
-         // noCache=true để chống cache mỗi lần poll
          const res = await NotificatiService.getSummary(true);
          const count = Number(
             res?.data?.unopenedCount ?? res?.unopenedCount ?? 0
@@ -77,7 +76,6 @@ export function DashboardHeader() {
       fetchSummary(); // lần đầu
 
       intervalRef.current = setInterval(() => {
-         // có thể bỏ điều kiện visible nếu muốn luôn cập nhật
          if (document.visibilityState === 'visible') fetchSummary();
       }, 2500);
 
@@ -95,6 +93,7 @@ export function DashboardHeader() {
    };
    const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
 
+   // --- Dịch nhãn
    const pageTranslations: Record<string, string> = {
       dashboard: 'Bảng điều khiển',
       notifications: 'Thông báo',
@@ -116,25 +115,46 @@ export function DashboardHeader() {
       booking: 'Quản lý Booking',
       withdraw: 'Rút tiền',
       blog: 'Quản lý Blog',
+      'survey-results': 'Kết quả khảo sát',
+      certificates: 'Chứng chỉ',
+      wallet: 'Ví',
    };
 
+   // --- Build breadcrumb như cũ
    const segments = pathname.split('/').filter(Boolean);
    const breadcrumbItems = segments.slice(1).map((segment, index) => {
       const isDetail =
          /^\d+$/.test(segment) ||
          /^[0-9a-fA-F-]{10,}$/.test(segment) ||
          /^[A-Za-z]+_\w+$/.test(segment);
+
       let label = pageTranslations[segment] || segment;
       if (isDetail) label = 'Chi tiết';
+
       return {
          label,
          href: '/' + segments.slice(0, index + 2).join('/'),
          isDetail,
       };
    });
+
    const filteredBreadcrumbs = breadcrumbItems.filter(
       (item, idx, arr) => !(item.isDetail && idx > 0 && arr[idx - 1].isDetail)
    );
+
+   // --- OVERRIDE: mọi crumb thuộc nhánh survey-results sẽ không dẫn tới 404,
+   // mà điều hướng về /{role}/appointments
+   const roleSegment =
+      segments[0] ?? (role === Role.Admin ? 'admin' : 'counselor');
+   const adjustedBreadcrumbs = filteredBreadcrumbs.map((b) => {
+      const isSurveyBranch =
+         b.href.endsWith('/survey-results') ||
+         b.href.endsWith('/survey-results/individual');
+
+      return isSurveyBranch
+         ? { ...b, href: `/${roleSegment}/appointments` }
+         : b;
+   });
 
    return (
       <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-4 border-b bg-white px-4 dark:bg-gray-950 lg:h-[60px] lg:px-6">
@@ -160,7 +180,7 @@ export function DashboardHeader() {
                   <BreadcrumbItem>
                      <BreadcrumbLink asChild>
                         <Link
-                           href={`/${role === Role.Admin ? 'admin' : 'counselor'}/dashboard`}
+                           href={`/${roleSegment}/dashboard`}
                            className="flex items-center"
                         >
                            <Home className="h-4 w-4 mr-1" />
@@ -169,7 +189,7 @@ export function DashboardHeader() {
                      </BreadcrumbLink>
                   </BreadcrumbItem>
 
-                  {filteredBreadcrumbs.map((item, idx) => (
+                  {adjustedBreadcrumbs.map((item, idx) => (
                      <React.Fragment key={idx}>
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
@@ -194,8 +214,6 @@ export function DashboardHeader() {
             >
                <Bell className="h-5 w-5" />
                <span className="sr-only">Thông báo</span>
-
-               {/* Badge luôn hiển thị (kể cả = 0) */}
                <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-medium text-white">
                   {unopenedCount}
                </span>

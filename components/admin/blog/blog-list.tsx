@@ -93,9 +93,6 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
                               Ngày
                            </th>
                            <th className="h-12 px-4 text-left align-middle font-medium">
-                              Lượt xem
-                           </th>
-                           <th className="h-12 px-4 text-left align-middle font-medium">
                               Trạng thái
                            </th>
                            <th className="h-12 px-4 text-left align-middle font-medium">
@@ -148,12 +145,7 @@ export function BlogList({ refreshTrigger }: BlogListProps) {
                                        'vi-VN'
                                     )}
                                  </td>
-                                 <td className="p-4 align-middle">
-                                    <div className="flex items-center gap-1">
-                                       <Eye className="h-4 w-4 text-muted-foreground" />
-                                       {post.views ?? 0}
-                                    </div>
-                                 </td>
+
                                  <td className="p-4 align-middle">
                                     <Badge
                                        variant={
