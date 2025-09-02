@@ -91,7 +91,6 @@ export default function CertificateDetailPage() {
    const [isLoading, setIsLoading] = useState(true);
    const [isProcessing, setIsProcessing] = useState(false);
    const [rejectReason, setRejectReason] = useState('');
-
    useEffect(() => {
       if (typeof id === 'string') {
          getCertificationById(id)
@@ -266,7 +265,7 @@ export default function CertificateDetailPage() {
                            {certificate.counselor.fullname}
                         </p>
                      </div>
-
+                     {/* 
                      {certificate.time && (
                         <div className="space-y-1">
                            <Label className="text-sm text-muted-foreground">
@@ -277,7 +276,7 @@ export default function CertificateDetailPage() {
                               {formatDate(certificate.time)}
                            </div>
                         </div>
-                     )}
+                     )} */}
 
                      <Separator />
 
@@ -301,48 +300,48 @@ export default function CertificateDetailPage() {
                   CertificateStatus.Pending,
                   CertificateStatus.NeedEdit,
                ].includes(certificate.status) && (
-                  <Card>
-                     <CardHeader>
-                        <CardTitle>Hành động</CardTitle>
-                        <CardDescription>
-                           Phê duyệt hoặc từ chối chứng chỉ này
-                        </CardDescription>
-                     </CardHeader>
-                     <CardContent className="space-y-4">
-                        <Button
-                           onClick={handleApprove}
-                           disabled={isProcessing}
-                           className="w-full"
-                        >
-                           <CheckCircle className="h-4 w-4 mr-2" />
-                           {isProcessing ? 'Đang xử lý...' : 'Duyệt chứng chỉ'}
-                        </Button>
-
-                        <Separator />
-
-                        <div className="space-y-2">
-                           <Label>Lý do từ chối</Label>
-                           <Textarea
-                              value={rejectReason}
-                              onChange={(e) => setRejectReason(e.target.value)}
-                              placeholder="Nhập lý do từ chối..."
-                              rows={3}
-                           />
+                     <Card>
+                        <CardHeader>
+                           <CardTitle>Hành động</CardTitle>
+                           <CardDescription>
+                              Phê duyệt hoặc từ chối chứng chỉ này
+                           </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
                            <Button
-                              variant="destructive"
-                              disabled={isProcessing || !rejectReason.trim()}
-                              onClick={handleReject}
+                              onClick={handleApprove}
+                              disabled={isProcessing}
                               className="w-full"
                            >
-                              <XCircle className="h-4 w-4 mr-2" />
-                              {isProcessing
-                                 ? 'Đang xử lý...'
-                                 : 'Từ chối chứng chỉ'}
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              {isProcessing ? 'Đang xử lý...' : 'Duyệt chứng chỉ'}
                            </Button>
-                        </div>
-                     </CardContent>
-                  </Card>
-               )}
+
+                           <Separator />
+
+                           <div className="space-y-2">
+                              <Label>Lý do từ chối</Label>
+                              <Textarea
+                                 value={rejectReason}
+                                 onChange={(e) => setRejectReason(e.target.value)}
+                                 placeholder="Nhập lý do từ chối..."
+                                 rows={3}
+                              />
+                              <Button
+                                 variant="destructive"
+                                 disabled={isProcessing || !rejectReason.trim()}
+                                 onClick={handleReject}
+                                 className="w-full"
+                              >
+                                 <XCircle className="h-4 w-4 mr-2" />
+                                 {isProcessing
+                                    ? 'Đang xử lý...'
+                                    : 'Từ chối chứng chỉ'}
+                              </Button>
+                           </div>
+                        </CardContent>
+                     </Card>
+                  )}
 
                {/* Lý do bị từ chối */}
                {certificate.status === CertificateStatus.NeedEdit &&

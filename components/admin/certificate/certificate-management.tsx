@@ -133,6 +133,8 @@ export default function CertificatesPage() {
       onRetry: fetchData,
    });
 
+console.log(certificates)
+
    if (statusUI) return <div className="py-10">{statusUI}</div>;
 
    return (
