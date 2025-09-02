@@ -234,47 +234,52 @@ export default function CallSidebar({
       setFormErrors({ problemSummary: '', guides: '' });
    }, [notes]);
 
-   const handleSaveAndSend = async () => {
-      const errors: FormErrors = { problemSummary: '', guides: '' };
-      if (!noteForm.problemSummary.trim())
-         errors.problemSummary = 'Tóm tắt vấn đề là bắt buộc';
-      if (!noteForm.guides.trim()) errors.guides = 'Hướng dẫn là bắt buộc';
-      setFormErrors(errors);
-      if (errors.problemSummary || errors.guides) return;
+ const handleSaveAndSend = async () => {
+  const errors: FormErrors = { problemSummary: '', guides: '' };
+  if (!noteForm.problemSummary.trim())
+    errors.problemSummary = 'Tóm tắt vấn đề là bắt buộc';
+  if (!noteForm.guides.trim()) errors.guides = 'Hướng dẫn là bắt buộc';
+  setFormErrors(errors);
+  if (errors.problemSummary || errors.guides) return;
 
-      setIsSending(true);
-      try {
-         const metadataUpdates = [
-            bookingService.updateNote({
-               bookingId,
-               problemSummary: noteForm.problemSummary,
-               problemAnalysis: noteForm.problemAnalysis,
-               guides: noteForm.guides,
-            }),
-            bookingService.updateReportMetadata({
-               bookingId,
-               reportMetadata: bookingInfo?.type === 'individual' ? '1' : '3',
-            }),
-         ];
+  setIsSending(true);
+  try {
+    // Luôn cập nhật note
+    const metadataUpdates: Promise<any>[] = [
+      bookingService.updateNote({
+        bookingId,
+        problemSummary: noteForm.problemSummary,
+        problemAnalysis: noteForm.problemAnalysis,
+        guides: noteForm.guides,
+      }),
+    ];
 
-         if (bookingInfo?.type === 'couple' && coupleData) {
-            metadataUpdates.push(
-               bookingService.updateReportMetadata({
-                  bookingId,
-                  reportMetadata: '4',
-               })
-            );
-         }
+    // Xác định duy nhất 1 giá trị reportMetadata cần gửi
+    let reportMetadata: string | null = null;
+    if (bookingInfo?.type === 'individual') {
+      reportMetadata = '1';
+    } else if (bookingInfo?.type === 'couple') {
+      reportMetadata = coupleData ? '4' : '3'; // Nếu có coupleData => chỉ gửi 4
+    }
 
-         await Promise.all(metadataUpdates);
-         await onSaveNotes(noteForm);
-         onToggle(); // Đóng sidebar sau khi lưu thành công
-      } catch (error) {
-         showToast('Có lỗi xảy ra khi lưu và gửi', ToastType.Error);
-      } finally {
-         setIsSending(false);
-      }
-   };
+    if (reportMetadata) {
+      metadataUpdates.push(
+        bookingService.updateReportMetadata({
+          bookingId,
+          reportMetadata,
+        })
+      );
+    }
+
+    await Promise.all(metadataUpdates);
+    await onSaveNotes(noteForm);
+    onToggle(); // Đóng sidebar sau khi lưu thành công
+  } catch (error) {
+    showToast('Có lỗi xảy ra khi lưu và gửi', ToastType.Error);
+  } finally {
+    setIsSending(false);
+  }
+};
 
    const toggleSection = (section: keyof typeof collapsedSections) => {
       setCollapsedSections((prev) => ({ ...prev, [section]: !prev[section] }));

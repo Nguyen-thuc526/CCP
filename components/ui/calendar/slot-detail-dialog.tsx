@@ -276,7 +276,7 @@ export function SlotDetailDialog({
                            >
                               Đóng
                            </Button>
-                           <Button
+                           {/* <Button
                               variant="secondary"
                               onClick={() => setIsEditing(true)}
                               className="min-w-[100px] flex items-center gap-2"
@@ -284,7 +284,7 @@ export function SlotDetailDialog({
                            >
                               <Edit3 className="h-4 w-4" />
                               Chỉnh sửa
-                           </Button>
+                           </Button> */}
                            <Button
                               variant="destructive"
                               onClick={handleDelete}
