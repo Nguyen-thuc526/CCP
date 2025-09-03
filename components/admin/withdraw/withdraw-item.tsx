@@ -138,7 +138,7 @@ export function WithdrawItem({
                <div className="space-y-2">
                   <div className="flex items-center gap-2">
                      <span className="text-sm text-muted-foreground">STK:</span>
-                     <span className="font-mono">{withdraw.stk}</span>
+                     <span className="">{withdraw.stk}</span>
                   </div>
                   <div className="flex items-center gap-2">
                      <Calendar className="w-4 h-4 text-muted-foreground" />
