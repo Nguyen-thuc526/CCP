@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
    Card,
@@ -12,28 +12,54 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useSurveys } from '@/hooks/use-survey';
 import { PersonalityTabContent } from './person-type-content';
+import { useErrorLoadingWithUI } from '@/hooks/useErrorLoading';
 
 export function PersonalityManagementContainer() {
-   const {
-      surveys,
-      loading: surveysLoading,
-      refetch: refetchSurveys,
-   } = useSurveys();
+   const { surveys, loading: surveysLoading, refetch: refetchSurveys, error } =
+      useSurveys();
+
    const [activeTab, setActiveTab] = useState<string>('');
-   if (surveys.length > 0 && !activeTab) {
-      setActiveTab(surveys[0].id);
-   }
+   const {
+      startLoading,
+      stopLoading,
+      setErrorMessage,
+      renderStatus,
+   } = useErrorLoadingWithUI();
+
+   // Sync external hook state into our UI hook
+   useEffect(() => {
+      if (surveysLoading) {
+         startLoading();
+      } else {
+         stopLoading();
+      }
+   }, [surveysLoading, startLoading, stopLoading]);
+
+   useEffect(() => {
+      if (error) {
+         setErrorMessage(error);
+      }
+   }, [error, setErrorMessage]);
+
+   // Handle setting first active tab
+   useEffect(() => {
+      if (surveys && surveys.length > 0 && !activeTab) {
+         setActiveTab(surveys[0].id);
+      }
+   }, [surveys, activeTab]);
 
    const handleRetry = () => {
       refetchSurveys();
    };
 
-   if (surveysLoading) {
-      return (
-         <div className="flex items-center justify-center p-6 text-muted-foreground">
-            Đang tải khảo sát...
-         </div>
-      );
+   // Render loading / error states from the hook
+   const statusUI = renderStatus({
+      onRetry: handleRetry,
+      retryText: 'Thử lại',
+   });
+
+   if (statusUI) {
+      return <div className="p-6">{statusUI}</div>;
    }
 
    if (!surveys || surveys.length === 0) {
@@ -43,8 +69,7 @@ export function PersonalityManagementContainer() {
                <CardHeader className="text-center py-12">
                   <CardTitle>Không có khảo sát nào</CardTitle>
                   <CardDescription>
-                     Hiện tại chưa có khảo sát nào được kích hoạt trong hệ
-                     thống.
+                     Hiện tại chưa có khảo sát nào được kích hoạt trong hệ thống.
                   </CardDescription>
                   <div className="mt-6">
                      <Button onClick={handleRetry}>Thử lại</Button>
@@ -74,7 +99,10 @@ export function PersonalityManagementContainer() {
             className="space-y-6"
          >
             <TabsList
-               className={`grid w-full grid-cols-${Math.min(surveys.length, 4)}`}
+               className={`grid w-full grid-cols-${Math.min(
+                  surveys.length,
+                  4
+               )}`}
             >
                {surveys.map((survey) => (
                   <TabsTrigger
