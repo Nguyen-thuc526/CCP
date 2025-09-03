@@ -311,6 +311,7 @@ export function AdminCourseDetail({ courseId }: AdminCourseDetailProps) {
          setIsLoading(false);
       }
    };
+   
 
    const handleSaveContent = async () => {
       if (!course) return;
