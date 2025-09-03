@@ -414,7 +414,15 @@ export function BookingTableUpdated({
                                        title="Xem kết quả khảo sát cặp đôi"
                                     >
                                        <Link
-                                          href={`/counselor/survey-results/couple/${booking.id}?memberName=${encodeURIComponent(booking.member.fullname)}&partnerName=${encodeURIComponent(booking.member2?.fullname || '')}`}
+                                          href={`/counselor/survey-results/couple/${booking.id}?memberName=${encodeURIComponent(
+                                             booking.member.fullname
+                                          )}&partnerName=${encodeURIComponent(
+                                             booking.member2?.fullname || ''
+                                          )}&memberId=${encodeURIComponent(
+                                             booking.member.id
+                                          )}&partnerId=${encodeURIComponent(
+                                             booking.member2?.id || ''
+                                          )}`}
                                        >
                                           <Users className="w-4 h-4" />
                                        </Link>

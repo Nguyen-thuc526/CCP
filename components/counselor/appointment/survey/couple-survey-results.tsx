@@ -1,5 +1,6 @@
-
+// couple-survey-results.tsx
 "use client"
+
 import { Button as UIButton } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge as UIBadge } from "@/components/ui/badge"
@@ -23,6 +24,7 @@ import { format as formatFn } from "date-fns"
 import { vi as viLocale } from "date-fns/locale"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { bookingService } from "@/services/bookingService"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import html2canvas from "html2canvas"
 import jsPDF from "jspdf"
@@ -49,41 +51,7 @@ interface SurveyResult {
   typeDetail?: PersonTypeDetail
 }
 
-interface CoupleData {
-  id: string
-  isOwned: boolean
-  member: {
-    id: string
-    accountId: string
-    fullname: string
-    avatar: string | null
-    phone: string | null
-    dob: string | null
-    mbti: string | null
-    disc: string | null
-    loveLanguage: string | null
-    bigFive: string | null
-    gender: string | null
-    status: number
-  }
-  member1: {
-    id: string
-    accountId: string
-    fullname: string
-    avatar: string | null
-    phone: string | null
-    dob: string | null
-    mbti: string | null
-    disc: string | null
-    loveLanguage: string | null
-    bigFive: string | null
-    gender: string | null
-    status: number
-  }
-  createAt: string
-  status: number
-  accessCode: string
-}
+// No couple meta fetch; we only use member IDs to fetch surveys
 
 interface CoupleSurveyResultsProps {
   memberName: string
@@ -92,7 +60,6 @@ interface CoupleSurveyResultsProps {
 }
 
 interface MemberSurveysProps {
-  member: CoupleData["member"] | CoupleData["member1"]
   resultsBySurvey: Partial<Record<SurveyId, SurveyResult[]>>
   title: string
 }
@@ -308,7 +275,7 @@ function renderCompactSurveyCard(result: SurveyResult, showDate = false) {
   )
 }
 
-function MemberSurveys({ member, resultsBySurvey, title }: MemberSurveysProps) {
+function MemberSurveys({ resultsBySurvey, title }: MemberSurveysProps) {
   const resultsByDate = useMemo(() => {
     const dateGroups: Record<string, SurveyResult[]> = {}
 
@@ -430,10 +397,13 @@ function MemberSurveys({ member, resultsBySurvey, title }: MemberSurveysProps) {
 export function CoupleSurveyResults({ memberName, partnerName, bookingId }: CoupleSurveyResultsProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [coupleData, setCoupleData] = useState<CoupleData | null>(null)
   const [memberResultsBySurvey, setMemberResultsBySurvey] = useState<Partial<Record<SurveyId, SurveyResult[]>>>({})
   const [partnerResultsBySurvey, setPartnerResultsBySurvey] = useState<Partial<Record<SurveyId, SurveyResult[]>>>({})
   const [activeTab, setActiveTab] = useState<"member" | "partner">("member")
+
+  const searchParams = useSearchParams()
+  const memberId = searchParams.get("memberId") || undefined
+  const partnerId = searchParams.get("partnerId") || undefined
 
   const exportRef = useRef<HTMLDivElement | null>(null)
   const [exporting, setExporting] = useState(false)
@@ -481,77 +451,73 @@ export function CoupleSurveyResults({ memberName, partnerName, bookingId }: Coup
   useEffect(() => {
     let cancelled = false
 
-    async function fetchCoupleData() {
+    async function fetchData() {
       setLoading(true)
       setError(null)
 
       try {
-        const response = await bookingService.getCoupleByBooking(bookingId)
-        if (cancelled) return
+        if (!memberId) throw new Error("Thiếu memberId")
 
-        const data = response?.data
-        setCoupleData(data || null)
-
-        if (data) {
-          // Fetch survey history for member
-          const memberPairs = await Promise.all(
-            SURVEY_IDS.map(async (sid) => {
-              const safeFetch = async () => {
-                try {
-                  const res = await bookingService.personTypeBeforeBooking({
-                    memberId: data.member.id,
-                    surveyId: sid,
-                    bookingId,
-                  })
-                  return res?.data
-                } catch (e: any) {
-                  const code = e?.response?.status
-                  if (code === 404 || code === 204 || code === 400) return null
-                  throw e
-                }
-              }
-
-              const raw = await safeFetch()
-              const items = normalizePersonTypeResponses(sid, raw)
-              items.sort((a, b) => new Date(b.createAt).getTime() - new Date(a.createAt).getTime())
-
-              await Promise.all(
-                items.map(async (it) => {
-                  if (!it.result) return
-                  try {
-                    const r = await bookingService.getPersonTypeByName({
-                      name: it.result,
-                      surveyId: sid,
-                    })
-                    const d = r?.data as any
-                    if (d) {
-                      it.typeDetail = {
-                        name: d.name ?? d.result ?? it.result,
-                        description: d.description ?? null,
-                        detail: d.detail ?? null,
-                        image: d.image ?? null,
-                        scores: d.scores ?? {},
-                      }
-                    }
-                  } catch {}
+        // Fetch survey history for member
+        const memberPairs = await Promise.all(
+          SURVEY_IDS.map(async (sid) => {
+            const safeFetch = async () => {
+              try {
+                const res = await bookingService.personTypeBeforeBooking({
+                  memberId,
+                  surveyId: sid,
+                  bookingId,
                 })
-              )
+                return res?.data
+              } catch (e: any) {
+                const code = e?.response?.status
+                if (code === 404 || code === 204 || code === 400) return null
+                throw e
+              }
+            }
 
-              return [sid, items] as const
-            })
-          )
+            const raw = await safeFetch()
+            const items = normalizePersonTypeResponses(sid, raw)
+            items.sort((a, b) => new Date(b.createAt).getTime() - new Date(a.createAt).getTime())
 
-          const memberGrouped: Partial<Record<SurveyId, SurveyResult[]>> = {}
-          memberPairs.forEach(([sid, items]) => (memberGrouped[sid] = items))
-          if (!cancelled) setMemberResultsBySurvey(memberGrouped)
+            await Promise.all(
+              items.map(async (it) => {
+                if (!it.result) return
+                try {
+                  const r = await bookingService.getPersonTypeByName({
+                    name: it.result,
+                    surveyId: sid,
+                  })
+                  const d = r?.data as any
+                  if (d) {
+                    it.typeDetail = {
+                      name: d.name ?? d.result ?? it.result,
+                      description: d.description ?? null,
+                      detail: d.detail ?? null,
+                      image: d.image ?? null,
+                      scores: d.scores ?? {},
+                    }
+                  }
+                } catch {}
+              })
+            )
 
+            return [sid, items] as const
+          })
+        )
+
+        const memberGrouped: Partial<Record<SurveyId, SurveyResult[]>> = {}
+        memberPairs.forEach(([sid, items]) => (memberGrouped[sid] = items))
+        if (!cancelled) setMemberResultsBySurvey(memberGrouped)
+
+        if (partnerId) {
           // Fetch survey history for partner
           const partnerPairs = await Promise.all(
             SURVEY_IDS.map(async (sid) => {
               const safeFetch = async () => {
                 try {
                   const res = await bookingService.personTypeBeforeBooking({
-                    memberId: data.member1.id,
+                    memberId: partnerId,
                     surveyId: sid,
                     bookingId,
                   })
@@ -606,11 +572,11 @@ export function CoupleSurveyResults({ memberName, partnerName, bookingId }: Coup
       }
     }
 
-    fetchCoupleData()
+    fetchData()
     return () => {
       cancelled = true
     }
-  }, [bookingId])
+  }, [bookingId, memberId, partnerId])
 
   const hasAnyData = useMemo(() => {
     return (
@@ -644,11 +610,7 @@ export function CoupleSurveyResults({ memberName, partnerName, bookingId }: Coup
           {memberName} & {partnerName}
         </span>
       </div>
-      {coupleData && (
-        <div className="text-sm text-gray-500">
-          Ngày tạo: {formatDate(coupleData.createAt)} • Mã truy cập: {coupleData.accessCode}
-        </div>
-      )}
+      {/* No couple meta shown since we don't fetch couple data here */}
 
       <div ref={exportRef} className="space-y-6">
         {loading ? (
@@ -698,22 +660,16 @@ export function CoupleSurveyResults({ memberName, partnerName, bookingId }: Coup
             </div>
             <div>
               <div className={activeTab === "member" ? "block" : "hidden"}>
-                {coupleData && (
-                  <MemberSurveys
-                    member={coupleData.member}
-                    resultsBySurvey={memberResultsBySurvey}
-                    title={memberName}
-                  />
-                )}
+                <MemberSurveys
+                  resultsBySurvey={memberResultsBySurvey}
+                  title={memberName}
+                />
               </div>
               <div className={activeTab === "partner" ? "block" : "hidden"}>
-                {coupleData && (
-                  <MemberSurveys
-                    member={coupleData.member1}
-                    resultsBySurvey={partnerResultsBySurvey}
-                    title={partnerName}
-                  />
-                )}
+                <MemberSurveys
+                  resultsBySurvey={partnerResultsBySurvey}
+                  title={partnerName}
+                />
               </div>
             </div>
           </div>
