@@ -155,4 +155,14 @@ export const CourseService = {
       const response = await axiosInstance.delete(`/api/Course/${chapterId}`);
       return response.data;
    },
+   async removeSubCategoryFromCourse(data: {
+      courseId: string;
+      subCategoryId: string;
+   }): Promise<{ success: boolean }> {
+      const response = await axiosInstance.delete(
+         '/api/Course/remove-subcate',
+         { data }
+      );
+      return response.data;
+   },
 };

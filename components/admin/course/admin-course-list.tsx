@@ -167,10 +167,7 @@ export function AdminCourseList() {
 
 "
                   >
-                     <div className="flex items-center justify-between text-sm">
-                        <span>{course.chapters} chương</span>
-                        <span>{course.enrollments} học viên</span>
-                     </div>
+
                      {course.subCategories.length > 0 && (
                         <div className="flex flex-wrap gap-2 text-sm">
                            {course.subCategories.map((sub, index) => (

@@ -273,17 +273,32 @@ export function AdminCourseDetail({ courseId }: AdminCourseDetailProps) {
       if (!course) return;
       setIsLoading(true);
       try {
+         // các sub mới được chọn (cần ADD)
          const addedSubCategories = tempSubCategories.filter(
             (id) => !course.subCategories.includes(id)
          );
-         await Promise.all(
-            addedSubCategories.map((subCategoryId) =>
+
+         // các sub bỏ chọn (cần REMOVE)
+         const removedSubCategories = course.subCategories.filter(
+            (id) => !tempSubCategories.includes(id)
+         );
+
+         await Promise.all([
+            // ADD
+            ...addedSubCategories.map((subCategoryId) =>
                CourseService.addSubCategoryToCourse({
-                  courseID: courseId,
+                  courseID: courseId, // API add hiện có
                   subCategoryID: subCategoryId,
                })
-            )
-         );
+            ),
+            // REMOVE
+            ...removedSubCategories.map((subCategoryId) =>
+               CourseService.removeSubCategoryFromCourse({
+                  courseId: courseId, // API remove-subcate (Swagger)
+                  subCategoryId: subCategoryId,
+               })
+            ),
+         ]);
 
          setCourse((prev) =>
             prev ? { ...prev, subCategories: tempSubCategories } : prev
