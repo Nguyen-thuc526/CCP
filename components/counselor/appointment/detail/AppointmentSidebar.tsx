@@ -196,7 +196,7 @@ const AppointmentSidebar: React.FC<AppointmentSidebarProps> = ({
             <CardContent className="space-y-3">
                {effectiveStatus === BookingStatus.Confirm && (
                   <>
-                     {canJoin ? (
+                     {/* {canJoin ? ( */}
                         <Button
                            size="sm"
                            className="bg-green-600 hover:bg-green-700 w-full"
@@ -209,7 +209,7 @@ const AppointmentSidebar: React.FC<AppointmentSidebarProps> = ({
                               Tham gia
                            </Link>
                         </Button>
-                     ) : (
+                     {/* ) : (
                         <Button
                            size="sm"
                            disabled
@@ -220,7 +220,7 @@ const AppointmentSidebar: React.FC<AppointmentSidebarProps> = ({
                               ? formatCountdown(timeUntilStart)
                               : 'Chuẩn bị...'}
                         </Button>
-                     )}
+                     )} */}
 
                      <Button
                         variant="destructive"
